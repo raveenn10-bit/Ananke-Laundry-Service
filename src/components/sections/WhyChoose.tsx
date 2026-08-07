@@ -54,20 +54,21 @@ export default function WhyChoose() {
           </motion.p>
         </div>
 
-        <div ref={ref} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
+        <div ref={ref} className="flex overflow-x-auto snap-x snap-mandatory gap-4 pb-6 -mx-4 px-4 sm:mx-0 sm:px-0 sm:grid sm:grid-cols-2 lg:grid-cols-4 md:gap-8 no-scrollbar scrollbar-none" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
           {features.map((feature, idx) => (
             <motion.div
               key={idx}
               initial={{ opacity: 0, y: 30 }}
               animate={isInView ? { opacity: 1, y: 0 } : {}}
-              transition={{ delay: 0.1 * idx, duration: 0.5 }}
-              className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-6 hover:bg-white/10 transition-colors"
+              whileHover={{ y: -6, scale: 1.02 }}
+              transition={{ delay: 0.08 * idx, duration: 0.45 }}
+              className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-6 hover:bg-white/10 hover:border-accent/40 transition-all min-w-[240px] sm:min-w-0 snap-start flex-shrink-0 sm:flex-shrink group"
             >
-              <div className="w-12 h-12 rounded-full border border-olive/30 bg-olive/20 flex items-center justify-center text-olive mb-4">
-                <feature.icon className="w-6 h-6 text-accent" />
+              <div className="w-12 h-12 rounded-2xl border border-olive/40 bg-olive/20 flex items-center justify-center text-olive mb-4 group-hover:bg-accent group-hover:text-primary transition-all shadow-inner">
+                <feature.icon className="w-6 h-6 text-accent group-hover:text-primary transition-colors" />
               </div>
-              <h3 className="font-semibold text-lg mb-2">{feature.title}</h3>
-              <p className="text-white/60 text-sm">{feature.desc}</p>
+              <h3 className="font-semibold text-lg mb-2 text-white group-hover:text-accent transition-colors">{feature.title}</h3>
+              <p className="text-white/70 text-sm leading-relaxed">{feature.desc}</p>
             </motion.div>
           ))}
         </div>

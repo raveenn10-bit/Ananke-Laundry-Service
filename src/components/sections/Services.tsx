@@ -58,16 +58,16 @@ export default function Services() {
           </motion.a>
         </div>
 
-        <div ref={ref} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div ref={ref} className="flex overflow-x-auto snap-x snap-mandatory gap-5 pb-6 -mx-4 px-4 sm:mx-0 sm:px-0 sm:grid sm:grid-cols-2 lg:grid-cols-4 sm:gap-8 no-scrollbar scrollbar-none" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
           {services.map((service, idx) => (
             <motion.div
               key={idx}
               initial={{ opacity: 0, y: 30 }}
               animate={isInView ? { opacity: 1, y: 0 } : {}}
               transition={{ delay: 0.1 * idx, duration: 0.5 }}
-              className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-all group flex flex-col"
+              className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-all group flex flex-col min-w-[270px] sm:min-w-0 snap-start flex-shrink-0 sm:flex-shrink"
             >
-              <div className="relative h-[200px] overflow-hidden bg-gray-200">
+              <div className="relative h-[180px] sm:h-[200px] overflow-hidden bg-gray-200">
                 <Image
                   src={service.image}
                   alt={service.title}

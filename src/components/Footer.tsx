@@ -31,17 +31,20 @@ const SERVICES = [
 
 export default function Footer() {
   return (
-    <footer className="bg-primary text-cream pt-16 pb-8 border-t border-white/10">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-12">
-          {/* Col 1 */}
+    <footer className="bg-primary text-cream pt-16 pb-8 border-t border-white/10 relative overflow-hidden">
+      {/* Ambient background glow */}
+      <div className="absolute top-0 right-1/4 w-96 h-96 bg-olive/10 rounded-full blur-3xl pointer-events-none" />
+
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-12 mb-12">
+          {/* Col 1: Logo & Tagline - spans 2 columns on mobile */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="flex flex-col gap-6"
+            className="col-span-2 md:col-span-1 flex flex-col gap-5"
           >
-            <div className="relative h-[60px] w-full max-w-[200px]">
+            <div className="relative h-[55px] w-full max-w-[180px]">
               <Image
                 src="/logo.png"
                 alt="Ananke Laundry Logo"
@@ -49,34 +52,35 @@ export default function Footer() {
                 className="object-contain object-left"
               />
             </div>
-            <p className="font-body text-cream/80 leading-relaxed">
+            <p className="font-body text-cream/80 text-sm leading-relaxed">
               Premium laundry and garment care services in Unawatuna, Sri Lanka. Freshness in Every Wash.
             </p>
-            <div className="flex gap-4">
-              <a href="#" aria-label="Facebook" className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-accent hover:text-primary transition-colors">
+            <div className="flex gap-3">
+              <a href="#" aria-label="Facebook" className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center hover:bg-accent hover:text-primary transition-all hover:scale-110">
                 <FacebookIcon />
               </a>
-              <a href="#" aria-label="Instagram" className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-accent hover:text-primary transition-colors">
+              <a href="#" aria-label="Instagram" className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center hover:bg-accent hover:text-primary transition-all hover:scale-110">
                 <InstagramIcon />
               </a>
-              <a href="https://wa.me/94742697909" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp" className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-accent hover:text-primary transition-colors">
-                <MessageCircle size={20} />
+              <a href="https://wa.me/94742697909" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp" className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center hover:bg-accent hover:text-primary transition-all hover:scale-110">
+                <MessageCircle size={18} />
               </a>
             </div>
           </motion.div>
 
-          {/* Col 2 */}
+          {/* Col 2: Quick Links - 1 column on mobile */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.1 }}
+            className="col-span-1"
           >
-            <h4 className="font-heading text-xl font-semibold mb-6">Quick Links</h4>
-            <ul className="flex flex-col gap-3">
+            <h4 className="font-heading text-lg font-semibold mb-4 text-accent">Quick Links</h4>
+            <ul className="flex flex-col gap-2.5">
               {QUICK_LINKS.map((link) => (
                 <li key={link.name}>
-                  <Link href={link.href} className="font-body text-cream/70 hover:text-accent transition-colors">
+                  <Link href={link.href} className="font-body text-cream/70 hover:text-accent text-sm transition-colors hover:translate-x-1 inline-block">
                     {link.name}
                   </Link>
                 </li>
@@ -84,18 +88,19 @@ export default function Footer() {
             </ul>
           </motion.div>
 
-          {/* Col 3 */}
+          {/* Col 3: Services - 1 column on mobile */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.2 }}
+            className="col-span-1"
           >
-            <h4 className="font-heading text-xl font-semibold mb-6">Services</h4>
-            <ul className="flex flex-col gap-3">
+            <h4 className="font-heading text-lg font-semibold mb-4 text-accent">Services</h4>
+            <ul className="flex flex-col gap-2.5">
               {SERVICES.map((service) => (
                 <li key={service.name}>
-                  <Link href={service.href} className="font-body text-cream/70 hover:text-accent transition-colors">
+                  <Link href={service.href} className="font-body text-cream/70 hover:text-accent text-sm transition-colors hover:translate-x-1 inline-block">
                     {service.name}
                   </Link>
                 </li>
@@ -103,36 +108,38 @@ export default function Footer() {
             </ul>
           </motion.div>
 
-          {/* Col 4 */}
+          {/* Col 4: Newsletter - spans 2 columns on mobile */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.3 }}
+            className="col-span-2 md:col-span-1"
           >
-            <h4 className="font-heading text-xl font-semibold mb-6">Stay Updated</h4>
-            <p className="font-body text-cream/80 mb-4 text-sm">
+            <h4 className="font-heading text-lg font-semibold mb-4 text-accent">Stay Updated</h4>
+            <p className="font-body text-cream/80 mb-4 text-xs sm:text-sm">
               Subscribe to our newsletter for tips on garment care and special offers.
             </p>
-            <form className="flex flex-col gap-3" onSubmit={(e) => e.preventDefault()}>
+            <form className="flex flex-col gap-2.5" onSubmit={(e) => e.preventDefault()}>
               <input
                 type="email"
                 placeholder="Your email address"
-                className="bg-white/10 border border-white/20 rounded-md px-4 py-2 font-body text-cream placeholder:text-cream/50 focus:outline-none focus:border-accent"
+                className="bg-white/10 border border-white/20 rounded-xl px-4 py-2.5 font-body text-sm text-cream placeholder:text-cream/50 focus:outline-none focus:border-accent transition-colors"
                 required
               />
-              <button
+              <motion.button
+                whileTap={{ scale: 0.98 }}
                 type="submit"
-                className="bg-accent hover:bg-olive text-primary font-bold py-2 px-4 rounded-md transition-colors font-body"
+                className="bg-accent hover:bg-olive text-primary font-bold py-2.5 px-4 rounded-xl transition-all shadow-md font-body text-sm"
               >
                 Subscribe
-              </button>
+              </motion.button>
             </form>
           </motion.div>
         </div>
 
         <div className="pt-8 border-t border-white/10 text-center">
-          <p className="font-body text-cream/50 text-sm">
+          <p className="font-body text-cream/50 text-xs sm:text-sm">
             &copy; {new Date().getFullYear()} Ananke Laundry. All Rights Reserved.
           </p>
         </div>
