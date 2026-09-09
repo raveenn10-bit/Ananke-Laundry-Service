@@ -56,20 +56,29 @@ export default function Commercial() {
           </p>
         </div>
 
-        {/* Customer Categories Grid */}
+        {/* Customer Categories Grid with Mobile Left-to-Right Scroll */}
         <div className="mb-14">
-          <h3 className="text-xs uppercase tracking-widest text-accent font-semibold mb-6">
-            Who We Serve in Southern Sri Lanka
-          </h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-xs uppercase tracking-widest text-accent font-semibold">
+              Who We Serve in Southern Sri Lanka
+            </h3>
+            <span className="sm:hidden text-[11px] text-accent/80 font-medium animate-pulse">
+              &larr; Swipe left to right &rarr;
+            </span>
+          </div>
+
+          <div
+            className="flex overflow-x-auto snap-x snap-mandatory gap-4 pb-4 -mx-4 px-4 sm:mx-0 sm:px-0 sm:grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 no-scrollbar scrollbar-none"
+            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+          >
             {hospitalityClients.map((client, idx) => (
               <motion.div
                 key={client.name}
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 0, y: 25 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: idx * 0.05 }}
-                className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-5 hover:bg-white/10 hover:border-accent/40 transition-all duration-300 flex flex-col justify-between"
+                viewport={{ once: false, amount: 0.15, margin: '-40px' }}
+                transition={{ delay: (idx % 4) * 0.06, duration: 0.45 }}
+                className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-5 hover:bg-white/10 hover:border-accent/40 transition-all duration-300 flex flex-col justify-between min-w-[270px] sm:min-w-0 snap-start flex-shrink-0 sm:flex-shrink"
               >
                 <div>
                   <div className="w-10 h-10 rounded-xl bg-olive/30 text-accent flex items-center justify-center mb-3.5 border border-olive/40">
@@ -87,11 +96,11 @@ export default function Commercial() {
 
             {/* Linen Categories Card */}
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 25 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.35 }}
-              className="bg-gradient-to-br from-olive/40 to-primary/80 border border-accent/30 rounded-2xl p-5 flex flex-col justify-between"
+              viewport={{ once: false, amount: 0.15, margin: '-40px' }}
+              transition={{ delay: 0.25, duration: 0.45 }}
+              className="bg-gradient-to-br from-olive/40 to-primary/80 border border-accent/30 rounded-2xl p-5 flex flex-col justify-between min-w-[270px] sm:min-w-0 snap-start flex-shrink-0 sm:flex-shrink"
             >
               <div>
                 <span className="text-accent text-xs font-semibold uppercase tracking-wider block mb-2">

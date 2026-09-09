@@ -104,8 +104,16 @@ export default function Pricing() {
           ))}
         </div>
 
+        {/* Mobile Swipe Hint */}
+        <div className="flex sm:hidden items-center justify-center gap-2 text-xs font-semibold text-olive mb-4 animate-pulse">
+          <span>&larr; Swipe packages left to right &rarr;</span>
+        </div>
+
         {/* Tier Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 max-w-6xl mx-auto gap-6">
+        <div
+          className="flex overflow-x-auto snap-x snap-mandatory gap-6 pb-6 -mx-4 px-4 sm:mx-0 sm:px-0 sm:grid sm:grid-cols-2 lg:grid-cols-3 max-w-6xl mx-auto sm:gap-6 no-scrollbar scrollbar-none"
+          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+        >
           <AnimatePresence mode="popLayout">
             {filteredTiers.map((tier, idx) => (
               <motion.div
@@ -116,7 +124,7 @@ export default function Pricing() {
                 exit={{ opacity: 0, scale: 0.95, y: 20 }}
                 whileHover={{ y: -6 }}
                 transition={{ duration: 0.35, delay: idx * 0.06 }}
-                className="bg-white rounded-3xl p-6 sm:p-7 shadow-sm border border-gray-100/90 hover:border-olive/40 hover:shadow-lg transition-all flex flex-col justify-between"
+                className="bg-white rounded-3xl p-6 sm:p-7 shadow-sm border border-gray-100/90 hover:border-olive/40 hover:shadow-lg transition-all flex flex-col justify-between min-w-[285px] sm:min-w-0 snap-start flex-shrink-0 sm:flex-shrink"
               >
                 <div>
                   <div className="inline-block bg-olive/10 text-olive text-[11px] font-semibold uppercase tracking-wider px-3 py-1 rounded-full mb-3">

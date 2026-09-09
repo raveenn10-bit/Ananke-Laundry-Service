@@ -14,7 +14,7 @@ import Contact from '@/components/sections/Contact';
 
 export default function Home() {
   return (
-    <main>
+    <>
       <Hero />
       <InfoBar />
       <Services />
@@ -28,6 +28,6 @@ export default function Home() {
       <Reviews />
       <FAQ />
       <Contact />
-    </main>
+    </>
   );
 }

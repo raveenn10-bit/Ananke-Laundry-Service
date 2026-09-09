@@ -3,27 +3,28 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { Menu, X, Phone, MapPin } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const NAV_LINKS = [
-  { name: 'Home', href: '/#home' },
-  { name: 'About', href: '/#about' },
-  { name: 'Services', href: '/#services' },
-  { name: 'Commercial Laundry', href: '/#commercial' },
-  { name: 'Why Us', href: '/#why-choose' },
-  { name: 'Facility', href: '/#gallery' },
-  { name: 'Contact', href: '/#contact' },
+  { name: 'Home', href: '/' },
+  { name: 'About', href: '/about' },
+  { name: 'Services', href: '/services' },
+  { name: 'Commercial', href: '/commercial' },
+  { name: 'Pricing', href: '/pricing' },
+  { name: 'Facility', href: '/gallery' },
+  { name: 'Contact', href: '/contact' },
 ];
 
 export default function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [activeHash, setActiveHash] = useState('/#home');
+  const pathname = usePathname();
 
   useEffect(() => {
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 50);
+      setIsScrolled(window.scrollY > 30);
     };
 
     window.addEventListener('scroll', handleScroll);
@@ -31,11 +32,12 @@ export default function Header() {
   }, []);
 
   const closeMenu = () => setIsMenuOpen(false);
+  const isSolidBg = isScrolled || (pathname && pathname !== '/');
 
   return (
     <header
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        isScrolled ? 'bg-primary/95 backdrop-blur-xl shadow-lg py-3' : 'bg-transparent py-5'
+        isSolidBg ? 'bg-primary/95 backdrop-blur-xl shadow-lg py-3' : 'bg-transparent py-5'
       }`}
     >
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -54,17 +56,25 @@ export default function Header() {
 
           {/* Desktop Navigation */}
           <nav className="hidden lg:flex items-center gap-7">
-            {NAV_LINKS.map((link) => (
-              <Link
-                key={link.name}
-                href={link.href}
-                className="text-white hover:text-accent font-medium text-sm transition-colors relative group font-body"
-                onClick={() => setActiveHash(link.href)}
-              >
-                {link.name}
-                <span className={`absolute -bottom-1 left-0 w-full h-0.5 bg-accent scale-x-0 group-hover:scale-x-100 transition-transform origin-left ${activeHash === link.href ? 'scale-x-100' : ''}`}></span>
-              </Link>
-            ))}
+            {NAV_LINKS.map((link) => {
+              const isActive = pathname === link.href || (link.href !== '/' && pathname.startsWith(link.href));
+              return (
+                <Link
+                  key={link.name}
+                  href={link.href}
+                  className={`text-white hover:text-accent font-medium text-sm transition-colors relative group font-body ${
+                    isActive ? 'text-accent font-semibold' : 'text-white/90'
+                  }`}
+                >
+                  {link.name}
+                  <span
+                    className={`absolute -bottom-1 left-0 w-full h-0.5 bg-accent transition-transform origin-left ${
+                      isActive ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100'
+                    }`}
+                  ></span>
+                </Link>
+              );
+            })}
           </nav>
 
           <div className="hidden lg:flex items-center gap-3">
@@ -76,7 +86,7 @@ export default function Header() {
               091 225 0777
             </a>
             <Link
-              href="/#contact"
+              href="/contact"
               className="bg-accent hover:bg-olive text-dark hover:text-white font-semibold px-5 py-2.5 rounded-full transition-all duration-300 text-sm shadow-md hover:shadow-accent/20"
             >
               Request a Quote
@@ -105,21 +115,26 @@ export default function Header() {
             className="fixed inset-0 bg-primary z-40 flex flex-col justify-between px-6 pt-24 pb-8 lg:hidden overflow-y-auto"
           >
             <nav className="flex flex-col gap-5 items-center my-auto">
-              {NAV_LINKS.map((link) => (
-                <Link
-                  key={link.name}
-                  href={link.href}
-                  className="text-white text-xl font-heading font-medium hover:text-accent transition-colors"
-                  onClick={closeMenu}
-                >
-                  {link.name}
-                </Link>
-              ))}
+              {NAV_LINKS.map((link) => {
+                const isActive = pathname === link.href;
+                return (
+                  <Link
+                    key={link.name}
+                    href={link.href}
+                    className={`text-xl font-heading font-medium transition-colors ${
+                      isActive ? 'text-accent font-bold underline underline-offset-8 decoration-2' : 'text-white hover:text-accent'
+                    }`}
+                    onClick={closeMenu}
+                  >
+                    {link.name}
+                  </Link>
+                );
+              })}
             </nav>
 
             <div className="flex flex-col gap-3 mt-8 w-full max-w-sm mx-auto">
               <Link
-                href="/#contact"
+                href="/contact"
                 className="bg-accent text-dark text-center font-bold text-base px-6 py-3.5 rounded-full w-full shadow-lg"
                 onClick={closeMenu}
               >

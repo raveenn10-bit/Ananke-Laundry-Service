@@ -74,35 +74,31 @@ const services = [
 
 export default function Services() {
   const ref = useRef(null);
-  const isInView = useInView(ref, { once: true, margin: '-100px' });
 
   return (
     <section id="services" className="py-20 md:py-28 bg-cream">
       <div className="container mx-auto px-4 md:px-6">
-        <div className="text-center max-w-3xl mx-auto mb-16">
-          <motion.span
-            initial={{ opacity: 0, y: 20 }}
-            animate={isInView ? { opacity: 1, y: 0 } : {}}
-            className="text-olive font-semibold tracking-wider text-xs sm:text-sm uppercase mb-3 block"
-          >
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: false, amount: 0.2, margin: '-50px' }}
+          transition={{ duration: 0.6 }}
+          className="text-center max-w-3xl mx-auto mb-12"
+        >
+          <span className="text-olive font-semibold tracking-wider text-xs sm:text-sm uppercase mb-3 block">
             OUR SERVICES
-          </motion.span>
-          <motion.h2
-            initial={{ opacity: 0, y: 20 }}
-            animate={isInView ? { opacity: 1, y: 0 } : {}}
-            transition={{ delay: 0.1 }}
-            className="text-3xl md:text-5xl font-bold text-dark mb-5 font-heading"
-          >
+          </span>
+          <h2 className="text-3xl md:text-5xl font-bold text-dark mb-5 font-heading">
             Professional Laundry &amp; <span className="italic text-olive font-normal">Linen Solutions</span>
-          </motion.h2>
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={isInView ? { opacity: 1, y: 0 } : {}}
-            transition={{ delay: 0.2 }}
-            className="text-gray-600 text-base md:text-lg leading-relaxed"
-          >
+          </h2>
+          <p className="text-gray-600 text-base md:text-lg leading-relaxed">
             Dedicated garment and commercial textile care delivered from our Unawatuna facility, serving individual clients and Southern Sri Lanka&apos;s hospitality sector.
-          </motion.p>
+          </p>
+        </motion.div>
+
+        {/* Mobile Swipe Hint */}
+        <div className="flex sm:hidden items-center justify-center gap-2 text-xs font-semibold text-olive/90 mb-4 animate-pulse">
+          <span>&larr; Swipe cards left to right &rarr;</span>
         </div>
 
         <div
@@ -113,9 +109,10 @@ export default function Services() {
           {services.map((service, idx) => (
             <motion.div
               key={service.num}
-              initial={{ opacity: 0, y: 30 }}
-              animate={isInView ? { opacity: 1, y: 0 } : {}}
-              transition={{ delay: 0.08 * idx, duration: 0.5 }}
+              initial={{ opacity: 0, y: 35 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: false, amount: 0.15, margin: '-40px' }}
+              transition={{ delay: 0.05 * (idx % 4), duration: 0.5 }}
               className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 group flex flex-col min-w-[280px] sm:min-w-0 snap-start flex-shrink-0 sm:flex-shrink border border-gray-100"
             >
               <div className="relative h-[190px] sm:h-[210px] overflow-hidden bg-gray-200">

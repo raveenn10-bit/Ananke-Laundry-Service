@@ -71,18 +71,25 @@ export default function WhyChoose() {
           </motion.p>
         </div>
 
+        {/* Mobile Swipe Hint */}
+        <div className="flex sm:hidden items-center justify-center gap-2 text-xs font-semibold text-accent/90 mb-4 animate-pulse">
+          <span>&larr; Swipe pillars left to right &rarr;</span>
+        </div>
+
         <div
           ref={ref}
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-5"
+          className="flex overflow-x-auto snap-x snap-mandatory gap-5 pb-6 -mx-4 px-4 sm:mx-0 sm:px-0 sm:grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 sm:gap-5 no-scrollbar scrollbar-none"
+          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
         >
           {pillars.map((pillar, idx) => (
             <motion.div
               key={pillar.title}
               initial={{ opacity: 0, y: 30 }}
-              animate={isInView ? { opacity: 1, y: 0 } : {}}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: false, amount: 0.15, margin: '-40px' }}
               whileHover={{ y: -6 }}
-              transition={{ delay: 0.08 * idx, duration: 0.45 }}
-              className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-6 hover:bg-white/10 hover:border-accent/40 transition-all duration-300 flex flex-col justify-between group"
+              transition={{ delay: 0.06 * (idx % 5), duration: 0.45 }}
+              className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-6 hover:bg-white/10 hover:border-accent/40 transition-all duration-300 flex flex-col justify-between group min-w-[270px] sm:min-w-0 snap-start flex-shrink-0 sm:flex-shrink"
             >
               <div>
                 <div className="w-12 h-12 rounded-2xl border border-olive/40 bg-olive/20 flex items-center justify-center mb-5 group-hover:bg-accent group-hover:text-primary transition-all shadow-inner">

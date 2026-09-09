@@ -39,12 +39,17 @@ const steps = [
 
 export default function HowItWorks() {
   const ref = useRef(null);
-  const isInView = useInView(ref, { once: true, margin: '-80px' });
 
   return (
     <section id="how-it-works" className="py-20 md:py-28 bg-white relative overflow-hidden">
       <div className="container mx-auto px-4 md:px-6">
-        <div className="text-center mb-16 max-w-2xl mx-auto">
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: false, amount: 0.2, margin: '-40px' }}
+          transition={{ duration: 0.6 }}
+          className="text-center mb-12 max-w-2xl mx-auto"
+        >
           <span className="text-olive font-semibold tracking-wider text-xs sm:text-sm uppercase mb-3 block">
             HOW IT WORKS
           </span>
@@ -54,6 +59,11 @@ export default function HowItWorks() {
           <p className="text-gray-600 text-sm sm:text-base leading-relaxed font-body">
             A clear 4-step workflow tailored for both individual garment care and commercial hospitality operations.
           </p>
+        </motion.div>
+
+        {/* Mobile Swipe Hint */}
+        <div className="flex md:hidden items-center justify-center gap-2 text-xs font-semibold text-olive/90 mb-4 animate-pulse">
+          <span>&larr; Swipe steps left to right &rarr;</span>
         </div>
 
         <div ref={ref} className="relative max-w-5xl mx-auto">
@@ -69,9 +79,10 @@ export default function HowItWorks() {
               <motion.div
                 key={step.num}
                 initial={{ opacity: 0, y: 30 }}
-                animate={isInView ? { opacity: 1, y: 0 } : {}}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: false, amount: 0.15, margin: '-40px' }}
                 whileHover={{ y: -6 }}
-                transition={{ delay: 0.12 * idx, duration: 0.5 }}
+                transition={{ delay: 0.1 * idx, duration: 0.5 }}
                 className="flex flex-col items-center text-center group min-w-[240px] snap-start flex-shrink-0 md:min-w-0 md:flex-shrink"
               >
                 <div className="w-16 h-16 rounded-full border-2 border-olive flex items-center justify-center bg-white text-olive font-heading text-2xl font-bold mb-6 group-hover:bg-olive group-hover:text-white transition-all shadow-sm group-hover:shadow-lg group-hover:shadow-olive/20 group-hover:scale-110">

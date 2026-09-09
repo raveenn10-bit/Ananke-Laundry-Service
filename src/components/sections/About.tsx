@@ -16,8 +16,9 @@ export default function About() {
           
           {/* Text Content */}
           <motion.div 
-            initial={{ opacity: 0, x: -50 }}
-            animate={isInView ? { opacity: 1, x: 0 } : {}}
+            initial={{ opacity: 0, x: -40 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: false, amount: 0.15, margin: '-50px' }}
             transition={{ duration: 0.6 }}
             className="w-full lg:w-1/2"
           >
@@ -72,9 +73,10 @@ export default function About() {
 
           {/* Image */}
           <motion.div 
-            initial={{ opacity: 0, x: 50 }}
-            animate={isInView ? { opacity: 1, x: 0 } : {}}
-            transition={{ duration: 0.6, delay: 0.2 }}
+            initial={{ opacity: 0, x: 40 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: false, amount: 0.15, margin: '-50px' }}
+            transition={{ duration: 0.6, delay: 0.15 }}
             className="w-full lg:w-1/2 relative"
           >
             <div className="relative rounded-3xl overflow-hidden aspect-[4/3] shadow-2xl z-10 bg-gray-200 border border-gray-100">

@@ -50,15 +50,23 @@ export default function Sustainability() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 max-w-6xl mx-auto">
+        {/* Mobile Swipe Hint */}
+        <div className="flex sm:hidden items-center justify-center gap-2 text-xs font-semibold text-olive/90 mb-4 animate-pulse">
+          <span>&larr; Swipe pillars left to right &rarr;</span>
+        </div>
+
+        <div
+          className="flex overflow-x-auto snap-x snap-mandatory gap-5 pb-5 -mx-4 px-4 sm:mx-0 sm:px-0 sm:grid sm:grid-cols-2 lg:grid-cols-4 max-w-6xl mx-auto no-scrollbar scrollbar-none"
+          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+        >
           {ecoPillars.map((item, idx) => (
             <motion.div
               key={item.title}
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 25 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: idx * 0.08 }}
-              className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100/90 flex flex-col justify-between hover:shadow-md transition-shadow"
+              viewport={{ once: false, amount: 0.15, margin: '-40px' }}
+              transition={{ delay: idx * 0.08, duration: 0.45 }}
+              className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100/90 flex flex-col justify-between hover:shadow-md transition-shadow min-w-[260px] sm:min-w-0 snap-start flex-shrink-0 sm:flex-shrink"
             >
               <div>
                 <div className="w-11 h-11 rounded-xl bg-olive/15 text-olive flex items-center justify-center mb-4">

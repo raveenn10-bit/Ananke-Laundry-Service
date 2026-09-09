@@ -6,23 +6,23 @@ import { Phone, MapPin, Clock, ArrowUpRight } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const QUICK_LINKS = [
-  { name: 'Home', href: '/#home' },
-  { name: 'About Us', href: '/#about' },
-  { name: 'Services', href: '/#services' },
-  { name: 'Commercial Laundry', href: '/#commercial' },
-  { name: 'Why Us', href: '/#why-choose' },
-  { name: 'Our Facility', href: '/#gallery' },
-  { name: 'Contact & Quote', href: '/#contact' },
+  { name: 'Home', href: '/' },
+  { name: 'About Us', href: '/about' },
+  { name: 'Services', href: '/services' },
+  { name: 'Commercial Laundry', href: '/commercial' },
+  { name: 'Pricing & Tiers', href: '/pricing' },
+  { name: 'Our Facility', href: '/gallery' },
+  { name: 'Contact & Quote', href: '/contact' },
 ];
 
 const SERVICES = [
-  { name: 'Professional Washing', href: '/#services' },
-  { name: 'Pressing', href: '/#services' },
-  { name: 'Dry Cleaning', href: '/#services' },
-  { name: 'Stain Removal', href: '/#services' },
-  { name: 'Linen Care', href: '/#services' },
-  { name: 'Commercial Solutions', href: '/#commercial' },
-  { name: 'Linen Management', href: '/#commercial' },
+  { name: 'Professional Washing', href: '/services' },
+  { name: 'Steam Pressing & Ironing', href: '/services' },
+  { name: 'Dry Cleaning Solutions', href: '/services' },
+  { name: 'Stain Removal Care', href: '/services' },
+  { name: 'Linen Care & Sanitizing', href: '/services' },
+  { name: 'Commercial Hospitality', href: '/commercial' },
+  { name: 'Hotel Linen Management', href: '/commercial' },
 ];
 
 export default function Footer() {
