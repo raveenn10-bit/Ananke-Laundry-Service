@@ -3,7 +3,7 @@
 import { useRef } from 'react';
 import Image from 'next/image';
 import { motion, useInView } from 'framer-motion';
-import { CalendarCheck, ArrowRight, Shield, Leaf, Clock } from 'lucide-react';
+import { FileText, Phone, MapPin, Building, ShieldCheck, Sparkles } from 'lucide-react';
 
 export default function Hero() {
   const ref = useRef(null);
@@ -14,7 +14,7 @@ export default function Hero() {
     visible: {
       opacity: 1,
       transition: {
-        staggerChildren: 0.2,
+        staggerChildren: 0.15,
       },
     },
   };
@@ -29,79 +29,97 @@ export default function Hero() {
   };
 
   return (
-    <section id="home" className="relative min-h-[85vh] md:min-h-screen flex items-center pt-20 overflow-hidden bg-primary">
+    <section id="home" className="relative min-h-[85vh] md:min-h-screen flex items-center pt-24 pb-16 overflow-hidden bg-primary">
       {/* Background Image */}
       <div className="absolute inset-0 z-0">
         <Image
           src="/images/hero.jpg"
-          alt="Ananke Laundry Hero"
+          alt="Ananke Laundry Unawatuna Facility and Linen Care"
           fill
           priority
-          className="object-cover opacity-60"
+          className="object-cover opacity-50"
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-dark/90 via-dark/70 to-transparent hero-overlay"></div>
+        <div className="absolute inset-0 bg-gradient-to-r from-dark/95 via-dark/80 to-primary/60 hero-overlay"></div>
       </div>
 
-      {/* Floating Particles */}
+      {/* Subtle Floating Ambient Particles */}
       <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden hidden md:block">
-        {[...Array(6)].map((_, i) => (
+        {[...Array(5)].map((_, i) => (
           <div
             key={i}
-            className={`absolute rounded-full bg-white/10 animate-float`}
+            className="absolute rounded-full bg-accent/10 animate-float"
             style={{
-              width: Math.random() * 40 + 10 + 'px',
-              height: Math.random() * 40 + 10 + 'px',
-              left: Math.random() * 100 + '%',
-              top: Math.random() * 100 + '%',
-              animationDelay: `${Math.random() * 5}s`,
-              animationDuration: `${Math.random() * 10 + 10}s`,
+              width: `${(i + 1) * 8 + 12}px`,
+              height: `${(i + 1) * 8 + 12}px`,
+              left: `${(i * 22) + 8}%`,
+              top: `${(i * 18) + 15}%`,
+              animationDelay: `${i * 1.2}s`,
+              animationDuration: `${8 + i * 2}s`,
             }}
           />
         ))}
       </div>
 
-      <div className="container mx-auto px-4 md:px-6 relative z-10 w-full">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10 w-full">
         <motion.div
           ref={ref}
           variants={containerVariants}
           initial="hidden"
           animate={isInView ? 'visible' : 'hidden'}
-          className="max-w-2xl text-center md:text-left mx-auto md:mx-0"
+          className="max-w-3xl text-center md:text-left mx-auto md:mx-0"
         >
           <motion.div variants={itemVariants}>
-            <span className="text-accent tracking-[0.3em] text-sm font-medium uppercase mb-4 block">
-              Freshness in Every Wash
+            <span className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md border border-white/15 text-accent text-xs uppercase tracking-[0.25em] font-semibold px-4 py-1.5 rounded-full mb-6">
+              <Sparkles size={13} className="text-accent" />
+              Unawatuna &bull; Galle &bull; Southern Sri Lanka
             </span>
           </motion.div>
 
-          <motion.h1 variants={itemVariants} className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-white leading-tight mb-6">
-            Premium Care for <span className="font-heading italic text-accent font-normal block md:inline">Your Clothes</span>
+          <motion.h1 variants={itemVariants} className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-white leading-[1.1] mb-6 font-heading">
+            Professional Laundry &amp; <span className="italic text-accent font-normal block sm:inline">Linen Care</span> in Unawatuna
           </motion.h1>
 
-          <motion.p variants={itemVariants} className="text-white/80 text-lg md:text-xl mb-8 max-w-xl mx-auto md:mx-0">
-            Experience the finest laundry and dry cleaning services in Unawatuna. We combine modern technology with expert care to keep your garments looking fresh and new.
+          <motion.p variants={itemVariants} className="text-white/85 text-base sm:text-lg md:text-xl mb-8 max-w-2xl mx-auto md:mx-0 leading-relaxed font-body">
+            Professional laundry and linen-care solutions for individuals, travellers and hospitality businesses in Sri Lanka&apos;s Southern region.
           </motion.p>
 
-          <motion.div variants={itemVariants} className="flex flex-col sm:flex-row items-center justify-center md:justify-start gap-4 mb-12">
-            <a href="#booking" className="w-full sm:w-auto bg-olive hover:bg-accent text-white hover:text-dark transition-colors rounded-full px-8 py-4 flex items-center justify-center gap-2 font-medium">
-              <CalendarCheck className="w-5 h-5" />
-              Book a Pickup
+          {/* Three CTAs: Request a Quote (Primary), Call 091 225 0777 (Secondary), Get Directions (Third) */}
+          <motion.div variants={itemVariants} className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center md:justify-start gap-3.5 mb-10">
+            <a
+              href="#contact"
+              className="bg-accent hover:bg-olive text-dark hover:text-white font-bold px-7 py-4 rounded-full transition-all duration-300 flex items-center justify-center gap-2 text-base shadow-lg hover:shadow-accent/25 hover:scale-[1.02] active:scale-95"
+            >
+              <FileText className="w-5 h-5" />
+              Request a Quote
             </a>
-            <a href="#services" className="w-full sm:w-auto border-2 border-white/30 text-white rounded-full px-8 py-4 hover:bg-white/10 transition-colors flex items-center justify-center gap-2 font-medium">
-              View Services
-              <ArrowRight className="w-5 h-5" />
+            <a
+              href="tel:+94912250777"
+              className="border-2 border-white/40 hover:border-accent text-white hover:text-accent rounded-full px-6 py-3.5 transition-all duration-300 flex items-center justify-center gap-2 text-sm sm:text-base font-medium hover:bg-white/5 active:scale-95"
+            >
+              <Phone className="w-4 h-4 text-accent" />
+              Call 091 225 0777
+            </a>
+            <a
+              href="https://maps.app.goo.gl/HLJGzPCVZwySjSTK6?g_st=ic"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-white/80 hover:text-accent rounded-full px-5 py-3.5 transition-all duration-300 flex items-center justify-center gap-2 text-sm sm:text-base font-medium hover:bg-white/5"
+            >
+              <MapPin className="w-4 h-4 text-accent" />
+              Get Directions
             </a>
           </motion.div>
 
-          <motion.div variants={itemVariants} className="flex flex-wrap items-center justify-center md:justify-start gap-4 md:gap-6">
+          {/* Realistic Trust Badges */}
+          <motion.div variants={itemVariants} className="flex flex-wrap items-center justify-center md:justify-start gap-3 md:gap-4 pt-2">
             {[
-              { icon: Shield, text: 'Hygienic Process' },
-              { icon: Leaf, text: 'Eco Friendly Products' },
-              { icon: Clock, text: 'On-Time Service' },
+              { icon: Building, text: 'Hospitality & Commercial Linen' },
+              { icon: ShieldCheck, text: 'Professional Quality Standards' },
+              { icon: MapPin, text: 'Unawatuna Facility & Collection' },
             ].map((badge, idx) => (
-              <div key={idx} className="flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full px-4 py-2">
-                <badge.icon className="w-4 h-4 text-accent" />
-                <span className="text-white text-sm font-medium">{badge.text}</span>
+              <div key={idx} className="flex items-center gap-2 bg-white/10 backdrop-blur-md border border-white/15 rounded-full px-4 py-2">
+                <badge.icon className="w-4 h-4 text-accent shrink-0" />
+                <span className="text-white text-xs sm:text-sm font-medium">{badge.text}</span>
               </div>
             ))}
           </motion.div>

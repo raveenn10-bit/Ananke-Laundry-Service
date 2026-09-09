@@ -221,7 +221,7 @@ export default function Reviews() {
 
         <div className="mt-10 text-center flex flex-col sm:flex-row items-center justify-center gap-4">
           <a
-            href="https://maps.app.goo.gl/7FCjn432AeM9KkXDA?g_st=ic"
+            href="https://maps.app.goo.gl/HLJGzPCVZwySjSTK6?g_st=ic"
             target="_blank"
             rel="noreferrer"
             className="inline-flex items-center gap-2 bg-accent hover:bg-accent/90 text-dark px-8 py-3.5 rounded-full font-semibold transition-all shadow-lg hover:shadow-accent/20 hover:scale-105"

@@ -52,7 +52,7 @@ export default function Gallery() {
             Our Facility & <span className="italic font-heading text-olive">Process</span>
           </h2>
           <p className="text-gray-600 text-base md:text-lg">
-            Take a look behind the scenes at our state-of-the-art facility and our dedicated team at work.
+            Take an authentic look inside our Unawatuna laundry facility, commercial processing floor, and dedicated textile care team at work.
           </p>
         </motion.div>
 

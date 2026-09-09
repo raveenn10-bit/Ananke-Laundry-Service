@@ -3,7 +3,7 @@
 import { useRef } from 'react';
 import Image from 'next/image';
 import { motion, useInView } from 'framer-motion';
-import { CheckCircle2 } from 'lucide-react';
+import { CheckCircle2, Phone, MapPin } from 'lucide-react';
 
 export default function About() {
   const ref = useRef(null);
@@ -21,38 +21,53 @@ export default function About() {
             transition={{ duration: 0.6 }}
             className="w-full lg:w-1/2"
           >
-            <span className="text-olive font-semibold tracking-wider text-sm uppercase mb-3 block">
-              ABOUT US
+            <span className="text-olive font-semibold tracking-wider text-xs sm:text-sm uppercase mb-3 block">
+              ABOUT ANANKE LAUNDRY
             </span>
-            <h2 className="text-3xl md:text-5xl font-bold text-dark mb-6 leading-tight">
-              Care Beyond <span className="font-heading italic text-accent font-normal">Cleaning</span>
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-dark mb-6 leading-tight font-heading">
+              Professional Laundry Care from the Heart of <span className="italic text-olive font-normal">Unawatuna</span>
             </h2>
-            <div className="space-y-4 text-gray-600 text-lg mb-8">
+            <div className="space-y-4 text-gray-700 text-sm sm:text-base leading-relaxed mb-8 font-body">
               <p>
-                At Ananke Laundry, we believe that your garments deserve the utmost care and attention. Located in the heart of Unawatuna, we serve both local residents and the thriving hospitality sector.
+                Ananke Laundry operates from Unawatuna in Sri Lanka&apos;s Southern Province, serving an area celebrated for its boutique hotels, coastal villas, guest houses, and dynamic tourism economy.
               </p>
               <p>
-                Our facility is equipped with modern machinery and staffed by a dedicated team of professionals who understand the nuances of fabric care. From everyday wear to delicate linens, we ensure everything comes back to you fresh, crisp, and perfectly clean.
+                Ananke Laundry became connected with Cleanline Linen Management as part of Cleanline&apos;s expansion into Sri Lanka&apos;s Southern hospitality market. This synergy brings industrial-grade linen management standards and structured processing workflows directly to Southern properties and residents.
+              </p>
+              <p>
+                Our ongoing focus is to provide dependable, professional laundry and linen-care solutions while making it effortless for local clients and businesses to contact us, request a transparent quotation, and access our convenient Unawatuna facility on Matara Road.
               </p>
             </div>
             
-            <ul className="space-y-3 mb-8">
+            <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-8">
               {[
-                'Quality Garment Care',
-                'Hygienic Process',
-                'Fast & Reliable Turnaround',
-                'Eco-Friendly Products'
+                'Commercial Linen Management',
+                'Unawatuna Facility & Collection',
+                'Cleanline Operational Standards',
+                'Dedicated Hospitality Support',
               ].map((item, idx) => (
-                <li key={idx} className="flex items-center gap-3 text-dark font-medium">
-                  <CheckCircle2 className="w-5 h-5 text-accent" />
+                <li key={idx} className="flex items-center gap-2.5 text-dark font-medium text-xs sm:text-sm">
+                  <CheckCircle2 className="w-4 h-4 text-accent shrink-0" />
                   {item}
                 </li>
               ))}
             </ul>
 
-            <a href="#services" className="inline-block bg-olive hover:bg-accent text-white px-8 py-4 rounded-full font-medium transition-colors">
-              Learn More About Us
-            </a>
+            <div className="flex flex-wrap items-center gap-3">
+              <a
+                href="#contact"
+                className="inline-block bg-olive hover:bg-accent text-white hover:text-dark px-7 py-3.5 rounded-full font-semibold text-sm transition-all shadow-md"
+              >
+                Request a Quote
+              </a>
+              <a
+                href="tel:+94912250777"
+                className="inline-flex items-center gap-2 border border-gray-300 hover:border-olive text-dark hover:text-olive px-6 py-3.5 rounded-full font-medium text-sm transition-colors"
+              >
+                <Phone size={15} className="text-olive" />
+                Call 091 225 0777
+              </a>
+            </div>
           </motion.div>
 
           {/* Image */}
@@ -62,18 +77,34 @@ export default function About() {
             transition={{ duration: 0.6, delay: 0.2 }}
             className="w-full lg:w-1/2 relative"
           >
-            <div className="relative rounded-2xl overflow-hidden aspect-[4/3] shadow-2xl z-10 bg-gray-200">
+            <div className="relative rounded-3xl overflow-hidden aspect-[4/3] shadow-2xl z-10 bg-gray-200 border border-gray-100">
               <Image
                 src="/images/about-facility.jpg"
-                alt="Ananke Laundry Facility"
+                alt="Ananke Laundry Facility in Unawatuna"
                 fill
                 className="object-cover"
+                sizes="(max-width: 1024px) 100vw, 50vw"
               />
+              <div className="absolute bottom-4 left-4 right-4 bg-dark/85 backdrop-blur-md text-white p-4 rounded-2xl border border-white/10 flex items-center justify-between">
+                <div>
+                  <p className="text-accent text-xs font-semibold uppercase">Facility Location</p>
+                  <p className="text-white text-xs sm:text-sm font-medium">No. 195/2, Matara Road, Unawatuna</p>
+                </div>
+                <a
+                  href="https://maps.app.goo.gl/HLJGzPCVZwySjSTK6?g_st=ic"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="p-2.5 rounded-xl bg-white/10 hover:bg-accent hover:text-dark transition-colors"
+                  aria-label="Google Maps directions"
+                >
+                  <MapPin size={18} />
+                </a>
+              </div>
             </div>
             {/* Decorative Offset Border */}
-            <div className="absolute -inset-4 border-2 border-accent rounded-2xl z-0 translate-x-4 translate-y-4 opacity-50 hidden md:block"></div>
+            <div className="absolute -inset-4 border-2 border-accent/40 rounded-3xl z-0 translate-x-4 translate-y-4 opacity-40 hidden md:block"></div>
             {/* Decorative Blob */}
-            <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-olive rounded-full blur-3xl opacity-20 z-0"></div>
+            <div className="absolute -bottom-10 -left-10 w-48 h-48 bg-olive rounded-full blur-3xl opacity-20 z-0"></div>
           </motion.div>
 
         </div>

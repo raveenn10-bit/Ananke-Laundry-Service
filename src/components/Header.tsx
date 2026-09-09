@@ -3,16 +3,16 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Menu, X, Phone, MessageCircle } from 'lucide-react';
+import { Menu, X, Phone, MapPin } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const NAV_LINKS = [
   { name: 'Home', href: '/#home' },
   { name: 'About', href: '/#about' },
   { name: 'Services', href: '/#services' },
-  { name: 'Pricing', href: '/#pricing' },
-  { name: 'Gallery', href: '/#gallery' },
-  { name: 'FAQ', href: '/#faq' },
+  { name: 'Commercial Laundry', href: '/#commercial' },
+  { name: 'Why Us', href: '/#why-choose' },
+  { name: 'Facility', href: '/#gallery' },
   { name: 'Contact', href: '/#contact' },
 ];
 
@@ -53,7 +53,7 @@ export default function Header() {
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden lg:flex items-center gap-8">
+          <nav className="hidden lg:flex items-center gap-7">
             {NAV_LINKS.map((link) => (
               <Link
                 key={link.name}
@@ -67,22 +67,29 @@ export default function Header() {
             ))}
           </nav>
 
-          <div className="hidden lg:flex items-center">
+          <div className="hidden lg:flex items-center gap-3">
+            <a
+              href="tel:+94912250777"
+              className="flex items-center gap-2 text-white/90 hover:text-accent text-sm font-medium px-3 py-2 transition-colors"
+            >
+              <Phone size={15} className="text-accent" />
+              091 225 0777
+            </a>
             <Link
               href="/#contact"
-              className="bg-olive hover:bg-accent text-white font-medium px-6 py-2.5 rounded-full transition-colors font-body"
+              className="bg-accent hover:bg-olive text-dark hover:text-white font-semibold px-5 py-2.5 rounded-full transition-all duration-300 text-sm shadow-md hover:shadow-accent/20"
             >
-              Book a Pickup
+              Request a Quote
             </Link>
           </div>
 
           {/* Mobile Menu Button */}
           <button
-            className="lg:hidden relative z-50 p-2 text-white min-w-[44px] min-h-[44px] flex items-center justify-center"
+            className="lg:hidden relative z-50 p-2 text-white min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl bg-white/10 backdrop-blur-md"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             aria-label={isMenuOpen ? 'Close Menu' : 'Open Menu'}
           >
-            {isMenuOpen ? <X size={28} /> : <Menu size={28} />}
+            {isMenuOpen ? <X size={26} /> : <Menu size={26} />}
           </button>
         </div>
       </div>
@@ -95,14 +102,14 @@ export default function Header() {
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: '100%' }}
             transition={{ type: 'tween', duration: 0.3 }}
-            className="fixed inset-0 bg-primary z-40 flex flex-col justify-center px-6 pt-24 pb-8 lg:hidden overflow-y-auto"
+            className="fixed inset-0 bg-primary z-40 flex flex-col justify-between px-6 pt-24 pb-8 lg:hidden overflow-y-auto"
           >
-            <nav className="flex flex-col gap-6 items-center flex-1">
+            <nav className="flex flex-col gap-5 items-center my-auto">
               {NAV_LINKS.map((link) => (
                 <Link
                   key={link.name}
                   href={link.href}
-                  className="text-white text-2xl font-heading font-medium"
+                  className="text-white text-xl font-heading font-medium hover:text-accent transition-colors"
                   onClick={closeMenu}
                 >
                   {link.name}
@@ -110,20 +117,28 @@ export default function Header() {
               ))}
             </nav>
 
-            <div className="flex flex-col gap-4 mt-8 w-full max-w-sm mx-auto">
+            <div className="flex flex-col gap-3 mt-8 w-full max-w-sm mx-auto">
               <Link
                 href="/#contact"
-                className="bg-accent text-primary text-center font-bold text-lg px-6 py-4 rounded-full w-full"
+                className="bg-accent text-dark text-center font-bold text-base px-6 py-3.5 rounded-full w-full shadow-lg"
                 onClick={closeMenu}
               >
-                Book a Pickup
+                Request a Quote
               </Link>
-              <div className="flex gap-4">
-                <a href="tel:+94742697909" className="flex-1 bg-white/10 flex items-center justify-center gap-2 text-white py-3 rounded-full border border-white/20">
-                  <Phone size={18} /> Call Now
+              <div className="flex gap-3">
+                <a
+                  href="tel:+94912250777"
+                  className="flex-1 bg-white/10 hover:bg-white/20 flex items-center justify-center gap-2 text-white py-3 rounded-full border border-white/20 text-sm font-medium transition-colors"
+                >
+                  <Phone size={16} className="text-accent" /> Call 091 225 0777
                 </a>
-                <a href="https://wa.me/94742697909" target="_blank" rel="noopener noreferrer" className="flex-1 bg-[#25D366]/20 flex items-center justify-center gap-2 text-white py-3 rounded-full border border-[#25D366]/30">
-                  <MessageCircle size={18} /> WhatsApp
+                <a
+                  href="https://maps.app.goo.gl/HLJGzPCVZwySjSTK6?g_st=ic"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex-1 bg-olive/30 hover:bg-olive/40 flex items-center justify-center gap-2 text-white py-3 rounded-full border border-olive/50 text-sm font-medium transition-colors"
+                >
+                  <MapPin size={16} className="text-accent" /> Directions
                 </a>
               </div>
             </div>
