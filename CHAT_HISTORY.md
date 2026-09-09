@@ -1,4 +1,4 @@
-# Ananke Laundry Website — Project Chat History & Full Documentation
+# Ananke Laundry Website � Project Chat History & Full Documentation
 
 > **Note**: This file contains the complete record of user prompts, design specifications, business details, authentic Google reviews, technical architecture, and implementation updates for **Ananke Laundry**. You can clone this repository on any machine to view or continue developing this project.
 
@@ -7,19 +7,33 @@
 ## 1. Project & Business Overview
 
 - **Brand Name**: Ananke Laundry
-- **Business Type**: Professional Laundry & Garment Care Service
-- **Tagline**: Freshness in Every Wash.
-- **Address**: 195/2, Matara Road, Unawatuna, Sri Lanka
-- **Phone / WhatsApp**: +94 74 269 7909
+- **Legal Entity**: ANANKE LAUNDRY (PVT) LTD
+- **Parent Organization**: Cleanline Linen Management (Pvt) Ltd (Acquired late 2023)
+- **Business Type**: Professional Commercial & Guest Laundry / Linen Care Service
+- **Tagline**: Professional Laundry & Linen Care in Unawatuna.
+- **Physical Address**: No. 195/2, Matara Road, Unawatuna, Galle, Sri Lanka (Google Plus Code: `268X+XPP, Unawatuna`)
+- **Telephone / Click-to-Call**: 091 225 0777 (International: +94 91 225 0777)
+- **WhatsApp Policy**: Strictly disabled across the entire website because `091 225 0777` is a fixed landline number.
 - **Email**: chinthaka.ananke@gmail.com
-- **Google Maps Location**: [https://maps.app.goo.gl/7FCjn432AeM9KkXDA?g_st=ic](https://maps.app.goo.gl/7FCjn432AeM9KkXDA?g_st=ic)
+- **Verified Google Maps Link**: [https://maps.app.goo.gl/HLJGzPCVZwySjSTK6?g_st=ic](https://maps.app.goo.gl/HLJGzPCVZwySjSTK6?g_st=ic)
 - **GitHub Repository**: [https://github.com/raveenn10-bit/Ananke-Laundry-Service.git](https://github.com/raveenn10-bit/Ananke-Laundry-Service.git)
+- **Vercel Account / Team**: Harsh Apex (`chamiccg@gmail.com` / `chamiccg-9382`)
 
 ---
 
-## 2. Design Language & Brand Colors
+## 2. Operating Hours & Timezone
 
-- **Visual Direction**: Premium, cinematic, luxury hospitality & spa vibe. Soft glassmorphic cards, natural typography, subtle floating micro-animations.
+- **Monday**: 9:00 AM � 5:00 PM
+- **Tuesday � Friday**: 9:00 AM � 6:00 PM
+- **Saturday � Sunday**: 9:00 AM � 5:00 PM
+- **Public Holidays**: Opening hours may vary; customers advised to call ahead.
+- **Dynamic Clock**: Automatic live store status ("Open Now" / "Opens at...") computed in real-time using Sri Lanka Standard Time (`Asia/Colombo`, UTC+5:30).
+
+---
+
+## 3. Design Language & Brand Colors
+
+- **Visual Direction**: Premium, cinematic, luxury hospitality & spa aesthetic. Soft glassmorphic cards, natural typography, subtle floating micro-animations.
 - **Primary Dark Green**: `#173521`
 - **Secondary Green**: `#365B2C`
 - **Olive Green**: `#688E3A`
@@ -30,145 +44,186 @@
 
 ---
 
-## 3. Technology Stack & Architecture
+## 4. Technology Stack & Architecture
 
-- **Framework**: Next.js 15 (App Router)
+- **Framework**: Next.js 16 (App Router)
 - **Language**: TypeScript (`strict: true`)
 - **Styling**: Tailwind CSS v4
-- **Animations**: Framer Motion (`useInView`, `AnimatePresence`, scroll snapping, micro-interactions)
-- **Icons**: Lucide React + custom inline SVGs for Facebook & Instagram
+- **Animations**: Framer Motion (`useInView`, `AnimatePresence`, micro-interactions)
+- **Icons**: Lucide React + custom inline SVGs
 - **Form Handling**: React Hook Form + Zod Validation
-- **Deployment & Source Control**: Git / GitHub (`main` branch)
+- **Accounting Integration**: Zoho Books API v3 Service Layer (Contacts, Estimates, Invoices)
+- **Local Resilience Store**: Atomic file-backed repository (`.data/enquiries.json`) ensuring zero lead loss
+- **Deployment**: Vercel (Production) + Git / GitHub (`main` branch)
 
 ---
 
-## 4. Complete Section Breakdown & Features
+## 5. Complete Section Breakdown & Features
 
 1. **Header & Navigation (`Header.tsx`)**
    - Glassmorphic sticky navbar that darkens on scroll.
-   - Desktop nav links & CTA button ("Book a Pickup").
-   - Full-screen animated mobile drawer with quick action buttons (Call Now, WhatsApp).
+   - Desktop nav links & "Request a Quote" CTA button.
+   - Mobile full-screen drawer with quick action buttons: Call `091 225 0777` & "Get Directions" (WhatsApp completely removed).
 
 2. **Hero Section (`Hero.tsx`)**
    - High-res luxury background photo (`/images/hero.jpg`) with dark gradient overlay.
-   - Large editorial headline: *"Premium Care for Your Clothes"*.
-   - Floating particle effects & trust badges (*Hygienic Process*, *Eco Friendly Products*, *On-Time Service*).
+   - Verified headline: *"Professional Laundry & Linen Care in Unawatuna"*.
+   - 3 CTAs: "Request a Quote", "Call 091 225 0777", "Get Directions".
+   - Authentic trust badges (*Commercial Capacity*, *Eco-Responsible Care*, *Southern Province Network*).
 
 3. **Business Information Bar (`InfoBar.tsx`)**
-   - Highlighting location, contact number, email, and opening hours.
+   - Highlights Unawatuna location, landline `091 225 0777`, Cleanline network, and dynamic `Asia/Colombo` live open/closed status.
 
 4. **Services Section (`Services.tsx`)**
-   - 8 services: *Professional Washing*, *Dry Cleaning*, *Ironing*, *Folding & Packing*, *Pickup & Delivery*, *Bedding & Linen*, *Hotel/Villa Laundry*, *Stain Treatment*.
-   - Mobile UX: Horizontal touch-swipe carousel (`snap-x snap-mandatory`).
-   - Desktop UX: 4-column responsive grid with image hover zoom.
+   - 7 verified core services:
+     1. Professional Washing
+     2. Pressing (Ironing & Steam Finishing)
+     3. Dry Cleaning (Delicate & Formal Garments)
+     4. Stain Removal (Targeted Pre-Treatment)
+     5. Linen Care (Bed & Bath Textiles)
+     6. Commercial Laundry Solutions (Hospitality Contracts)
+     7. Linen Management (Inventory & Rotation Support)
+   - Mobile touch-swipe carousel & desktop responsive grid.
 
-5. **How It Works (`HowItWorks.tsx`)**
-   - 4-step interactive flow (*Book Your Pickup*, *We Collect*, *We Clean & Care*, *Fresh Clothes Delivered*).
-   - Horizontal swipe on mobile, step indicator glow & connected timeline on desktop.
+5. **Commercial & Hospitality Solutions (`Commercial.tsx`)**
+   - Dedicated B2B section for Southern Province hotels, boutique resorts, luxury villas, guest houses, and restaurants.
+   - Direct CTA linking to commercial quote form and landline call.
 
-6. **Why Choose Ananke (`WhyChoose.tsx`)**
-   - Dark emerald section displaying 8 core differentiators (*Garment Care*, *Modern Equipment*, *Skilled Team*, *Eco-Conscious*, etc.).
-   - Mobile touch-carousel & desktop 4-column grid.
+6. **How It Works (`HowItWorks.tsx`)**
+   - 4-step verified workflow (*1. Contact Us & Share Requirements*, *2. Textile Assessment*, *3. Professional Processing*, *4. Ready for Collection*).
+   - Removed unverified delivery claims until client logistics confirmation.
 
-7. **Pricing System (`Pricing.tsx`)**
-   - Category filter tabs (*Everyday Laundry*, *Dry Cleaning*, *Ironing*, *Bedding*, *Express Service*, *Commercial*).
-   - Indicative price cards with horizontal touch-swipe on mobile and grid layout on desktop.
+7. **About Us (`About.tsx`)**
+   - Unawatuna facility profile, authentic team photos, and late-2023 Cleanline Linen Management acquisition attribution.
 
-8. **Pickup & Delivery Booking Flow (`BookingForm.tsx`)**
-   - Interactive booking form validated via React Hook Form & Zod.
-   - Express toggle, pickup date/time pickers, address field, and instant WhatsApp confirmation link generator.
+8. **Responsible Laundry Care (`Sustainability.tsx`)**
+   - Environmental initiatives: eco-friendly detergent dosing, water reclamation, energy efficiency, and textile longevity under Cleanline standards.
 
-9. **Authentic Google Reviews (`Reviews.tsx`)**
-   - Live 5.0 rating badge with 8 authentic, verified Google reviews from real customers in Galle & Unawatuna.
-   - Glassmorphic carousel with navigation buttons, initial avatars, Local Guide tags, and Google Maps link.
+9. **Why Choose Ananke (`WhyChoose.tsx`)**
+   - 5 grounded pillars replacing fake numbers: Professional Care, Hospitality Focus, Convenient Unawatuna Location, Commercial Solutions, Industry Network.
 
-10. **Gallery & Process Lightbox (`Gallery.tsx`)**
-    - Category filters (*All*, *Team*, *Machines*, *Process*, *Facility*).
-    - Masonry grid on desktop & horizontal touch-swipe on mobile, plus fullscreen lightbox modal.
+10. **Pricing Tiers (`Pricing.tsx`)**
+    - Transparent quotation-based tiers replacing fabricated per-piece prices. Focuses on Guest Laundry, Villa Bundles, and Commercial Contracts.
 
-11. **About Us (`About.tsx`)**
-    - Brand story (*"Care Beyond Cleaning"*), hygiene commitment, and facility overview photo (`/images/about-facility.jpg`).
+11. **Gallery & Process Lightbox (`Gallery.tsx`)**
+    - Real photos of the Unawatuna facility, machines, ironing, and textile processing with filter categories and fullscreen lightbox modal.
 
-12. **Commercial / B2B Laundry (`Commercial.tsx`)**
-    - Dedicated B2B inquiry form for hotels, villas, guest houses, and restaurants in Galle/Unawatuna.
+12. **Authentic Google Reviews (`Reviews.tsx`)**
+    - 8 real customer reviews from Google Maps in Unawatuna/Galle with direct link to Google Maps listing.
 
 13. **FAQ Accordion (`FAQ.tsx`)**
-    - Accordion questions handling turnarounds, dry cleaning, delivery zones, and garment care.
+    - Verified answers covering operating hours, commercial contracts, landline communication, and facility drop-off.
 
-14. **Contact & Location (`Contact.tsx`)**
-    - Embedded Google Maps location, direct contact form, Call Now button, and WhatsApp integration.
+14. **Contact & Quote Request Form (`Contact.tsx`)**
+    - Dual mode selector: **"Commercial & Hospitality"** (default) vs **"Individual Care"**.
+    - Commercial fields: Property Type, Service Required, Linen Categories, Estimated Volume, Service Frequency, Property Address, Contact Person, Phone, Email, Message.
+    - Submits directly to backend API `/api/quotes` with honeypot spam protection.
+    - Verified confirmation message: *"Thank you. Your laundry requirements have been received. Our team will review your request and contact you regarding a quotation."*
 
 15. **Footer (`Footer.tsx`)**
-    - **Mobile View**: Divided into a clean 2-column grid (`grid-cols-2`). *Quick Links* & *Services* side-by-side, with brand logo & newsletter spanning full width.
-    - **Desktop View**: 4-column footer with social links & newsletter subscription.
+    - Full verified company details, legal entity name, landline `091 225 0777`, Google Maps directions, hours table with holiday disclaimer, and 2-column mobile layout.
 
 16. **Floating Quick Actions (`FloatingActions.tsx`)**
-    - Desktop: Vertical floating bar (Call, WhatsApp, Maps).
-    - Mobile: Glowing floating WhatsApp button fixed at bottom-right.
+    - Desktop: Call `091 225 0777`, Google Maps directions, and Quote CTA.
+    - Mobile: Sticky bottom bar with "Call 091 225 0777" and "Get Directions".
 
 ---
 
-## 5. Authentic Google Reviews Data
+## 6. Zoho Books Integration Architecture
 
-The website features 8 verified customer reviews extracted from Google Maps:
+### Core Objectives
+Integrate website enquiries and commercial laundry accounts directly with Zoho Books for customer management, quotations, estimates, invoices, and payment tracking without manual data entry.
 
-| Reviewer Name | Badge / Level | Rating | Date | Review Text |
-| :--- | :--- | :--- | :--- | :--- |
-| **Rukman Lakshika Tennakoon** | Local Guide · 21 reviews | 5.0 ★ | 3 years ago | *"One of the best laundry services in the Galle area. Most of the 5-star hotels and resorts around Galle to Hikkaduwa are the main clients. Recently joined hands with Cleanamatic to give a world-class service to local and foreign customers."* |
-| **Sonali Wijesinghe** | Local Guide · 20 reviews | 5.0 ★ | 2 years ago | *"The only place in unawatuna I trust with my laundry"* |
-| **Iru Madu** | Local Guide · 102 reviews | 5.0 ★ | 11 months ago | *"Good place. You can wash your clothes fastly . Cheap price"* |
-| **Shyam Kawshal** | Local Guide · 54 reviews | 5.0 ★ | 4 years ago | *"Very good laundry on the main road of Unawatuna. Highly recommend it."* |
-| **Mark Wijeratne** | Local Guide · 122 reviews | 5.0 ★ | 4 years ago | *"I am very impressed by the out come of my laundry. I highly reccomend!"* |
-| **Святой Серафим** | Local Guide · 67 reviews | 5.0 ★ | 2 years ago | *"Very smile people. And clean wear very good))"* |
-| **Alina** | 4 reviews | 5.0 ★ | 2 years ago | *"Fast and good. Can recommend for sure"* |
-| **Faris Fassey** | Local Guide · 373 reviews | 5.0 ★ | 7 years ago | *"Pleasant welcome recommended.."* |
+### Security & Privacy Rules
+- **Zero Frontend Credential Exposure**: API secrets, OAuth tokens, and organization IDs are strictly kept in server environment variables.
+- **Environment Template (`.env.example`)**:
+  ```env
+  ZOHO_CLIENT_ID=
+  ZOHO_CLIENT_SECRET=
+  ZOHO_REFRESH_TOKEN=
+  ZOHO_ORGANIZATION_ID=
+  ZOHO_DC=com
+  ADMIN_SECRET_KEY=
+  ```
+- **Resilient Fallback**: If Zoho API keys are not yet configured, enquiries are safely staged in `.data/enquiries.json` with status `pending_configuration`. Customers receive the normal confirmation without seeing errors or losing their lead.
+
+### Service Layer (`src/services/zoho/`)
+- `auth.ts`: OAuth 2.0 token caching and automatic TTL refresh before expiry.
+- `client.ts`: Resilient fetch client with rate-limiting protection (HTTP 429) and safe logging.
+- `contacts.ts`: Customer lookup by email & phone to **prevent duplicate customer creation**, plus create and update methods.
+- `estimates.ts`: Generates draft Zoho Books Estimates for admin review without fabricating unverified prices.
+- `invoices.ts`: Scoped customer invoice retrieval and verified status tracking (`Draft`, `Sent`, `Viewed`, `Partially Paid`, `Paid`, `Overdue`, `Void`).
+- `sync.ts`: Full workflow synchronization, error recording, and manual retry.
+
+### Backend API Routes
+- `POST /api/quotes`: Public quote submission endpoint.
+- `GET /api/admin/zoho/status`: Admin Zoho connectivity check and sync stats.
+- `GET /api/admin/quotes`: Admin enquiries listing with status filtering.
+- `POST /api/admin/zoho/sync`: Manual sync retry for single enquiries or batch processing.
+- `POST /api/admin/zoho/create-estimate`: Admin conversion of an enquiry into a Zoho Estimate.
+- `GET /api/portal/invoices`: Customer portal endpoint with strict customer isolation.
+
+### Admin Dashboard (`/admin/zoho`)
+Accessible management interface displaying live Zoho Books connection health, sync metrics (Total, Synced, Pending, Failed), an interactive enquiries table with manual sync triggers, and a built-in Setup Guide.
 
 ---
 
-## 6. Development Log & User Requests
+## 7. Development Log & User Requests
 
 ### Request 1: Initial Goal
 > *Create a world-class, luxury, cinematic, modern, mobile-first responsive website for Ananke Laundry in Unawatuna, Sri Lanka.*
-
-- **Action Taken**: Initialized Next.js 15 App Router codebase with Tailwind CSS v4, Framer Motion, Lucide React, and built 13 dedicated sections with deep forest green brand aesthetic.
+- Initialized Next.js 15 App Router codebase with Tailwind CSS v4, Framer Motion, and dark forest green aesthetic.
 
 ### Request 2: Local Assets Migration
-> *"C:\Users\chami\OneDrive\Documents\Ananke Laundry\assests\images" add these folders images to necessary places.*
-
-- **Action Taken**: Transferred all local photos into `public/images/` and `public/images/gallery/` and linked them inside `Hero.tsx`, `Services.tsx`, `About.tsx`, and `Gallery.tsx`.
+> *Add local photos from OneDrive to necessary places.*
+- Transferred photos into `public/images/` and `public/images/gallery/` across Hero, Services, About, and Gallery.
 
 ### Request 3: GitHub Push
-> *Push all code updates to `https://github.com/raveenn10-bit/Ananke-Laundry-Service.git`.*
+> *Push all code updates to GitHub.*
+- Initialized git remote `origin` and pushed initial commit to `main` branch.
 
-- **Action Taken**: Initialized git remote `origin` to target repo and pushed initial commit to `main` branch.
-
-### Request 4: Add Authentic Google Reviews
+### Request 4: Authentic Google Reviews
 > *Add screenshot reviews to the website.*
-
-- **Action Taken**: Transcribed all 8 Google reviews from uploaded screenshot images and added them into `Reviews.tsx` with stars, avatars, badges, and smooth carousel navigation.
+- Transcribed all 8 verified Google reviews into `Reviews.tsx`.
 
 ### Request 5: Mobile Horizontal Scroll & 2-Column Mobile Footer
-> *Make these sections scroll horizontal and make footer divided in to two in mobile view.*
-
-- **Action Taken**:
-  - Updated `Services.tsx`, `Pricing.tsx`, `Gallery.tsx`, `HowItWorks.tsx`, and `WhyChoose.tsx` to scroll horizontally on mobile devices using `flex overflow-x-auto snap-x snap-mandatory`.
-  - Updated `Footer.tsx` to display a 2-column grid (`grid-cols-2`) on mobile.
+> *Make sections scroll horizontally and make footer divided in two in mobile view.*
+- Added `overflow-x-auto snap-x snap-mandatory` to key sections and 2-column mobile footer grid.
 
 ### Request 6: Add Rich Animations
-> *Add more animations and motions to this website (also to the mobile view).*
-
-- **Action Taken**: Added smooth hover animations, tap feedback, floating particle effects, glassmorphism card elevation, and entrance animations across all sections.
+> *Add more animations and motions.*
+- Added floating particles, glassmorphism cards, and smooth scroll entrance animations.
 
 ### Request 7: Save Chat History to GitHub
 > *GitHub ekata me chat history ekath add karanna mata wena machine ekakin lesiyen access wenna puluwan widiyata.*
+- Created initial `CHAT_HISTORY.md` file.
 
-- **Action Taken**: Created this comprehensive `CHAT_HISTORY.md` file and pushed it to GitHub.
+### Request 8: Integrate 100% Real Business Information
+> *Replace placeholder text, fake information, generic AI copy, and incorrect contact info with verified Ananke Laundry business details.*
+- Implemented verified landline `091 225 0777` (`tel:+94912250777`).
+- Completely removed all WhatsApp triggers, floats, and fields.
+- Set verified Unawatuna address and Google Maps links.
+- Updated opening hours and dynamic Sri Lanka time indicator (`Asia/Colombo`).
+- Added 7 verified services, B2B Commercial section, and Cleanline acquisition context.
+- Removed fake pricing and fake customer statistics.
+
+### Request 9: Zoho Books Integration Architecture
+> *Prepare website to integrate with Zoho Books for accounting, customer management, quotes, invoices, and payments.*
+- Built full server-side Zoho Books service architecture.
+- Added duplicate customer prevention, quotation pipeline, and invoice status tracking.
+- Created resilient local storage and ID mapping (`local_enquiry_id` <-> `zoho_customer_id`).
+- Implemented `/admin/zoho` dashboard with sync health and manual retry.
+- Enhanced quote form with dual commercial/individual selector.
+
+### Request 10: Fix Vercel Deployment Block
+> *Deployment blocked because commit email was not matched / collaborator on Hobby plan.*
+- Configured git commit author and committer to `raveenn10-bit <chamiccg@gmail.com>` matching the Vercel project owner account.
+- Provided instructions for adding email to GitHub or making the repo public.
+- Pushed clean build to `main`.
 
 ---
 
-## 7. How to Run & Access from Another Machine
-
-To access and run this codebase on any other computer:
+## 8. How to Run & Access from Another Machine
 
 1. **Clone the Repository**:
    ```bash
@@ -181,13 +236,13 @@ To access and run this codebase on any other computer:
    npm install
    ```
 
-3. **Start the Development Server**:
+3. **Start Development Server**:
    ```bash
    npm run dev
    ```
    Open `http://localhost:3000` in your web browser.
 
-4. **Build for Production**:
+4. **Production Build**:
    ```bash
    npm run build
    npm run start
@@ -195,4 +250,4 @@ To access and run this codebase on any other computer:
 
 ---
 
-*Last Updated: 2026-09-09*
+*Last Updated: 2026-09-09 � Verified Business & Zoho Books Architecture Release*
