@@ -299,7 +299,7 @@ export default function BillPortal() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
-          className="max-w-md mx-auto bg-white rounded-3xl p-6 sm:p-8 shadow-xl border border-gray-100"
+          className="max-w-md mx-auto bg-white rounded-3xl p-5 sm:p-8 shadow-xl border border-gray-100"
         >
           <div className="text-center mb-6">
             <div className="relative w-16 h-16 rounded-2xl overflow-hidden bg-primary/5 p-1.5 border border-primary/10 flex items-center justify-center mx-auto mb-4 shadow-sm">
@@ -340,10 +340,12 @@ export default function BillPortal() {
                 <input
                   id="phone"
                   type="tel"
+                  inputMode="tel"
+                  autoComplete="tel"
                   value={phoneInput}
                   onChange={(e) => setPhoneInput(e.target.value)}
                   placeholder="077 123 4567"
-                  className="w-full pl-24 pr-4 py-3.5 rounded-2xl border border-gray-200 text-dark font-medium text-sm focus:outline-none focus:border-olive focus:ring-2 focus:ring-olive/20 transition-all bg-cream/30"
+                  className="w-full pl-24 pr-4 py-3.5 rounded-2xl border border-gray-200 text-dark font-medium text-base focus:outline-none focus:border-olive focus:ring-2 focus:ring-olive/20 transition-all bg-cream/30"
                   autoFocus
                   required
                 />
@@ -385,7 +387,7 @@ export default function BillPortal() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
-          className="max-w-md mx-auto bg-white rounded-3xl p-6 sm:p-8 shadow-xl border border-gray-100"
+          className="max-w-md mx-auto bg-white rounded-3xl p-4 sm:p-8 shadow-xl border border-gray-100"
         >
           <div className="text-center mb-6">
             <div className="w-14 h-14 rounded-2xl bg-accent/20 text-accent-dark flex items-center justify-center mx-auto mb-4">
@@ -426,8 +428,8 @@ export default function BillPortal() {
           )}
 
           <form onSubmit={handleVerifyOtp} className="space-y-6">
-            {/* 6 Digit Inputs */}
-            <div className="flex justify-between gap-2 sm:gap-2.5">
+            {/* 6 Digit Inputs - Responsive on 320px+ */}
+            <div className="flex justify-between gap-1.5 sm:gap-2.5">
               {otpInput.map((digit, idx) => (
                 <input
                   key={idx}
@@ -436,11 +438,12 @@ export default function BillPortal() {
                   }}
                   type="text"
                   inputMode="numeric"
+                  pattern="[0-9]*"
                   maxLength={1}
                   value={digit}
                   onChange={(e) => handleOtpChange(idx, e.target.value)}
                   onKeyDown={(e) => handleOtpKeyDown(idx, e)}
-                  className="w-11 h-13 sm:w-12 sm:h-14 text-center font-heading font-bold text-xl sm:text-2xl rounded-xl border border-gray-200 bg-cream/30 focus:outline-none focus:border-olive focus:ring-2 focus:ring-olive/20 text-dark transition-all"
+                  className="w-9 sm:w-12 h-12 sm:h-14 text-center font-heading font-bold text-lg sm:text-2xl rounded-xl border border-gray-200 bg-cream/30 focus:outline-none focus:border-olive focus:ring-2 focus:ring-olive/20 text-dark transition-all"
                   required
                 />
               ))}
@@ -544,29 +547,29 @@ export default function BillPortal() {
 
           {/* Financial Summary Cards */}
           {summary && (
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
-                <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider block">Total Invoices</span>
-                <p className="font-heading font-bold text-2xl text-dark mt-1">{summary.totalInvoices}</p>
-                <span className="text-[11px] text-gray-500">Processed Records</span>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+              <div className="bg-white rounded-2xl p-4 sm:p-5 border border-gray-100 shadow-sm">
+                <span className="text-[10px] sm:text-[11px] font-semibold text-gray-400 uppercase tracking-wider block">Total Invoices</span>
+                <p className="font-heading font-bold text-xl sm:text-2xl text-dark mt-1 break-words">{summary.totalInvoices}</p>
+                <span className="text-[10px] sm:text-[11px] text-gray-500">Processed Records</span>
               </div>
 
-              <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
-                <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider block">Total Billed</span>
-                <p className="font-heading font-bold text-2xl text-dark mt-1">LKR {summary.totalAmount.toLocaleString()}</p>
-                <span className="text-[11px] text-gray-500">Commercial Services</span>
+              <div className="bg-white rounded-2xl p-4 sm:p-5 border border-gray-100 shadow-sm">
+                <span className="text-[10px] sm:text-[11px] font-semibold text-gray-400 uppercase tracking-wider block">Total Billed</span>
+                <p className="font-heading font-bold text-xl sm:text-2xl text-dark mt-1 break-words">LKR {summary.totalAmount.toLocaleString()}</p>
+                <span className="text-[10px] sm:text-[11px] text-gray-500">Commercial Services</span>
               </div>
 
-              <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
-                <span className="text-[11px] font-semibold text-emerald-600 uppercase tracking-wider block">Total Paid</span>
-                <p className="font-heading font-bold text-2xl text-emerald-700 mt-1">LKR {summary.totalPaid.toLocaleString()}</p>
-                <span className="text-[11px] text-emerald-600">Receipted Funds</span>
+              <div className="bg-white rounded-2xl p-4 sm:p-5 border border-gray-100 shadow-sm">
+                <span className="text-[10px] sm:text-[11px] font-semibold text-emerald-600 uppercase tracking-wider block">Total Paid</span>
+                <p className="font-heading font-bold text-xl sm:text-2xl text-emerald-700 mt-1 break-words">LKR {summary.totalPaid.toLocaleString()}</p>
+                <span className="text-[10px] sm:text-[11px] text-emerald-600">Receipted Funds</span>
               </div>
 
-              <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
-                <span className="text-[11px] font-semibold text-rose-600 uppercase tracking-wider block">Balance Due</span>
-                <p className="font-heading font-bold text-2xl text-rose-700 mt-1">LKR {summary.totalBalance.toLocaleString()}</p>
-                <span className="text-[11px] text-gray-500">Outstanding Balance</span>
+              <div className="bg-white rounded-2xl p-4 sm:p-5 border border-gray-100 shadow-sm">
+                <span className="text-[10px] sm:text-[11px] font-semibold text-rose-600 uppercase tracking-wider block">Balance Due</span>
+                <p className="font-heading font-bold text-xl sm:text-2xl text-rose-700 mt-1 break-words">LKR {summary.totalBalance.toLocaleString()}</p>
+                <span className="text-[10px] sm:text-[11px] text-gray-500">Outstanding Balance</span>
               </div>
             </div>
           )}
@@ -725,13 +728,13 @@ export default function BillPortal() {
                     </div>
 
                     {/* Action Buttons */}
-                    <div className="flex flex-wrap sm:flex-nowrap md:flex-col lg:flex-row items-center gap-2 pt-4 md:pt-0 border-t md:border-t-0 border-gray-100 shrink-0">
+                    <div className="grid grid-cols-2 sm:flex sm:flex-wrap md:flex-col lg:flex-row items-center gap-2 pt-4 md:pt-0 border-t md:border-t-0 border-gray-100 shrink-0 w-full sm:w-auto">
                       {/* View Invoice */}
                       <button
                         onClick={() => openInvoicePreview(inv)}
-                        className="flex-1 sm:flex-initial px-4 py-2.5 rounded-xl bg-gray-100 hover:bg-olive hover:text-white text-dark text-xs font-semibold transition-colors flex items-center justify-center gap-1.5 shadow-sm"
+                        className="px-3.5 sm:px-4 py-2.5 rounded-xl bg-gray-100 hover:bg-olive hover:text-white text-dark text-xs font-semibold transition-colors flex items-center justify-center gap-1.5 shadow-sm min-h-[40px] text-center"
                       >
-                        <Eye size={14} />
+                        <Eye size={14} className="shrink-0" />
                         <span>View Invoice</span>
                       </button>
 
@@ -740,9 +743,9 @@ export default function BillPortal() {
                         href={`/api/portal/invoice-pdf?id=${inv.invoice_id}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex-1 sm:flex-initial px-4 py-2.5 rounded-xl border border-gray-200 hover:border-olive text-dark text-xs font-semibold transition-colors flex items-center justify-center gap-1.5 shadow-sm"
+                        className="px-3.5 sm:px-4 py-2.5 rounded-xl border border-gray-200 hover:border-olive text-dark text-xs font-semibold transition-colors flex items-center justify-center gap-1.5 shadow-sm min-h-[40px] text-center"
                       >
-                        <Download size={14} className="text-olive" />
+                        <Download size={14} className="text-olive shrink-0" />
                         <span>Download PDF</span>
                       </a>
 
@@ -751,9 +754,9 @@ export default function BillPortal() {
                         <>
                           <button
                             onClick={() => openReceiptPreview(inv)}
-                            className="flex-1 sm:flex-initial px-4 py-2.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-semibold transition-colors flex items-center justify-center gap-1.5 border border-emerald-200/60"
+                            className="px-3.5 sm:px-4 py-2.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-semibold transition-colors flex items-center justify-center gap-1.5 border border-emerald-200/60 min-h-[40px] text-center"
                           >
-                            <Receipt size={14} />
+                            <Receipt size={14} className="shrink-0" />
                             <span>View Receipt</span>
                           </button>
 
@@ -761,9 +764,9 @@ export default function BillPortal() {
                             href={`/api/portal/receipt-pdf?id=${inv.payment_id || 'mock-pay-1042'}`}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="flex-1 sm:flex-initial px-4 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold transition-colors flex items-center justify-center gap-1.5 shadow-sm"
+                            className="px-3.5 sm:px-4 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold transition-colors flex items-center justify-center gap-1.5 shadow-sm min-h-[40px] text-center"
                           >
-                            <Download size={14} />
+                            <Download size={14} className="shrink-0" />
                             <span>Receipt PDF</span>
                           </a>
                         </>

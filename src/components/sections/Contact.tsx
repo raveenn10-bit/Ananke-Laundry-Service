@@ -306,7 +306,7 @@ export default function Contact() {
                         type="text"
                         {...register('name')}
                         placeholder="e.g. John Perera"
-                        className={`w-full rounded-xl border px-4 py-3 text-sm focus:ring-2 focus:ring-olive/30 focus:border-olive outline-none transition-all ${
+                        className={`w-full rounded-xl border px-4 py-3 text-base focus:ring-2 focus:ring-olive/30 focus:border-olive outline-none transition-all ${
                           errors.name ? 'border-red-400 bg-red-50/30' : 'border-gray-200'
                         }`}
                       />
@@ -325,7 +325,7 @@ export default function Contact() {
                         type="text"
                         {...register('businessName')}
                         placeholder={formMode === 'commercial' ? 'e.g. Unawatuna Bay Resort' : 'e.g. Villa or Residence'}
-                        className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm focus:ring-2 focus:ring-olive/30 focus:border-olive outline-none transition-all"
+                        className="w-full rounded-xl border border-gray-200 px-4 py-3 text-base focus:ring-2 focus:ring-olive/30 focus:border-olive outline-none transition-all"
                       />
                     </div>
                   </div>
@@ -337,9 +337,10 @@ export default function Contact() {
                       </label>
                       <input
                         type="tel"
+                        inputMode="tel"
                         {...register('phone')}
                         placeholder="07X XXX XXXX / 091 XXX XXXX"
-                        className={`w-full rounded-xl border px-4 py-3 text-sm focus:ring-2 focus:ring-olive/30 focus:border-olive outline-none transition-all ${
+                        className={`w-full rounded-xl border px-4 py-3 text-base focus:ring-2 focus:ring-olive/30 focus:border-olive outline-none transition-all ${
                           errors.phone ? 'border-red-400 bg-red-50/30' : 'border-gray-200'
                         }`}
                       />
@@ -356,9 +357,10 @@ export default function Contact() {
                       </label>
                       <input
                         type="email"
+                        inputMode="email"
                         {...register('email')}
                         placeholder="contact@hotel.com"
-                        className={`w-full rounded-xl border px-4 py-3 text-sm focus:ring-2 focus:ring-olive/30 focus:border-olive outline-none transition-all ${
+                        className={`w-full rounded-xl border px-4 py-3 text-base focus:ring-2 focus:ring-olive/30 focus:border-olive outline-none transition-all ${
                           errors.email ? 'border-red-400 bg-red-50/30' : 'border-gray-200'
                         }`}
                       />
@@ -446,7 +448,7 @@ export default function Contact() {
                       {formMode === 'commercial' ? (
                         <select
                           {...register('laundryType')}
-                          className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm focus:ring-2 focus:ring-olive/30 focus:border-olive outline-none transition-all bg-white text-gray-700"
+                          className="w-full rounded-xl border border-gray-200 px-4 py-3 text-base focus:ring-2 focus:ring-olive/30 focus:border-olive outline-none transition-all bg-white text-gray-700"
                         >
                           <option value="Bed Linen (Sheets & Pillowcases)">Bed Linen (Sheets &amp; Pillowcases)</option>
                           <option value="Bath Towels & Mats">Bath &amp; Pool Towels</option>
@@ -458,7 +460,7 @@ export default function Contact() {
                       ) : (
                         <select
                           {...register('laundryVolume')}
-                          className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm focus:ring-2 focus:ring-olive/30 focus:border-olive outline-none transition-all bg-white text-gray-700"
+                          className="w-full rounded-xl border border-gray-200 px-4 py-3 text-base focus:ring-2 focus:ring-olive/30 focus:border-olive outline-none transition-all bg-white text-gray-700"
                         >
                           <option value="Individual Garments (< 10 kg)">Small Load (&lt; 10 kg)</option>
                           <option value="Medium Load (10-25 kg)">Medium Load (10-25 kg)</option>
@@ -477,7 +479,7 @@ export default function Contact() {
                         </label>
                         <select
                           {...register('laundryVolume')}
-                          className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm focus:ring-2 focus:ring-olive/30 focus:border-olive outline-none transition-all bg-white text-gray-700"
+                          className="w-full rounded-xl border border-gray-200 px-4 py-3 text-base focus:ring-2 focus:ring-olive/30 focus:border-olive outline-none transition-all bg-white text-gray-700"
                         >
                           <option value="Small Commercial / Airbnb (10-50 kg)">Small Commercial / Airbnb (10-50 kg)</option>
                           <option value="Weekly Hospitality Volume (50-100 kg)">Weekly Volume (50-100 kg)</option>
@@ -494,7 +496,7 @@ export default function Contact() {
                           type="text"
                           {...register('address')}
                           placeholder="e.g. Yaddehimulla Road, Unawatuna"
-                          className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm focus:ring-2 focus:ring-olive/30 focus:border-olive outline-none transition-all"
+                          className="w-full rounded-xl border border-gray-200 px-4 py-3 text-base focus:ring-2 focus:ring-olive/30 focus:border-olive outline-none transition-all"
                         />
                       </div>
                     </div>
@@ -512,7 +514,7 @@ export default function Contact() {
                           ? 'Please describe your room count, linen rotation requirements, or specific pickup preferences...'
                           : 'Please share details about fabrics, stain concerns, or special care requirements...'
                       }
-                      className={`w-full rounded-xl border px-4 py-3 text-sm focus:ring-2 focus:ring-olive/30 focus:border-olive outline-none transition-all resize-none ${
+                      className={`w-full rounded-xl border px-4 py-3 text-base focus:ring-2 focus:ring-olive/30 focus:border-olive outline-none transition-all resize-none ${
                         errors.message ? 'border-red-400 bg-red-50/30' : 'border-gray-200'
                       }`}
                     />

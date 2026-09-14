@@ -78,7 +78,7 @@ export default function Hero() {
 
 
   return (
-    <section id="home" className="relative min-h-[85vh] md:min-h-screen flex items-center pt-24 pb-16 overflow-hidden bg-primary">
+    <section id="home" className="relative min-h-[85vh] md:min-h-screen flex items-center pt-24 pb-24 sm:pb-20 md:pb-16 overflow-hidden bg-primary">
 
       {/* === Background Slideshow === */}
       <div className="absolute inset-0 z-0 overflow-hidden">
@@ -169,25 +169,25 @@ export default function Hero() {
             </span>
           </motion.div>
 
-          <motion.h1 variants={itemVariants} className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-white leading-[1.1] mb-6 font-heading">
+          <motion.h1 variants={itemVariants} className="text-2xl xs:text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-white leading-[1.15] sm:leading-[1.1] mb-5 sm:mb-6 font-heading break-words">
             Professional Laundry &amp; <span className="italic text-accent font-normal block sm:inline">Linen Care</span> in Unawatuna
           </motion.h1>
 
-          <motion.p variants={itemVariants} className="text-white/85 text-base sm:text-lg md:text-xl mb-8 max-w-2xl mx-auto md:mx-0 leading-relaxed font-body">
+          <motion.p variants={itemVariants} className="text-white/85 text-sm sm:text-lg md:text-xl mb-7 sm:mb-8 max-w-2xl mx-auto md:mx-0 leading-relaxed font-body">
             Professional laundry and linen-care solutions for individuals, travellers and hospitality businesses in Sri Lanka&apos;s Southern region.
           </motion.p>
 
-          <motion.div variants={itemVariants} className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center md:justify-start gap-3.5 mb-10">
+          <motion.div variants={itemVariants} className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center md:justify-start gap-3 sm:gap-3.5 mb-8 sm:mb-10">
             <a
               href="/contact"
-              className="bg-accent hover:bg-olive text-dark hover:text-white font-bold px-7 py-4 rounded-full transition-all duration-300 flex items-center justify-center gap-2 text-base shadow-lg hover:shadow-accent/25 hover:scale-[1.02] active:scale-95"
+              className="bg-accent hover:bg-olive text-dark hover:text-white font-bold px-6 sm:px-7 py-3.5 sm:py-4 rounded-full transition-all duration-300 flex items-center justify-center gap-2 text-sm sm:text-base shadow-lg hover:shadow-accent/25 hover:scale-[1.02] active:scale-95 min-h-[44px]"
             >
               <FileText className="w-5 h-5" />
               Request a Quote
             </a>
             <a
               href="tel:+94912250777"
-              className="border-2 border-white/40 hover:border-accent text-white hover:text-accent rounded-full px-6 py-3.5 transition-all duration-300 flex items-center justify-center gap-2 text-sm sm:text-base font-medium hover:bg-white/5 active:scale-95"
+              className="border-2 border-white/40 hover:border-accent text-white hover:text-accent rounded-full px-5 sm:px-6 py-3 sm:py-3.5 transition-all duration-300 flex items-center justify-center gap-2 text-xs sm:text-base font-medium hover:bg-white/5 active:scale-95 min-h-[44px]"
             >
               <Phone className="w-4 h-4 text-accent" />
               Call 091 225 0777
@@ -196,22 +196,22 @@ export default function Hero() {
               href="https://maps.app.goo.gl/HLJGzPCVZwySjSTK6?g_st=ic"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-white/80 hover:text-accent rounded-full px-5 py-3.5 transition-all duration-300 flex items-center justify-center gap-2 text-sm sm:text-base font-medium hover:bg-white/5"
+              className="text-white/80 hover:text-accent rounded-full px-4 sm:px-5 py-3 sm:py-3.5 transition-all duration-300 flex items-center justify-center gap-2 text-xs sm:text-base font-medium hover:bg-white/5 min-h-[44px]"
             >
               <MapPin className="w-4 h-4 text-accent" />
               Get Directions
             </a>
           </motion.div>
 
-          <motion.div variants={itemVariants} className="flex flex-wrap items-center justify-center md:justify-start gap-3 md:gap-4 pt-2">
+          <motion.div variants={itemVariants} className="flex flex-wrap items-center justify-center md:justify-start gap-2.5 sm:gap-3 md:gap-4 pt-1 sm:pt-2">
             {[
               { icon: Building, text: 'Hospitality & Commercial Linen' },
               { icon: ShieldCheck, text: 'Professional Quality Standards' },
               { icon: MapPin, text: 'Unawatuna Facility & Collection' },
             ].map((badge, idx) => (
-              <div key={idx} className="flex items-center gap-2 bg-white/10 backdrop-blur-md border border-white/15 rounded-full px-4 py-2">
-                <badge.icon className="w-4 h-4 text-accent shrink-0" />
-                <span className="text-white text-xs sm:text-sm font-medium">{badge.text}</span>
+              <div key={idx} className="flex items-center gap-2 bg-white/10 backdrop-blur-md border border-white/15 rounded-full px-3 sm:px-4 py-1.5 sm:py-2">
+                <badge.icon className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-accent shrink-0" />
+                <span className="text-white text-[11px] sm:text-sm font-medium">{badge.text}</span>
               </div>
             ))}
           </motion.div>
@@ -219,7 +219,7 @@ export default function Hero() {
       </div>
 
       {/* === Slide Controls (Prev / Next arrows) === */}
-      <div className="absolute bottom-8 right-6 sm:bottom-10 sm:right-8 z-20 flex items-center gap-3">
+      <div className="absolute bottom-5 right-4 sm:bottom-10 sm:right-8 z-20 flex items-center gap-2.5 sm:gap-3">
         <button
           onClick={() => { prev(); startInterval(); }}
           aria-label="Previous slide"

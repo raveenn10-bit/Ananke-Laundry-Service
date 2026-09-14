@@ -28,7 +28,7 @@ const SERVICES = [
 
 export default function Footer() {
   return (
-    <footer className="bg-primary text-cream pt-16 pb-24 md:pb-12 border-t border-white/10 relative overflow-hidden">
+    <footer className="bg-primary text-cream pt-16 pb-28 lg:pb-14 border-t border-white/10 relative overflow-hidden">
       {/* Ambient background glow */}
       <div className="absolute top-0 right-1/4 w-96 h-96 bg-olive/10 rounded-full blur-3xl pointer-events-none" />
 

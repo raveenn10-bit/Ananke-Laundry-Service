@@ -32,6 +32,25 @@ export default function Header() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // Body scroll lock & escape listener for mobile drawer
+  useEffect(() => {
+    if (isMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setIsMenuOpen(false);
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.body.style.overflow = '';
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isMenuOpen]);
+
   const closeMenu = () => setIsMenuOpen(false);
   const isSolidBg = isScrolled || (pathname && pathname !== '/');
 
@@ -98,9 +117,11 @@ export default function Header() {
 
           {/* Mobile Menu Button */}
           <button
-            className="lg:hidden relative z-50 p-2 text-white min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl bg-white/10 backdrop-blur-md"
+            className="lg:hidden relative z-50 p-2 text-white min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl bg-white/10 backdrop-blur-md active:scale-95 transition-transform"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             aria-label={isMenuOpen ? 'Close Menu' : 'Open Menu'}
+            aria-expanded={isMenuOpen}
+            aria-controls="mobile-nav"
           >
             {isMenuOpen ? <X size={26} /> : <Menu size={26} />}
           </button>
@@ -111,13 +132,14 @@ export default function Header() {
       <AnimatePresence>
         {isMenuOpen && (
           <motion.div
+            id="mobile-nav"
             initial={{ opacity: 0, x: '100%' }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: '100%' }}
             transition={{ type: 'tween', duration: 0.3 }}
-            className="fixed inset-0 bg-primary z-40 flex flex-col justify-between px-6 pt-24 pb-8 lg:hidden overflow-y-auto"
+            className="fixed inset-0 bg-primary z-40 flex flex-col justify-between px-5 pt-24 pb-8 lg:hidden overflow-y-auto min-h-[100dvh] max-h-[100dvh]"
           >
-            <nav className="flex flex-col gap-4 items-center my-auto">
+            <nav className="flex flex-col gap-3.5 items-center my-auto py-2">
               {NAV_LINKS.map((link) => {
                 const isActive = pathname === link.href;
                 const isBill = link.href === '/my-bill';
@@ -125,7 +147,7 @@ export default function Header() {
                   <Link
                     key={link.name}
                     href={link.href}
-                    className={`text-lg sm:text-xl font-heading font-medium transition-colors flex items-center gap-2 ${
+                    className={`text-lg sm:text-xl font-heading font-medium transition-colors flex items-center gap-2 py-1 ${
                       isActive ? 'text-accent font-bold underline underline-offset-8 decoration-2' : 'text-white hover:text-accent'
                     } ${isBill ? 'text-accent font-semibold' : ''}`}
                     onClick={closeMenu}
@@ -137,10 +159,10 @@ export default function Header() {
               })}
             </nav>
 
-            <div className="flex flex-col gap-3 mt-8 w-full max-w-sm mx-auto">
+            <div className="flex flex-col gap-3 mt-6 w-full max-w-sm mx-auto shrink-0 pb-safe">
               <Link
                 href="/my-bill"
-                className="bg-white/10 hover:bg-white/20 text-white font-semibold text-sm px-6 py-3.5 rounded-full w-full flex items-center justify-center gap-2 border border-white/20 shadow-md"
+                className="bg-white/10 hover:bg-white/20 text-white font-semibold text-sm px-5 py-3.5 rounded-full w-full flex items-center justify-center gap-2 border border-white/20 shadow-md min-h-[44px]"
                 onClick={closeMenu}
               >
                 <Receipt size={16} className="text-accent" />
@@ -148,25 +170,27 @@ export default function Header() {
               </Link>
               <Link
                 href="/contact"
-                className="bg-accent text-dark text-center font-bold text-sm sm:text-base px-6 py-3.5 rounded-full w-full shadow-lg"
+                className="bg-accent text-dark text-center font-bold text-sm sm:text-base px-5 py-3.5 rounded-full w-full shadow-lg min-h-[44px] flex items-center justify-center"
                 onClick={closeMenu}
               >
                 Request a Quote
               </Link>
-              <div className="flex gap-3">
+              <div className="flex flex-col sm:flex-row gap-2.5">
                 <a
                   href="tel:+94912250777"
-                  className="flex-1 bg-white/10 hover:bg-white/20 flex items-center justify-center gap-2 text-white py-3 rounded-full border border-white/20 text-sm font-medium transition-colors"
+                  className="flex-1 bg-white/10 hover:bg-white/20 flex items-center justify-center gap-2 text-white py-3 px-3 rounded-full border border-white/20 text-xs sm:text-sm font-medium transition-colors min-h-[44px]"
                 >
-                  <Phone size={16} className="text-accent" /> Call 091 225 0777
+                  <Phone size={15} className="text-accent shrink-0" />
+                  <span>Call 091 225 0777</span>
                 </a>
                 <a
                   href="https://maps.app.goo.gl/HLJGzPCVZwySjSTK6?g_st=ic"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex-1 bg-olive/30 hover:bg-olive/40 flex items-center justify-center gap-2 text-white py-3 rounded-full border border-olive/50 text-sm font-medium transition-colors"
+                  className="flex-1 bg-olive/30 hover:bg-olive/40 flex items-center justify-center gap-2 text-white py-3 px-3 rounded-full border border-olive/50 text-xs sm:text-sm font-medium transition-colors min-h-[44px]"
                 >
-                  <MapPin size={16} className="text-accent" /> Directions
+                  <MapPin size={15} className="text-accent shrink-0" />
+                  <span>Directions</span>
                 </a>
               </div>
             </div>

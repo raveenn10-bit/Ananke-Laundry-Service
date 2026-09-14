@@ -115,7 +115,7 @@ export default function Services() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: false, amount: 0.15, margin: '-40px' }}
               transition={{ delay: 0.05 * (idx % 4), duration: 0.5 }}
-              className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 group flex flex-col min-w-[280px] sm:min-w-0 snap-start flex-shrink-0 sm:flex-shrink border border-gray-100"
+              className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 group flex flex-col w-[82vw] min-w-[250px] max-w-[320px] sm:w-auto sm:min-w-0 snap-start flex-shrink-0 sm:flex-shrink border border-gray-100"
             >
               <div className="relative h-[190px] sm:h-[210px] overflow-hidden bg-gray-200">
                 <Image

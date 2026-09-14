@@ -124,7 +124,7 @@ export default function Pricing() {
                 exit={{ opacity: 0, scale: 0.95, y: 20 }}
                 whileHover={{ y: -6 }}
                 transition={{ duration: 0.35, delay: idx * 0.06 }}
-                className="bg-white rounded-3xl p-6 sm:p-7 shadow-sm border border-gray-100/90 hover:border-olive/40 hover:shadow-lg transition-all flex flex-col justify-between min-w-[285px] sm:min-w-0 snap-start flex-shrink-0 sm:flex-shrink"
+                className="bg-white rounded-3xl p-6 sm:p-7 shadow-sm border border-gray-100/90 hover:border-olive/40 hover:shadow-lg transition-all flex flex-col justify-between w-[82vw] min-w-[250px] max-w-[340px] sm:w-auto sm:min-w-0 snap-start flex-shrink-0 sm:flex-shrink"
               >
                 <div>
                   <div className="inline-block bg-olive/10 text-olive text-[11px] font-semibold uppercase tracking-wider px-3 py-1 rounded-full mb-3">

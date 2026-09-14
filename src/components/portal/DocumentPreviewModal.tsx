@@ -63,7 +63,7 @@ export default function DocumentPreviewModal({
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-6 overflow-y-auto">
         {/* Backdrop */}
         <motion.div
           initial={{ opacity: 0 }}
@@ -79,16 +79,16 @@ export default function DocumentPreviewModal({
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.96, y: 15 }}
           transition={{ duration: 0.25 }}
-          className="relative w-full max-w-2xl bg-white rounded-3xl shadow-2xl border border-gray-100 overflow-hidden z-10 my-auto flex flex-col max-h-[90vh]"
+          className="relative w-full max-w-[calc(100vw-16px)] sm:max-w-2xl bg-white rounded-3xl shadow-2xl border border-gray-100 overflow-hidden z-10 my-auto flex flex-col max-h-[90vh]"
         >
           {/* Header Action Bar */}
-          <div className="flex items-center justify-between px-6 py-4 bg-primary text-white border-b border-white/10 shrink-0">
-            <div className="flex items-center gap-2">
-              <Receipt size={18} className="text-accent" />
-              <span className="font-heading font-semibold text-sm sm:text-base">
+          <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 sm:py-4 bg-primary text-white border-b border-white/10 shrink-0">
+            <div className="flex items-center gap-2 min-w-0">
+              <Receipt size={18} className="text-accent shrink-0" />
+              <span className="font-heading font-semibold text-xs sm:text-base truncate">
                 {isInvoice && invoice
-                  ? `Invoice Preview #${invoice.invoice_number}`
-                  : `Payment Receipt #${payment?.payment_number || ''}`}
+                  ? `Invoice #${invoice.invoice_number}`
+                  : `Receipt #${payment?.payment_number || ''}`}
               </span>
             </div>
 
@@ -118,7 +118,7 @@ export default function DocumentPreviewModal({
           </div>
 
           {/* Printable Document Body */}
-          <div className="p-6 sm:p-8 overflow-y-auto space-y-6 print:p-0 font-body text-dark">
+          <div className="p-4 sm:p-8 overflow-y-auto space-y-6 print:p-0 font-body text-dark">
             {/* Top Brand Banner with Logo */}
             <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 pb-6 border-b border-gray-100">
               <div className="flex items-center sm:items-start gap-3.5">
@@ -192,9 +192,12 @@ export default function DocumentPreviewModal({
 
                 {/* Line Items Table */}
                 <div>
-                  <h3 className="font-heading font-semibold text-sm text-dark mb-3">Service &amp; Linen Details</h3>
-                  <div className="border border-gray-100 rounded-2xl overflow-hidden">
-                    <table className="w-full text-left text-xs">
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="font-heading font-semibold text-sm text-dark">Service &amp; Linen Details</h3>
+                    <span className="text-[10px] text-gray-400 sm:hidden">&larr; scroll table &rarr;</span>
+                  </div>
+                  <div className="border border-gray-100 rounded-2xl overflow-x-auto">
+                    <table className="w-full min-w-[420px] text-left text-xs">
                       <thead className="bg-gray-50 border-b border-gray-100 text-gray-500 uppercase tracking-wider">
                         <tr>
                           <th className="py-2.5 px-4 font-semibold">Description</th>

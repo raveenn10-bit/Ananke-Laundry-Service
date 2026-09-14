@@ -209,8 +209,30 @@ input, textarea, select {
   font-family: var(--font-body);
 }
 
-/* Phone link styling */
-a[href^="tel:"],
-a[href^="mailto:"] {
+/* Phone & Email link styling */
+a[href^="tel:"] {
   white-space: nowrap;
+  max-width: 100%;
 }
+
+a[href^="mailto:"] {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+/* Hide scrollbar for clean horizontal swipe containers */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Touch target minimum utility */
+.touch-target {
+  min-height: 44px;
+  min-width: 44px;
+}
+

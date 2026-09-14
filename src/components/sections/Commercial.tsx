@@ -78,7 +78,7 @@ export default function Commercial() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: false, amount: 0.15, margin: '-40px' }}
                 transition={{ delay: (idx % 4) * 0.06, duration: 0.45 }}
-                className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-5 hover:bg-white/10 hover:border-accent/40 transition-all duration-300 flex flex-col justify-between min-w-[270px] sm:min-w-0 snap-start flex-shrink-0 sm:flex-shrink"
+                className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-5 hover:bg-white/10 hover:border-accent/40 transition-all duration-300 flex flex-col justify-between w-[80vw] min-w-[250px] max-w-[320px] sm:w-auto sm:min-w-0 snap-start flex-shrink-0 sm:flex-shrink"
               >
                 <div>
                   <div className="w-10 h-10 rounded-xl bg-olive/30 text-accent flex items-center justify-center mb-3.5 border border-olive/40">
@@ -100,7 +100,7 @@ export default function Commercial() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: false, amount: 0.15, margin: '-40px' }}
               transition={{ delay: 0.25, duration: 0.45 }}
-              className="bg-gradient-to-br from-olive/40 to-primary/80 border border-accent/30 rounded-2xl p-5 flex flex-col justify-between min-w-[270px] sm:min-w-0 snap-start flex-shrink-0 sm:flex-shrink"
+              className="bg-gradient-to-br from-olive/40 to-primary/80 border border-accent/30 rounded-2xl p-5 flex flex-col justify-between w-[80vw] min-w-[250px] max-w-[320px] sm:w-auto sm:min-w-0 snap-start flex-shrink-0 sm:flex-shrink"
             >
               <div>
                 <span className="text-accent text-xs font-semibold uppercase tracking-wider block mb-2">
