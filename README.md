@@ -24,7 +24,7 @@ Commercial and individual laundry services connected with **Cleanline Linen Mana
 
 ---
 
-## 📄 Pages (7 Dedicated Routes)
+## 📄 Pages (8 Dedicated Routes)
 
 | Route | Page | Description |
 |---|---|---|
@@ -34,6 +34,7 @@ Commercial and individual laundry services connected with **Cleanline Linen Mana
 | `/commercial` | **Commercial Laundry** | B2B hospitality linen management for hotels, coastal villas, guest houses, and restaurants |
 | `/pricing` | **Pricing & Quotations** | Transparent tiered quotation system for garment care, hospitality linen, and dry cleaning |
 | `/gallery` | **Facility Tour** | Filterable photo gallery with full-screen lightbox — team, machines, process, and facility |
+| `/my-bill` | **View My Bill** | Secure customer portal to view Zoho Books invoices, payment receipts, and download PDFs via OTP verification |
 | `/contact` | **Contact & Quote** | Phone (`091 225 0777`), Google Maps directions, business hours, and dual-mode quote form |
 
 ---
@@ -48,16 +49,21 @@ Commercial and individual laundry services connected with **Cleanline Linen Mana
 
 ---
 
-## 🔌 Zoho Books Integration (Backend)
+## 🔌 Zoho Books Integration & Customer Portal (Backend)
 
-Securely integrated with **Zoho Books** for B2B accounting and customer management:
+Securely integrated with **Zoho Books** for B2B accounting, customer management, and invoice viewing:
 
+- `POST /api/otp/send` — Dispatches 6-digit OTP to Sri Lankan phone number with rate-limiting
+- `POST /api/otp/verify` — Verifies OTP, resolves Zoho contact, and issues signed session cookie
+- `GET /api/portal/invoices` — Secure session-authenticated customer invoice retrieval
+- `GET /api/portal/payments` — Secure customer payment receipt retrieval
+- `GET /api/portal/invoice-pdf` — Streams original Zoho Books invoice PDF with multi-tenant auth check
+- `GET /api/portal/receipt-pdf` — Streams original Zoho Books payment receipt PDF with auth check
 - `POST /api/quotes` — Public quote submission (Zod validation, honeypot spam protection)
 - `GET /api/admin/zoho/status` — Zoho Books connectivity and organization status
 - `POST /api/admin/zoho/sync` — Sync pending enquiries to Zoho Books contacts & estimates
 - `POST /api/admin/zoho/create-estimate` — Create draft Zoho Books estimates from enquiries
 - `GET /api/admin/quotes` — Admin view of all incoming enquiries
-- `GET /api/portal/invoices` — Secure customer-scoped invoice retrieval
 
 > ⚠️ **All Zoho credentials are strictly server-side via environment variables. No secrets are exposed in frontend code.**
 

@@ -101,9 +101,19 @@ export type ZohoPaymentStatus =
   | 'Viewed'
   | 'Partially Paid'
   | 'Paid'
+  | 'Unpaid'
   | 'Overdue'
   | 'Void'
   | 'Unknown';
+
+export interface ZohoInvoiceLineItem {
+  item_id?: string;
+  name: string;
+  description?: string;
+  rate?: number;
+  quantity?: number;
+  item_total?: number;
+}
 
 export interface ZohoInvoice {
   invoice_id: string;
@@ -116,9 +126,28 @@ export interface ZohoInvoice {
   due_date: string;
   total: number;
   balance: number;
+  amount_paid: number;
   currency_code: string;
   currency_symbol: string;
   created_time: string;
+  description?: string;
+  line_items?: ZohoInvoiceLineItem[];
+  payment_date?: string;
+  payment_id?: string;
+}
+
+export interface ZohoPayment {
+  payment_id: string;
+  payment_number: string;
+  customer_id: string;
+  customer_name: string;
+  date: string;
+  payment_mode: string;
+  amount: number;
+  reference_number?: string;
+  invoice_numbers?: string;
+  invoice_id?: string;
+  description?: string;
 }
 
 export interface ZohoApiResponse<T = unknown> {
@@ -132,3 +161,4 @@ export interface ZohoApiError {
   message: string;
   details?: Record<string, unknown>;
 }
+

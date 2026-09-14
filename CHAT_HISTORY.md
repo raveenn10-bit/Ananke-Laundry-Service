@@ -257,3 +257,10 @@ Accessible management interface displaying live Zoho Books connection health, sy
 ## 9. 7-Page Multi-Route Architecture & Mobile Responsive Animations Update (2026-09-09)
 
 Pushed full production release with 7 dedicated pages, complete mobile horizontal snap carousels, swipe hints, bidirectional scroll fade-out/in animations, and Zoho Books B2B integration.
+
+
+---
+
+**Ananke Laundry - Secure Customer Invoice & Payment Receipt Portal (View My Bill) (2026-09-14)**
+
+Added premium customer portal for viewing Zoho Books invoices, payment receipts, and downloading official PDFs via Sri Lankan phone number + OTP verification.

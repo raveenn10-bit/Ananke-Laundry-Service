@@ -25,6 +25,15 @@ export async function findZohoCustomer(email?: string, phone?: string): Promise<
       if (phoneRes?.contacts && phoneRes.contacts.length > 0) {
         return phoneRes.contacts[0];
       }
+
+      // Also try mobile search
+      const mobileRes = await zohoRequest<ZohoCustomerSearchResponse>('/contacts', {
+        params: { mobile: cleanPhone },
+      });
+
+      if (mobileRes?.contacts && mobileRes.contacts.length > 0) {
+        return mobileRes.contacts[0];
+      }
     }
 
     return null;
@@ -32,6 +41,15 @@ export async function findZohoCustomer(email?: string, phone?: string): Promise<
     console.error('[Zoho Contacts] Error searching customer:', err);
     return null;
   }
+}
+
+export async function findZohoCustomerByPhoneVariants(phones: string[]): Promise<ZohoContact | null> {
+  for (const p of phones) {
+    if (!p) continue;
+    const found = await findZohoCustomer(undefined, p);
+    if (found) return found;
+  }
+  return null;
 }
 
 export async function createZohoCustomer(submission: QuoteSubmission): Promise<ZohoContact> {

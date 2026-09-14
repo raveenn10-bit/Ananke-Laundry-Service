@@ -82,3 +82,66 @@ export async function zohoRequest<T = any>(endpoint: string, options: RequestOpt
     throw err;
   }
 }
+
+export async function zohoDownloadRequest(
+  endpoint: string,
+  options: { params?: Record<string, string | number | boolean | undefined>; timeoutMs?: number } = {}
+): Promise<{ buffer: Buffer; contentType: string }> {
+  const config = getZohoConfig();
+  if (!config) {
+    throw new Error('Zoho Books configuration is missing');
+  }
+
+  const accessToken = await getZohoAccessToken();
+  const baseDomain = getZohoBooksApiDomain(config.dc);
+  const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+  const url = new URL(`${baseDomain}${cleanEndpoint}`);
+
+  url.searchParams.set('organization_id', config.organizationId);
+  url.searchParams.set('accept', 'pdf');
+
+  if (options.params) {
+    for (const [key, val] of Object.entries(options.params)) {
+      if (val !== undefined && val !== null) {
+        url.searchParams.set(key, String(val));
+      }
+    }
+  }
+
+  const headers: Record<string, string> = {
+    Authorization: `Zoho-oauthtoken ${accessToken}`,
+    'X-com-zoho-books-organizationid': config.organizationId,
+    Accept: 'application/pdf',
+  };
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), options.timeoutMs || 25000);
+
+  try {
+    const response = await fetch(url.toString(), {
+      method: 'GET',
+      headers,
+      signal: controller.signal,
+    });
+
+    clearTimeout(timeout);
+
+    if (!response.ok) {
+      const errorText = await response.text().catch(() => '');
+      throw new Error(`Zoho PDF download failed with HTTP ${response.status}: ${errorText}`);
+    }
+
+    const arrayBuffer = await response.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+    const contentType = response.headers.get('content-type') || 'application/pdf';
+
+    return { buffer, contentType };
+  } catch (err: any) {
+    clearTimeout(timeout);
+    if (err.name === 'AbortError') {
+      throw new Error('Zoho PDF download request timed out');
+    }
+    throw err;
+  }
+}
+

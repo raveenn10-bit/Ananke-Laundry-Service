@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Menu, X, Phone, MapPin } from 'lucide-react';
+import { Menu, X, Phone, MapPin, Receipt } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const NAV_LINKS = [
@@ -15,6 +15,7 @@ const NAV_LINKS = [
   { name: 'Pricing', href: '/pricing' },
   { name: 'Facility', href: '/gallery' },
   { name: 'Contact', href: '/contact' },
+  { name: 'View My Bill', href: '/my-bill' },
 ];
 
 export default function Header() {
@@ -55,18 +56,20 @@ export default function Header() {
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden lg:flex items-center gap-7">
+          <nav className="hidden lg:flex items-center gap-6 xl:gap-7">
             {NAV_LINKS.map((link) => {
               const isActive = pathname === link.href || (link.href !== '/' && pathname.startsWith(link.href));
+              const isBill = link.href === '/my-bill';
               return (
                 <Link
                   key={link.name}
                   href={link.href}
-                  className={`text-white hover:text-accent font-medium text-sm transition-colors relative group font-body ${
-                    isActive ? 'text-accent font-semibold' : 'text-white/90'
-                  }`}
+                  className={`font-medium text-sm transition-colors relative group font-body flex items-center gap-1.5 ${
+                    isActive ? 'text-accent font-semibold' : 'text-white/90 hover:text-accent'
+                  } ${isBill ? 'text-accent/95 hover:text-white' : ''}`}
                 >
-                  {link.name}
+                  {isBill && <Receipt size={13} className="text-accent" />}
+                  <span>{link.name}</span>
                   <span
                     className={`absolute -bottom-1 left-0 w-full h-0.5 bg-accent transition-transform origin-left ${
                       isActive ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100'
@@ -78,16 +81,23 @@ export default function Header() {
           </nav>
 
           <div className="hidden lg:flex items-center gap-3">
+            <Link
+              href="/my-bill"
+              className="flex items-center gap-1.5 text-white hover:text-accent font-medium text-xs px-3 py-2 rounded-full border border-white/20 hover:border-accent transition-all bg-white/5"
+            >
+              <Receipt size={14} className="text-accent" />
+              <span>My Bill</span>
+            </Link>
             <a
               href="tel:+94912250777"
-              className="flex items-center gap-2 text-white/90 hover:text-accent text-sm font-medium px-3 py-2 transition-colors"
+              className="flex items-center gap-2 text-white/90 hover:text-accent text-sm font-medium px-2 py-2 transition-colors"
             >
-              <Phone size={15} className="text-accent" />
+              <Phone size={14} className="text-accent" />
               091 225 0777
             </a>
             <Link
               href="/contact"
-              className="bg-accent hover:bg-olive text-dark hover:text-white font-semibold px-5 py-2.5 rounded-full transition-all duration-300 text-sm shadow-md hover:shadow-accent/20"
+              className="bg-accent hover:bg-olive text-dark hover:text-white font-semibold px-4.5 py-2.5 rounded-full transition-all duration-300 text-sm shadow-md hover:shadow-accent/20"
             >
               Request a Quote
             </Link>
@@ -114,19 +124,21 @@ export default function Header() {
             transition={{ type: 'tween', duration: 0.3 }}
             className="fixed inset-0 bg-primary z-40 flex flex-col justify-between px-6 pt-24 pb-8 lg:hidden overflow-y-auto"
           >
-            <nav className="flex flex-col gap-5 items-center my-auto">
+            <nav className="flex flex-col gap-4 items-center my-auto">
               {NAV_LINKS.map((link) => {
                 const isActive = pathname === link.href;
+                const isBill = link.href === '/my-bill';
                 return (
                   <Link
                     key={link.name}
                     href={link.href}
-                    className={`text-xl font-heading font-medium transition-colors ${
+                    className={`text-lg sm:text-xl font-heading font-medium transition-colors flex items-center gap-2 ${
                       isActive ? 'text-accent font-bold underline underline-offset-8 decoration-2' : 'text-white hover:text-accent'
-                    }`}
+                    } ${isBill ? 'text-accent font-semibold' : ''}`}
                     onClick={closeMenu}
                   >
-                    {link.name}
+                    {isBill && <Receipt size={17} className="text-accent" />}
+                    <span>{link.name}</span>
                   </Link>
                 );
               })}
@@ -134,8 +146,16 @@ export default function Header() {
 
             <div className="flex flex-col gap-3 mt-8 w-full max-w-sm mx-auto">
               <Link
+                href="/my-bill"
+                className="bg-white/10 hover:bg-white/20 text-white font-semibold text-sm px-6 py-3.5 rounded-full w-full flex items-center justify-center gap-2 border border-white/20 shadow-md"
+                onClick={closeMenu}
+              >
+                <Receipt size={16} className="text-accent" />
+                <span>View My Bill &amp; Receipts</span>
+              </Link>
+              <Link
                 href="/contact"
-                className="bg-accent text-dark text-center font-bold text-base px-6 py-3.5 rounded-full w-full shadow-lg"
+                className="bg-accent text-dark text-center font-bold text-sm sm:text-base px-6 py-3.5 rounded-full w-full shadow-lg"
                 onClick={closeMenu}
               >
                 Request a Quote
@@ -163,3 +183,4 @@ export default function Header() {
     </header>
   );
 }
+

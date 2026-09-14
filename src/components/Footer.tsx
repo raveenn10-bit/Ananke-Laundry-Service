@@ -12,6 +12,7 @@ const QUICK_LINKS = [
   { name: 'Commercial Laundry', href: '/commercial' },
   { name: 'Pricing & Tiers', href: '/pricing' },
   { name: 'Our Facility', href: '/gallery' },
+  { name: 'View My Bill & Receipts', href: '/my-bill' },
   { name: 'Contact & Quote', href: '/contact' },
 ];
 

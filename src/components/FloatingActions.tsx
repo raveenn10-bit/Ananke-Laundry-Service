@@ -1,6 +1,6 @@
 'use client';
 
-import { Phone, MapPin, FileText } from 'lucide-react';
+import { Phone, MapPin, FileText, Receipt } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 export default function FloatingActions() {
@@ -33,6 +33,19 @@ export default function FloatingActions() {
           </a>
           <div className="absolute right-full mr-3 top-1/2 -translate-y-1/2 bg-dark/95 backdrop-blur-md text-white px-3.5 py-1.5 rounded-lg text-xs font-medium opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all whitespace-nowrap shadow-lg border border-white/10">
             Get Directions
+          </div>
+        </motion.div>
+
+        <motion.div whileHover={{ scale: 1.08 }} whileTap={{ scale: 0.95 }} className="relative group">
+          <a
+            href="/my-bill"
+            className="w-12 h-12 bg-white/10 hover:bg-olive border border-white/20 rounded-full flex items-center justify-center shadow-xl transition-all cursor-pointer group backdrop-blur-md"
+            aria-label="View My Bill & Receipts"
+          >
+            <Receipt className="text-accent group-hover:text-white transition-colors" size={20} />
+          </a>
+          <div className="absolute right-full mr-3 top-1/2 -translate-y-1/2 bg-dark/95 backdrop-blur-md text-white px-3.5 py-1.5 rounded-lg text-xs font-medium opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all whitespace-nowrap shadow-lg border border-white/10">
+            View My Bill
           </div>
         </motion.div>
 
