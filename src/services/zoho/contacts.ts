@@ -18,21 +18,44 @@ export async function findZohoCustomer(email?: string, phone?: string): Promise<
 
     if (phone) {
       const cleanPhone = phone.replace(/[^0-9+]/g, '');
+      const digitsOnly = cleanPhone.replace(/[^0-9]/g, '').slice(-9);
+
+      // 1. Exact phone field match
       const phoneRes = await zohoRequest<ZohoCustomerSearchResponse>('/contacts', {
         params: { phone: cleanPhone },
-      });
+      }).catch(() => null);
 
       if (phoneRes?.contacts && phoneRes.contacts.length > 0) {
         return phoneRes.contacts[0];
       }
 
-      // Also try mobile search
+      // 2. Exact mobile field match
       const mobileRes = await zohoRequest<ZohoCustomerSearchResponse>('/contacts', {
         params: { mobile: cleanPhone },
-      });
+      }).catch(() => null);
 
       if (mobileRes?.contacts && mobileRes.contacts.length > 0) {
         return mobileRes.contacts[0];
+      }
+
+      // 3. Search text match (matches formatted numbers like '077 123 4567')
+      const searchRes = await zohoRequest<ZohoCustomerSearchResponse>('/contacts', {
+        params: { search_text: digitsOnly || cleanPhone },
+      }).catch(() => null);
+
+      if (searchRes?.contacts && searchRes.contacts.length > 0) {
+        // Look for contact whose phone or mobile contains the 9 digits
+        for (const c of searchRes.contacts) {
+          const cPhone = (c.phone || '').replace(/[^0-9]/g, '');
+          const cMobile = (c.mobile || '').replace(/[^0-9]/g, '');
+          if (
+            (cPhone && (cPhone.includes(digitsOnly) || digitsOnly.includes(cPhone))) ||
+            (cMobile && (cMobile.includes(digitsOnly) || digitsOnly.includes(cMobile)))
+          ) {
+            return c;
+          }
+        }
+        return searchRes.contacts[0];
       }
     }
 

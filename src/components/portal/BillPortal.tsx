@@ -603,14 +603,38 @@ export default function BillPortal() {
           </div>
 
           {/* Invoices List */}
-          {filteredInvoices.length === 0 ? (
+          {invoices.length === 0 ? (
+            <div className="bg-white rounded-3xl p-10 sm:p-12 text-center border border-gray-100 shadow-sm max-w-lg mx-auto">
+              <div className="w-14 h-14 rounded-2xl bg-olive/10 text-olive flex items-center justify-center mx-auto mb-4">
+                <FileText size={28} />
+              </div>
+              <h4 className="font-heading font-bold text-lg text-dark">No Invoices on File</h4>
+              <p className="text-gray-500 text-xs sm:text-sm font-body mt-2 leading-relaxed">
+                There are currently no invoices associated with this phone number in our Zoho Books records. If your laundry order is currently being processed, your official tax invoice will appear here once finalized by our team.
+              </p>
+              <div className="mt-6 flex flex-col sm:flex-row items-center justify-center gap-3">
+                <a
+                  href="tel:+94912250777"
+                  className="px-5 py-2.5 rounded-full bg-olive text-white text-xs font-semibold hover:bg-accent hover:text-dark transition-all inline-flex items-center gap-2"
+                >
+                  <Phone size={13} /> Call 091 225 0777
+                </a>
+                <button
+                  onClick={handleLogout}
+                  className="px-5 py-2.5 rounded-full border border-gray-200 text-gray-600 text-xs font-semibold hover:bg-gray-50 transition-all"
+                >
+                  Switch Phone Number
+                </button>
+              </div>
+            </div>
+          ) : filteredInvoices.length === 0 ? (
             <div className="bg-white rounded-3xl p-12 text-center border border-gray-100 shadow-sm max-w-lg mx-auto">
               <div className="w-14 h-14 rounded-2xl bg-gray-100 text-gray-400 flex items-center justify-center mx-auto mb-4">
                 <FileText size={28} />
               </div>
               <h4 className="font-heading font-bold text-lg text-dark">No Invoices Found</h4>
               <p className="text-gray-500 text-xs sm:text-sm font-body mt-2 leading-relaxed">
-                There are no invoices matching the selected filter for this account.
+                There are no invoices matching the selected &quot;{activeFilter}&quot; filter.
               </p>
               <div className="mt-6">
                 <button

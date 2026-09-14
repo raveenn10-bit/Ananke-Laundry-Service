@@ -4,7 +4,6 @@ import {
   getCustomerInvoices,
   findZohoCustomerByPhoneVariants,
   isZohoConfigured,
-  getMockCustomerInvoices,
 } from '@/services/zoho';
 import { ZohoInvoice } from '@/types/zoho';
 import { getClientIp, checkRateLimit } from '@/lib/security/rateLimiter';
@@ -45,28 +44,28 @@ export async function GET(req: NextRequest) {
   try {
     let invoices: ZohoInvoice[] = [];
     let customerId = session.customerId;
+    let customerName = session.customerName || 'Valued Customer';
 
-    // 3. Fetch from Zoho Books if configured
+    // 3. Fetch live records from Zoho Books
     if (isZohoConfigured()) {
       if (!customerId) {
         const contact = await findZohoCustomerByPhoneVariants([
           session.phone,
           session.localPhone,
+          session.phone.replace(/[^0-9]/g, '').slice(-9),
         ]);
         if (contact && contact.contact_id) {
           customerId = contact.contact_id;
+          customerName = contact.contact_name || contact.company_name || customerName;
         }
       }
 
       if (customerId) {
         invoices = await getCustomerInvoices(customerId);
       }
-    } else {
-      // 4. Zoho Books is NOT configured yet: provide realistic demonstration invoices
-      invoices = getMockCustomerInvoices(session.phone, session.customerName || 'Valued Customer');
     }
 
-    // 4. Calculate Financial Summaries
+    // 4. Calculate Financial Summaries directly from live Zoho invoices
     const summary = invoices.reduce(
       (acc, inv) => {
         acc.totalInvoices += 1;
@@ -81,7 +80,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({
       success: true,
       customer: {
-        name: session.customerName || 'Valued Customer',
+        name: customerName,
         phone: session.phone,
         localPhone: session.localPhone,
         customerId: customerId || undefined,

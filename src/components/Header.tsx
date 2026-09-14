@@ -83,10 +83,10 @@ export default function Header() {
           <div className="hidden lg:flex items-center gap-3">
             <Link
               href="/my-bill"
-              className="flex items-center gap-1.5 text-white hover:text-accent font-medium text-xs px-3 py-2 rounded-full border border-white/20 hover:border-accent transition-all bg-white/5"
+              className="flex items-center gap-1.5 text-white hover:text-accent font-semibold text-xs px-3.5 py-2 rounded-full border border-accent/40 hover:border-accent transition-all bg-accent/10 hover:bg-accent/20 shadow-sm"
             >
               <Receipt size={14} className="text-accent" />
-              <span>My Bill</span>
+              <span>View My Bill</span>
             </Link>
             <a
               href="tel:+94912250777"

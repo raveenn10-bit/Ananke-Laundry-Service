@@ -52,6 +52,7 @@ export async function GET(req: NextRequest) {
         const contact = await findZohoCustomerByPhoneVariants([
           session.phone,
           session.localPhone,
+          session.phone.replace(/[^0-9]/g, '').slice(-9),
         ]);
         if (contact?.contact_id) {
           expectedCustomerId = contact.contact_id;

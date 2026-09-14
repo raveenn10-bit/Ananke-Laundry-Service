@@ -3,6 +3,7 @@
 import { useRef } from 'react';
 import Image from 'next/image';
 import { motion, useInView } from 'framer-motion';
+import Link from 'next/link';
 import {
   WashingMachine,
   Sparkles,
@@ -12,6 +13,7 @@ import {
   Droplets,
   ClipboardCheck,
   ArrowRight,
+  Receipt,
 } from 'lucide-react';
 
 /*
@@ -152,6 +154,39 @@ export default function Services() {
             </motion.div>
           ))}
         </div>
+
+        {/* Customer Self-Service Portal CTA */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+          className="mt-14 sm:mt-16 bg-gradient-to-br from-primary via-primary to-olive rounded-3xl p-7 sm:p-10 text-white shadow-xl relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-6 border border-white/10"
+        >
+          <div className="space-y-2 text-center md:text-left max-w-xl">
+            <span className="inline-flex items-center gap-1.5 text-accent text-xs font-semibold uppercase tracking-wider bg-white/10 px-3 py-1 rounded-full border border-white/15">
+              <Receipt size={13} className="text-accent" />
+              Existing Customer Self-Service
+            </span>
+            <h3 className="font-heading font-bold text-2xl sm:text-3xl text-white">
+              View Your Tax Invoices &amp; Payment Receipts
+            </h3>
+            <p className="text-white/80 text-xs sm:text-sm font-body leading-relaxed">
+              Verify your registered phone number with a fast, secure OTP code to access real-time Zoho Books tax invoices and download official PDF receipts.
+            </p>
+          </div>
+
+          <div className="flex-shrink-0 w-full sm:w-auto text-center">
+            <Link
+              href="/my-bill"
+              className="bg-accent hover:bg-white text-dark font-bold text-sm sm:text-base px-7 py-3.5 rounded-full transition-all duration-300 inline-flex items-center justify-center gap-2 shadow-lg hover:shadow-accent/25 hover:scale-[1.02] active:scale-95 w-full sm:w-auto"
+            >
+              <Receipt size={18} className="text-dark" />
+              <span>View My Bill</span>
+              <ArrowRight size={16} />
+            </Link>
+          </div>
+        </motion.div>
       </div>
     </section>
   );
