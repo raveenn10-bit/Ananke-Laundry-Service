@@ -58,30 +58,36 @@ export async function POST(req: NextRequest) {
       createdBy,
     } = body;
 
-    if (!customerName || !customerPhone || !itemName) {
+    const cleanName = String(customerName || '').replace(/<[^>]*>?/gm, '').replace(/[<>]/g, '').trim();
+    const cleanItem = String(itemName || '').replace(/<[^>]*>?/gm, '').replace(/[<>]/g, '').trim();
+    const cleanPhone = String(customerPhone || '').trim();
+
+    if (!cleanName || !cleanPhone || !cleanItem) {
       return NextResponse.json(
         { success: false, message: 'Customer Name, Phone, and Item/Service Name are required.' },
         { status: 400 }
       );
     }
 
+    const cleanNotes = notes ? String(notes).replace(/<[^>]*>?/gm, '').replace(/[<>]/g, '').trim() : undefined;
+
     const newOrder = await orderRepository.createOrder(
       {
         zohoCustomerId: zohoCustomerId || 'manual-entry',
         zohoInvoiceId,
         zohoInvoiceNumber,
-        customerName: customerName.trim(),
-        customerPhone: customerPhone.trim(),
+        customerName: cleanName,
+        customerPhone: cleanPhone,
         customerEmail: (customerEmail || '').trim().toLowerCase(),
-        itemName: itemName.trim(),
-        quantity: Number(quantity) || 1,
+        itemName: cleanItem,
+        quantity: Math.max(1, Math.min(10000, Number(quantity) || 1)),
         orderDate: orderDate || new Date().toISOString().split('T')[0],
         expectedCompletionDate:
           expectedCompletionDate ||
           new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
         currentStatus: currentStatus || 'Received',
         paymentStatus: paymentStatus || 'Unpaid',
-        notes: notes?.trim() || undefined,
+        notes: cleanNotes,
       },
       createdBy || 'Admin'
     );

@@ -118,6 +118,7 @@ export function buildZohoAuthUrl(options: {
   redirectUri?: string;
   dc?: string;
   accountsServer?: string;
+  state?: string;
 } = {}): string {
   const clientId = process.env.ZOHO_CLIENT_ID?.trim();
   if (!clientId) {
@@ -138,6 +139,10 @@ export function buildZohoAuthUrl(options: {
     access_type: 'offline',
     prompt: 'consent',
   });
+
+  if (options.state) {
+    params.set('state', options.state);
+  }
 
   return `${accountsDomain}/oauth/v2/auth?${params.toString()}`;
 }

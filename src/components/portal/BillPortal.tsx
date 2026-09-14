@@ -237,8 +237,13 @@ export default function BillPortal() {
   };
 
   // Logout / Switch Phone
-  const handleLogout = () => {
-    // Clear cookies by setting maxAge 0
+  const handleLogout = async () => {
+    try {
+      await fetch('/api/portal/logout', { method: 'POST' });
+    } catch {
+      // Best-effort logout call
+    }
+    // Clear any non-httpOnly cookie if present
     document.cookie = 'ananke_portal_session=; Path=/; Max-Age=0;';
     setCustomer(null);
     setInvoices([]);

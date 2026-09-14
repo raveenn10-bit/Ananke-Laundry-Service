@@ -7,6 +7,7 @@ import {
   getMockCustomerInvoices,
 } from '@/services/zoho';
 import { ZohoInvoice } from '@/types/zoho';
+import { getClientIp, checkRateLimit } from '@/lib/security/rateLimiter';
 
 /**
  * Customer Portal - Secure Invoices Endpoint
@@ -14,7 +15,22 @@ import { ZohoInvoice } from '@/types/zoho';
  * Never exposes one customer's records to another.
  */
 export async function GET(req: NextRequest) {
-  // 1. Enforce Server-Side Session Authentication
+  // 1. IP Rate Limiting (Protection against automated scraping / DoS)
+  const ip = getClientIp(req);
+  const rateLimit = checkRateLimit(ip, {
+    windowMs: 60 * 1000,
+    maxRequests: 60,
+    prefix: 'portal_invoices_ip',
+  });
+
+  if (!rateLimit.allowed) {
+    return NextResponse.json(
+      { success: false, message: 'Too many requests. Please slow down.' },
+      { status: 429 }
+    );
+  }
+
+  // 2. Enforce Server-Side Session Authentication
   const session = getCustomerSessionFromRequest(req);
   if (!session) {
     return NextResponse.json(
@@ -30,7 +46,7 @@ export async function GET(req: NextRequest) {
     let invoices: ZohoInvoice[] = [];
     let customerId = session.customerId;
 
-    // 2. Fetch from Zoho Books if configured
+    // 3. Fetch from Zoho Books if configured
     if (isZohoConfigured()) {
       if (!customerId) {
         const contact = await findZohoCustomerByPhoneVariants([
@@ -45,11 +61,8 @@ export async function GET(req: NextRequest) {
       if (customerId) {
         invoices = await getCustomerInvoices(customerId);
       }
-    }
-
-    // 3. Fallback to realistic demo data if Zoho Books is not configured or in development testing
-    if ((!isZohoConfigured() || invoices.length === 0) && session.phone) {
-      // In development or when testing, show realistic invoices for full feature preview
+    } else {
+      // 4. Zoho Books is NOT configured yet: provide realistic demonstration invoices
       invoices = getMockCustomerInvoices(session.phone, session.customerName || 'Valued Customer');
     }
 

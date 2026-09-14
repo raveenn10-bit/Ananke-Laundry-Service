@@ -1,9 +1,25 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { exchangeZohoAuthCode, getZohoRedirectUri, DEFAULT_ZOHO_ORGANIZATION_ID } from '@/services/zoho/auth';
+import { ZOHO_OAUTH_STATE_COOKIE, verifyOAuthState } from '../connect/route';
+import { getClientIp, checkRateLimit } from '@/lib/security/rateLimiter';
 
 export const dynamic = 'force-dynamic';
 
+function escapeHtml(str?: string | null): string {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 function renderErrorPage(title: string, message: string, detail?: string): string {
+  const safeTitle = escapeHtml(title);
+  const safeMsg = escapeHtml(message);
+  const safeDetail = escapeHtml(detail);
+
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -22,9 +38,9 @@ function renderErrorPage(title: string, message: string, detail?: string): strin
 </head>
 <body>
   <div class="card">
-    <h1>⚠️ ${title}</h1>
-    <p>${message}</p>
-    ${detail ? `<div class="box">${detail}</div>` : ''}
+    <h1>⚠️ ${safeTitle}</h1>
+    <p>${safeMsg}</p>
+    ${safeDetail ? `<div class="box">${safeDetail}</div>` : ''}
     <p style="margin-top: 20px;">
       <a href="/api/zoho/connect" class="btn">← Restart Zoho Authorization</a>
     </p>
@@ -38,10 +54,10 @@ function renderSuccessPage(data: {
   organizationId: string;
   refreshToken: string;
 }): string {
-  // Sanitize values for HTML display
-  const escapedDomain = data.apiDomain.replace(/"/g, '&quot;');
-  const escapedOrgId = data.organizationId.replace(/"/g, '&quot;');
-  const safeToken = data.refreshToken.replace(/"/g, '&quot;');
+  // Rigorously sanitize values for HTML display
+  const escapedDomain = escapeHtml(data.apiDomain);
+  const escapedOrgId = escapeHtml(data.organizationId);
+  const safeToken = escapeHtml(data.refreshToken);
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -231,7 +247,7 @@ function renderSuccessPage(data: {
 </head>
 <body>
   <div class="card">
-    <div class="badge">● Authorized & Connected</div>
+    <div class="badge">● Authorized &amp; Connected</div>
     <h1>Zoho Books Connected Successfully</h1>
     <p class="subtitle">Ananke Laundry Service has securely authorized read-only access to Zoho Books via OAuth 2.0.</p>
 
@@ -305,10 +321,23 @@ function renderSuccessPage(data: {
 
 /**
  * GET /api/zoho/callback
- * Handles the OAuth 2.0 authorization redirect from Zoho Accounts.
- * Reads the authorization code and exchanges it server-side for access and refresh tokens.
+ * Handles OAuth 2.0 redirect from Zoho with CSRF protection and rate limiting.
  */
 export async function GET(request: NextRequest): Promise<NextResponse> {
+  const ip = getClientIp(request);
+  const rateLimit = checkRateLimit(ip, {
+    windowMs: 5 * 60 * 1000,
+    maxRequests: 15,
+    prefix: 'zoho_cb_ip',
+  });
+
+  if (!rateLimit.allowed) {
+    return new NextResponse(
+      renderErrorPage('Too Many Requests', 'Rate limit exceeded for OAuth callback. Please wait a few moments.'),
+      { status: 429, headers: { 'Content-Type': 'text/html; charset=utf-8' } }
+    );
+  }
+
   const { searchParams } = new URL(request.url);
 
   const error = searchParams.get('error');
@@ -321,6 +350,25 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       renderErrorPage('Zoho Authorization Declined', 'Zoho returned an error or consent was denied.', detail),
       { status: 400, headers: { 'Content-Type': 'text/html; charset=utf-8' } }
     );
+  }
+
+  // CSRF State Token Verification
+  const stateParam = searchParams.get('state');
+  const stateCookie = request.cookies.get(ZOHO_OAUTH_STATE_COOKIE)?.value;
+
+  if (stateCookie) {
+    const isStateValid = verifyOAuthState(stateParam) && stateParam === stateCookie;
+    if (!isStateValid) {
+      console.warn('[Zoho OAuth Security Alert] Invalid or mismatched OAuth state token (potential CSRF attempt)');
+      return new NextResponse(
+        renderErrorPage(
+          'Security Verification Failed',
+          'Invalid or expired OAuth state token (CSRF check failed). Please restart authorization.',
+          'State token mismatch'
+        ),
+        { status: 403, headers: { 'Content-Type': 'text/html; charset=utf-8' } }
+      );
+    }
   }
 
   const code = searchParams.get('code');
@@ -361,13 +409,18 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       refreshToken: tokenData.refresh_token,
     });
 
-    return new NextResponse(html, {
+    const response = new NextResponse(html, {
       status: 200,
       headers: {
         'Content-Type': 'text/html; charset=utf-8',
         'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
       },
     });
+
+    // Clear one-time CSRF state cookie
+    response.cookies.delete(ZOHO_OAUTH_STATE_COOKIE);
+
+    return response;
   } catch (err: any) {
     console.error('[Zoho Token Exchange Failure]:', err?.message || err);
     return new NextResponse(

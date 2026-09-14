@@ -1,14 +1,63 @@
 import { NextRequest, NextResponse } from 'next/server';
+import crypto from 'crypto';
 import { buildZohoAuthUrl, getZohoRedirectUri } from '@/services/zoho/auth';
+import { getClientIp, checkRateLimit } from '@/lib/security/rateLimiter';
 
 export const dynamic = 'force-dynamic';
 
+export const ZOHO_OAUTH_STATE_COOKIE = 'zoho_oauth_state';
+const STATE_TTL_SECONDS = 900; // 15 minutes
+
+export function generateOAuthState(): string {
+  const nonce = crypto.randomBytes(20).toString('hex');
+  const timestamp = Date.now().toString();
+  const payload = `${nonce}.${timestamp}`;
+  const signingKey = process.env.ADMIN_SECRET_KEY || process.env.ZOHO_CLIENT_SECRET || 'ananke_oauth_csrf_secret';
+  const sig = crypto.createHmac('sha256', signingKey).update(payload).digest('base64url');
+  return `${payload}.${sig}`;
+}
+
+export function verifyOAuthState(stateString?: string | null): boolean {
+  if (!stateString || typeof stateString !== 'string') return false;
+  const parts = stateString.split('.');
+  if (parts.length !== 3) return false;
+
+  const [nonce, timestampStr, signature] = parts;
+  const timestamp = parseInt(timestampStr, 10);
+  if (isNaN(timestamp) || Date.now() - timestamp > STATE_TTL_SECONDS * 1000) {
+    return false; // Expired
+  }
+
+  const payload = `${nonce}.${timestampStr}`;
+  const signingKey = process.env.ADMIN_SECRET_KEY || process.env.ZOHO_CLIENT_SECRET || 'ananke_oauth_csrf_secret';
+  const expectedSig = crypto.createHmac('sha256', signingKey).update(payload).digest('base64url');
+
+  if (
+    signature.length !== expectedSig.length ||
+    !crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expectedSig))
+  ) {
+    return false;
+  }
+
+  return true;
+}
+
 /**
  * GET /api/zoho/connect
- * Initiates the Zoho OAuth authorization flow.
- * Redirects the browser to the official Zoho OAuth 2.0 authorization screen.
+ * Initiates the Zoho OAuth authorization flow with CSRF state token protection.
  */
 export async function GET(request: NextRequest): Promise<NextResponse> {
+  const ip = getClientIp(request);
+  const rateLimit = checkRateLimit(ip, {
+    windowMs: 5 * 60 * 1000,
+    maxRequests: 15,
+    prefix: 'zoho_connect_ip',
+  });
+
+  if (!rateLimit.allowed) {
+    return new NextResponse('Too many authorization attempts. Please wait a few moments.', { status: 429 });
+  }
+
   const clientId = process.env.ZOHO_CLIENT_ID?.trim();
   if (!clientId) {
     const html = `<!DOCTYPE html>
@@ -53,17 +102,34 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   const dcParam = searchParams.get('dc') || undefined;
   const accountsServerParam = searchParams.get('accounts_server') || undefined;
 
-  // Compute redirect URI (production callback or local origin)
+  // Compute redirect URI
   const redirectUri = getZohoRedirectUri(request.nextUrl.origin);
+
+  // Generate cryptographic CSRF state token
+  const state = generateOAuthState();
 
   try {
     const authUrl = buildZohoAuthUrl({
       redirectUri,
       dc: dcParam,
       accountsServer: accountsServerParam,
+      state,
     });
 
-    return NextResponse.redirect(authUrl, { status: 307 });
+    const response = NextResponse.redirect(authUrl, { status: 307 });
+
+    // Store state in an HttpOnly, Secure cookie
+    response.cookies.set({
+      name: ZOHO_OAUTH_STATE_COOKIE,
+      value: state,
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/api/zoho',
+      maxAge: STATE_TTL_SECONDS,
+    });
+
+    return response;
   } catch (err: any) {
     return NextResponse.json(
       { error: err?.message || 'Failed to construct Zoho authorization URL' },

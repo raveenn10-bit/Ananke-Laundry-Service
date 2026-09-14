@@ -7,9 +7,28 @@ import {
 } from '@/lib/auth/phoneAuth';
 import { verifyOtp } from '@/lib/storage/otpStore';
 import { findZohoCustomerByPhoneVariants, isZohoConfigured } from '@/services/zoho';
+import { getClientIp, checkRateLimit } from '@/lib/security/rateLimiter';
 
 export async function POST(req: NextRequest) {
   try {
+    // 1. IP-Based Rate Limiting for verification attempts
+    const ip = getClientIp(req);
+    const ipRateLimit = checkRateLimit(ip, {
+      windowMs: 10 * 60 * 1000,
+      maxRequests: 15,
+      prefix: 'otp_verify_ip',
+    });
+
+    if (!ipRateLimit.allowed) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: `Too many verification attempts. Please wait ${ipRateLimit.resetSeconds} seconds before trying again.`,
+        },
+        { status: 429 }
+      );
+    }
+
     const body = await req.json().catch(() => ({}));
     const { phone: rawPhone, otp } = body;
 
@@ -35,7 +54,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Verify OTP
+    // 2. Cryptographic OTP Verification
     const verification = verifyOtp(normalized.international, otp.trim());
     if (!verification.success) {
       return NextResponse.json(
@@ -48,7 +67,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Find matching Zoho customer if Zoho Books is configured
+    // 3. Find matching Zoho customer if Zoho Books is configured
     let customerId: string | null = null;
     let customerName = 'Valued Customer';
 
@@ -68,7 +87,7 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Issue signed session token
+    // 4. Issue signed session token
     const token = createCustomerSessionToken({
       phone: normalized.international,
       localPhone: normalized.local,
@@ -79,7 +98,6 @@ export async function POST(req: NextRequest) {
     const response = NextResponse.json({
       success: true,
       message: 'Phone verified successfully.',
-      token,
       customer: {
         name: customerName,
         phone: normalized.international,
@@ -89,7 +107,7 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    // Set secure HTTP-only cookie
+    // 5. Store session token strictly in HttpOnly, Secure cookie (Never in client JS storage)
     response.cookies.set({
       name: SESSION_COOKIE_NAME,
       value: token,

@@ -121,8 +121,31 @@ export interface CustomerSession {
 const SESSION_COOKIE_NAME = 'ananke_portal_session';
 const SESSION_TTL_MS = 2 * 60 * 60 * 1000; // 2 hours
 
+let ephemeralInstanceSecret: string | null = null;
+
 function getSigningSecret(): string {
-  return process.env.ADMIN_SECRET_KEY || process.env.ZOHO_CLIENT_SECRET || 'ananke-laundry-portal-secret-key-unawatuna-2026';
+  const configured =
+    process.env.SESSION_SECRET?.trim() ||
+    process.env.ADMIN_SECRET_KEY?.trim() ||
+    process.env.ZOHO_CLIENT_SECRET?.trim();
+
+  if (configured && configured.length >= 16) {
+    return configured;
+  }
+
+  // In production, generate an ephemeral cryptographically random key if unconfigured
+  // to strictly prevent token forgery attacks using public repository source code
+  if (process.env.NODE_ENV === 'production') {
+    if (!ephemeralInstanceSecret) {
+      ephemeralInstanceSecret = crypto.randomBytes(32).toString('hex');
+      console.warn(
+        '[Security Notice] No dedicated SESSION_SECRET or ADMIN_SECRET_KEY configured in production environment. Generated isolated ephemeral server secret.'
+      );
+    }
+    return ephemeralInstanceSecret;
+  }
+
+  return 'ananke-laundry-portal-secret-key-dev-only-unawatuna-2026';
 }
 
 /**

@@ -1,5 +1,6 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { testZohoConnectivity, DEFAULT_ZOHO_ORGANIZATION_ID } from '@/services/zoho/auth';
+import { getClientIp, checkRateLimit } from '@/lib/security/rateLimiter';
 
 export const dynamic = 'force-dynamic';
 
@@ -11,7 +12,21 @@ export const dynamic = 'force-dynamic';
  * { "connected": true, "organizationId": "777888456" }
  * Never exposes customer or accounting data.
  */
-export async function GET(): Promise<NextResponse> {
+export async function GET(req: NextRequest): Promise<NextResponse> {
+  const ip = getClientIp(req);
+  const rateLimit = checkRateLimit(ip, {
+    windowMs: 5 * 60 * 1000,
+    maxRequests: 10,
+    prefix: 'zoho_test_ip',
+  });
+
+  if (!rateLimit.allowed) {
+    return NextResponse.json(
+      { connected: false, error: 'Rate limit exceeded. Please wait before testing connectivity again.' },
+      { status: 429 }
+    );
+  }
+
   const result = await testZohoConnectivity(DEFAULT_ZOHO_ORGANIZATION_ID);
 
   if (result.connected) {

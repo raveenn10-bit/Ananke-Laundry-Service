@@ -1,9 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getCustomerSessionFromRequest } from '@/lib/auth/phoneAuth';
-import { getCustomerPayments, isZohoConfigured } from '@/services/zoho';
+import { getCustomerPayments, isZohoConfigured, findZohoCustomerByPhoneVariants } from '@/services/zoho';
 import { ZohoPayment } from '@/types/zoho';
+import { getClientIp, checkRateLimit } from '@/lib/security/rateLimiter';
 
 export async function GET(req: NextRequest) {
+  // 1. IP Rate Limiting
+  const ip = getClientIp(req);
+  const rateLimit = checkRateLimit(ip, {
+    windowMs: 60 * 1000,
+    maxRequests: 60,
+    prefix: 'portal_payments_ip',
+  });
+
+  if (!rateLimit.allowed) {
+    return NextResponse.json(
+      { success: false, message: 'Too many requests. Please slow down.' },
+      { status: 429 }
+    );
+  }
+
+  // 2. Session Verification
   const session = getCustomerSessionFromRequest(req);
   if (!session) {
     return NextResponse.json(
@@ -14,13 +31,24 @@ export async function GET(req: NextRequest) {
 
   try {
     let payments: ZohoPayment[] = [];
+    let customerId = session.customerId;
 
-    if (isZohoConfigured() && session.customerId) {
-      payments = await getCustomerPayments(session.customerId);
-    }
+    if (isZohoConfigured()) {
+      if (!customerId) {
+        const contact = await findZohoCustomerByPhoneVariants([
+          session.phone,
+          session.localPhone,
+        ]);
+        if (contact?.contact_id) {
+          customerId = contact.contact_id;
+        }
+      }
 
-    // If no payments found and in demo mode, provide sample payment receipts
-    if (payments.length === 0) {
+      if (customerId) {
+        payments = await getCustomerPayments(customerId);
+      }
+    } else {
+      // Demo mode ONLY when Zoho Books credentials are not yet configured
       payments = [
         {
           payment_id: 'mock-pay-1042',

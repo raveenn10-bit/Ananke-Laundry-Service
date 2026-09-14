@@ -88,7 +88,7 @@ export function generateOtp(phone: string): GenerateOtpResult {
   const record: OtpRecord = {
     phone,
     otpHash,
-    plainOtpForDev: rawOtp,
+    plainOtpForDev: process.env.NODE_ENV !== 'production' ? rawOtp : undefined,
     createdAt: now,
     expiresAt: now + OTP_TTL_MS,
     attempts: 0,
@@ -99,8 +99,14 @@ export function generateOtp(phone: string): GenerateOtpResult {
 
   otpStore.set(phone, record);
 
-  // Log in server console for auditing and debugging
-  console.log(`[OTP Service] Generated OTP for ${phone}: ${rawOtp} (expires in 5 mins)`);
+  // Masked logging in production, verbose in local development
+  if (process.env.NODE_ENV !== 'production') {
+    console.log(`[OTP Service Dev] Generated OTP for ${phone}: ${rawOtp} (expires in 5 mins)`);
+  } else {
+    console.log(
+      `[OTP Service] Dispatched 6-digit OTP code to ${phone.slice(0, 5)}****${phone.slice(-2)} (expires in 5 mins)`
+    );
+  }
 
   return {
     success: true,
@@ -151,8 +157,11 @@ export function verifyOtp(phone: string, inputOtp: string): VerifyOtpResult {
     inputHash.length === record.otpHash.length &&
     crypto.timingSafeEqual(Buffer.from(inputHash), Buffer.from(record.otpHash));
 
-  // Development fallback test code
-  const isDevTestOtp = cleanInput === '123456';
+  // Development-only test fallback (Strictly disallowed in production)
+  const isDevTestOtp =
+    process.env.NODE_ENV === 'development' &&
+    process.env.ALLOW_DEV_TEST_OTP === 'true' &&
+    cleanInput === '123456';
 
   if (isMatch || isDevTestOtp) {
     // Verified successfully: clear active OTP so it cannot be reused
@@ -184,4 +193,17 @@ export function verifyOtp(phone: string, inputOtp: string): VerifyOtpResult {
  */
 export function clearOtp(phone: string): void {
   otpStore.delete(phone);
+}
+
+// Periodic garbage collection to prevent memory leaks in serverless/long-running processes
+if (typeof setInterval !== 'undefined') {
+  const cleanupTimer = setInterval(() => {
+    const now = Date.now();
+    for (const [phone, record] of otpStore.entries()) {
+      if (now > record.expiresAt && now - record.windowStartedAt > HOURLY_WINDOW_MS) {
+        otpStore.delete(phone);
+      }
+    }
+  }, 60 * 1000);
+  cleanupTimer.unref?.();
 }
