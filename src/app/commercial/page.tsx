@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { Phone, ArrowRight, CheckCircle2, ShieldCheck, Building2, Utensils, Hotel, CalendarCheck } from 'lucide-react';
 import PageHero from '@/components/PageHero';
 import Commercial from '@/components/sections/Commercial';
+import CorporateClients from '@/components/sections/CorporateClients';
 import WhyChoose from '@/components/sections/WhyChoose';
 import Sustainability from '@/components/sections/Sustainability';
 
@@ -49,6 +50,9 @@ export default function CommercialPage() {
 
       {/* Main Commercial Component */}
       <Commercial />
+
+      {/* Corporate Clients Carousel */}
+      <CorporateClients />
 
       {/* Client Categories Breakdown */}
       <section className="py-16 md:py-24 bg-white border-t border-b border-cream-dark">

@@ -2,6 +2,7 @@ import Hero from '@/components/sections/Hero';
 import InfoBar from '@/components/sections/InfoBar';
 import Services from '@/components/sections/Services';
 import Commercial from '@/components/sections/Commercial';
+import CorporateClients from '@/components/sections/CorporateClients';
 import HowItWorks from '@/components/sections/HowItWorks';
 import About from '@/components/sections/About';
 import Sustainability from '@/components/sections/Sustainability';
@@ -19,6 +20,7 @@ export default function Home() {
       <InfoBar />
       <Services />
       <Commercial />
+      <CorporateClients />
       <HowItWorks />
       <About />
       <Sustainability />
