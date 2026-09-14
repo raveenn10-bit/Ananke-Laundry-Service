@@ -53,6 +53,9 @@ Commercial and individual laundry services connected with **Cleanline Linen Mana
 
 Securely integrated with **Zoho Books** for B2B accounting, customer management, and invoice viewing:
 
+- `GET /api/zoho/connect` — Initiates Zoho OAuth 2.0 flow with read-only scopes
+- `GET /api/zoho/callback` — Handles OAuth redirect, exchanges code server-side, shows setup confirmation
+- `GET /api/zoho/test` — Safe read-only connectivity test (`{ "connected": true, "organizationId": "777888456" }`)
 - `GET /api/admin/orders` — List laundry orders with status and search filtering
 - `POST /api/admin/orders` — Create new order/job linked to Zoho Books customer
 - `PUT /api/admin/orders/[id]/status` — Update order status, log timeline, and trigger automatic customer email

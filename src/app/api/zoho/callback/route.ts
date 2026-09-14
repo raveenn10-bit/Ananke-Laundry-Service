@@ -1,0 +1,382 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { exchangeZohoAuthCode, getZohoRedirectUri, DEFAULT_ZOHO_ORGANIZATION_ID } from '@/services/zoho/auth';
+
+export const dynamic = 'force-dynamic';
+
+function renderErrorPage(title: string, message: string, detail?: string): string {
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Zoho Books Connection Error - Ananke Laundry</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #0b1120; color: #f8fafc; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; padding: 20px; box-sizing: border-box; }
+    .card { background: #1e293b; border: 1px solid #ef4444; border-radius: 16px; max-width: 540px; width: 100%; padding: 32px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5); }
+    h1 { color: #ef4444; margin-top: 0; font-size: 22px; font-weight: 700; display: flex; align-items: center; gap: 10px; }
+    p { color: #cbd5e1; line-height: 1.6; font-size: 14px; }
+    .box { background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 14px; font-family: monospace; font-size: 13px; color: #f87171; word-break: break-all; margin: 16px 0; }
+    .btn { display: inline-block; background: #2563eb; color: #fff; padding: 10px 20px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 14px; margin-top: 12px; transition: background 0.2s; }
+    .btn:hover { background: #1d4ed8; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>⚠️ ${title}</h1>
+    <p>${message}</p>
+    ${detail ? `<div class="box">${detail}</div>` : ''}
+    <p style="margin-top: 20px;">
+      <a href="/api/zoho/connect" class="btn">← Restart Zoho Authorization</a>
+    </p>
+  </div>
+</body>
+</html>`;
+}
+
+function renderSuccessPage(data: {
+  apiDomain: string;
+  organizationId: string;
+  refreshToken: string;
+}): string {
+  // Sanitize values for HTML display
+  const escapedDomain = data.apiDomain.replace(/"/g, '&quot;');
+  const escapedOrgId = data.organizationId.replace(/"/g, '&quot;');
+  const safeToken = data.refreshToken.replace(/"/g, '&quot;');
+
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Zoho Books Connected Successfully - Ananke Laundry</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: #090e17;
+      color: #f1f5f9;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      margin: 0;
+      padding: 24px;
+      box-sizing: border-box;
+    }
+    .card {
+      background: #111827;
+      border: 1px solid #1e293b;
+      border-radius: 20px;
+      max-width: 620px;
+      width: 100%;
+      padding: 36px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 12px;
+      border-radius: 9999px;
+      background: rgba(16, 185, 129, 0.15);
+      color: #34d399;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 16px;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+    h1 {
+      color: #ffffff;
+      font-size: 26px;
+      font-weight: 700;
+      margin: 0 0 8px 0;
+      letter-spacing: -0.02em;
+    }
+    .subtitle {
+      color: #94a3b8;
+      font-size: 15px;
+      margin-bottom: 24px;
+      line-height: 1.5;
+    }
+    .meta-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    .meta-item {
+      background: #1e293b;
+      padding: 12px 16px;
+      border-radius: 10px;
+      border: 1px solid #334155;
+    }
+    .meta-label {
+      color: #64748b;
+      font-size: 11px;
+      text-transform: uppercase;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      margin-bottom: 4px;
+    }
+    .meta-val {
+      color: #38bdf8;
+      font-size: 14px;
+      font-weight: 600;
+      font-family: monospace;
+    }
+    .scopes-box {
+      background: rgba(30, 41, 59, 0.5);
+      border: 1px solid #334155;
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 24px;
+    }
+    .scopes-title {
+      color: #cbd5e1;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+    .scope-tag {
+      display: inline-block;
+      background: #0f172a;
+      border: 1px solid #475569;
+      color: #a5b4fc;
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-family: monospace;
+      font-size: 11px;
+      margin-right: 6px;
+      margin-bottom: 4px;
+    }
+    .token-box {
+      background: #090e17;
+      border: 1px dashed #3b82f6;
+      border-radius: 14px;
+      padding: 20px;
+      margin-bottom: 24px;
+    }
+    .token-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .token-title {
+      color: #60a5fa;
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .token-input {
+      width: 100%;
+      background: #020617;
+      border: 1px solid #1e293b;
+      border-radius: 8px;
+      padding: 10px 14px;
+      color: #f8fafc;
+      font-family: monospace;
+      font-size: 13px;
+      box-sizing: border-box;
+      margin-bottom: 12px;
+      word-break: break-all;
+    }
+    .btn-row {
+      display: flex;
+      gap: 10px;
+    }
+    .btn {
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 10px 18px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      border: none;
+      transition: all 0.2s ease;
+      text-decoration: none;
+    }
+    .btn-primary {
+      background: #2563eb;
+      color: #fff;
+    }
+    .btn-primary:hover {
+      background: #1d4ed8;
+    }
+    .btn-secondary {
+      background: #1e293b;
+      color: #cbd5e1;
+      border: 1px solid #475569;
+    }
+    .btn-secondary:hover {
+      background: #334155;
+      color: #fff;
+    }
+    .instructions {
+      color: #94a3b8;
+      font-size: 13px;
+      line-height: 1.6;
+      margin: 0;
+      padding-left: 20px;
+    }
+    .instructions li {
+      margin-bottom: 6px;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="badge">● Authorized & Connected</div>
+    <h1>Zoho Books Connected Successfully</h1>
+    <p class="subtitle">Ananke Laundry Service has securely authorized read-only access to Zoho Books via OAuth 2.0.</p>
+
+    <div class="meta-grid">
+      <div class="meta-item">
+        <div class="meta-label">Organization ID</div>
+        <div class="meta-val">${escapedOrgId}</div>
+      </div>
+      <div class="meta-item">
+        <div class="meta-label">API Regional Domain</div>
+        <div class="meta-val">${escapedDomain || 'https://www.zohoapis.com'}</div>
+      </div>
+    </div>
+
+    <div class="scopes-box">
+      <div class="scopes-title">Read-Only Scopes Granted:</div>
+      <span class="scope-tag">ZohoBooks.contacts.READ</span>
+      <span class="scope-tag">ZohoBooks.invoices.READ</span>
+      <span class="scope-tag">ZohoBooks.customerpayments.READ</span>
+    </div>
+
+    <div class="token-box">
+      <div class="token-header">
+        <span class="token-title">Initial Setup: Secure Refresh Token</span>
+        <span style="font-size: 11px; color: #64748b;">Save to Environment Variables</span>
+      </div>
+      <input type="password" id="tokenField" class="token-input" value="${safeToken}" readonly />
+      <div class="btn-row">
+        <button type="button" class="btn btn-primary" id="copyBtn" onclick="copyToken()">📋 Copy Refresh Token</button>
+        <button type="button" class="btn btn-secondary" id="toggleBtn" onclick="toggleVisibility()">👁️ Reveal Token</button>
+      </div>
+    </div>
+
+    <ol class="instructions">
+      <li>Copy the Refresh Token above.</li>
+      <li>Open your <strong>Vercel Dashboard &gt; Project Settings &gt; Environment Variables</strong> (or local <code>.env.local</code>).</li>
+      <li>Add <code>ZOHO_REFRESH_TOKEN</code> with the copied value.</li>
+      <li>Test live connectivity anytime at: <a href="/api/zoho/test" style="color: #38bdf8;" target="_blank">/api/zoho/test</a>.</li>
+    </ol>
+  </div>
+
+  <script>
+    function copyToken() {
+      const field = document.getElementById('tokenField');
+      field.type = 'text';
+      navigator.clipboard.writeText(field.value).then(() => {
+        const btn = document.getElementById('copyBtn');
+        btn.innerHTML = '✅ Copied to Clipboard!';
+        btn.style.background = '#059669';
+        setTimeout(() => {
+          btn.innerHTML = '📋 Copy Refresh Token';
+          btn.style.background = '#2563eb';
+        }, 3000);
+      });
+    }
+    function toggleVisibility() {
+      const field = document.getElementById('tokenField');
+      const toggle = document.getElementById('toggleBtn');
+      if (field.type === 'password') {
+        field.type = 'text';
+        toggle.innerHTML = '🔒 Hide Token';
+      } else {
+        field.type = 'password';
+        toggle.innerHTML = '👁️ Reveal Token';
+      }
+    }
+  </script>
+</body>
+</html>`;
+}
+
+/**
+ * GET /api/zoho/callback
+ * Handles the OAuth 2.0 authorization redirect from Zoho Accounts.
+ * Reads the authorization code and exchanges it server-side for access and refresh tokens.
+ */
+export async function GET(request: NextRequest): Promise<NextResponse> {
+  const { searchParams } = new URL(request.url);
+
+  const error = searchParams.get('error');
+  const errorDescription = searchParams.get('error_description');
+
+  if (error) {
+    const detail = errorDescription || error;
+    console.error('[Zoho OAuth Callback Error]:', { error, errorDescription });
+    return new NextResponse(
+      renderErrorPage('Zoho Authorization Declined', 'Zoho returned an error or consent was denied.', detail),
+      { status: 400, headers: { 'Content-Type': 'text/html; charset=utf-8' } }
+    );
+  }
+
+  const code = searchParams.get('code');
+  if (!code) {
+    return new NextResponse(
+      renderErrorPage('Missing Authorization Code', 'No authorization code was supplied in the callback URL.', 'Expected /api/zoho/callback?code=...'),
+      { status: 400, headers: { 'Content-Type': 'text/html; charset=utf-8' } }
+    );
+  }
+
+  // Handle dynamic regional accounts server / location returned by Zoho
+  const accountsServer =
+    searchParams.get('accounts-server') ||
+    undefined;
+
+  const redirectUri = getZohoRedirectUri(request.nextUrl.origin);
+
+  try {
+    const tokenData = await exchangeZohoAuthCode(code, {
+      redirectUri,
+      accountsServer,
+    });
+
+    const organizationId = process.env.ZOHO_ORGANIZATION_ID || DEFAULT_ZOHO_ORGANIZATION_ID;
+
+    // Secure server-side log for developer reference
+    console.log('\n======================================================');
+    console.log('🎉 ZOHO BOOKS OAUTH CONNECTION SUCCESSFUL!');
+    console.log('Organization ID:', organizationId);
+    console.log('API Domain:', tokenData.api_domain || '(default)');
+    console.log('ZOHO_REFRESH_TOKEN (Copy this into Vercel & .env.local):');
+    console.log(tokenData.refresh_token);
+    console.log('======================================================\n');
+
+    const html = renderSuccessPage({
+      apiDomain: tokenData.api_domain || 'https://www.zohoapis.com',
+      organizationId,
+      refreshToken: tokenData.refresh_token,
+    });
+
+    return new NextResponse(html, {
+      status: 200,
+      headers: {
+        'Content-Type': 'text/html; charset=utf-8',
+        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+      },
+    });
+  } catch (err: any) {
+    console.error('[Zoho Token Exchange Failure]:', err?.message || err);
+    return new NextResponse(
+      renderErrorPage(
+        'Token Exchange Failed',
+        'Could not exchange the authorization code for tokens. The authorization code may have expired or the redirect URI might not match.',
+        err?.message || 'Unknown exchange failure'
+      ),
+      { status: 500, headers: { 'Content-Type': 'text/html; charset=utf-8' } }
+    );
+  }
+}

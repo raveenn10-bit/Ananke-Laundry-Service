@@ -290,3 +290,32 @@ Implemented a complete Order/Job management and Customer Notification system con
 6. **Admin Dashboard UI Integration (`src/app/admin/zoho/page.tsx` & `src/components/admin/OrderManager.tsx`)**:
    - Clean tabbed interface: `Orders & Customer Notifications` and `Zoho Sync & Enquiries`.
    - Live status dropdown, New Order creation modal with instant Zoho lookup, timeline drawer, and search/filter bar.
+
+---
+
+## 12. Zoho Books Read-Only OAuth 2.0 Integration & Test Endpoints (2026-09-14)
+
+### Objective
+Implemented production-ready Zoho Books OAuth 2.0 integration for read-only access (Invoices, Receipts, Contacts) with automatic server-side token refresh, multi-data-center support, and safe connectivity testing without exposing customer data or secrets.
+
+### Key Deliverables & Architecture
+1. **OAuth Scopes**:
+   - `ZohoBooks.contacts.READ`
+   - `ZohoBooks.invoices.READ`
+   - `ZohoBooks.customerpayments.READ`
+2. **Server-Side Authorization Route (`/api/zoho/connect`)**:
+   - Initiates OAuth 2.0 flow with `response_type=code`, `access_type=offline`, `prompt=consent`.
+   - Dynamic DC & Accounts Server support (`accounts.zoho.com`, `accounts.zoho.in`, `accounts.zoho.eu`, `accounts.zoho.com.au`, etc.).
+   - Redirects to Zoho Accounts with registered redirect URI `https://ananke-laundry-service.vercel.app/api/zoho/callback`.
+3. **OAuth Callback Endpoint (`/api/zoho/callback`)**:
+   - Receives authorization code and exchanges it server-side for access and refresh tokens.
+   - Detects `accounts-server` and `location` from callback params dynamically.
+   - Renders safe branded confirmation page ("Zoho Books Connected Successfully") with organization ID `777888456`.
+   - Provides safe masked reveal & copy button for `ZOHO_REFRESH_TOKEN` for developer setup without leaking secrets publicly.
+4. **Token Refresh Helper (`src/services/zoho/auth.ts`)**:
+   - `getZohoAccessToken()` automatically refreshes tokens in background using `ZOHO_REFRESH_TOKEN`, `ZOHO_CLIENT_ID`, and `ZOHO_CLIENT_SECRET`.
+   - Dynamically caches token until near expiration.
+   - Updates API domain dynamically if `api_domain` is returned by Zoho.
+5. **Safe Read-Only Test Endpoint (`/api/zoho/test`)**:
+   - Queries Zoho Books API with `organization_id=777888456`.
+   - Returns strictly `{ "connected": true, "organizationId": "777888456" }` without exposing accounting or customer records.
