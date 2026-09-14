@@ -53,6 +53,10 @@ Commercial and individual laundry services connected with **Cleanline Linen Mana
 
 Securely integrated with **Zoho Books** for B2B accounting, customer management, and invoice viewing:
 
+- `GET /api/admin/orders` — List laundry orders with status and search filtering
+- `POST /api/admin/orders` — Create new order/job linked to Zoho Books customer
+- `PUT /api/admin/orders/[id]/status` — Update order status, log timeline, and trigger automatic customer email
+- `GET /api/admin/zoho/customer-lookup` — Unified search by Invoice #, Name, or Phone to auto-populate customer details
 - `POST /api/otp/send` — Dispatches 6-digit OTP to Sri Lankan phone number with rate-limiting
 - `POST /api/otp/verify` — Verifies OTP, resolves Zoho contact, and issues signed session cookie
 - `GET /api/portal/invoices` — Secure session-authenticated customer invoice retrieval

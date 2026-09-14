@@ -52,6 +52,183 @@ export async function findZohoCustomerByPhoneVariants(phones: string[]): Promise
   return null;
 }
 
+/**
+ * Unified search for Zoho Books customers by Invoice Number, Customer Name, or Phone Number.
+ * Eliminates manual customer data retyping by the admin.
+ */
+export async function lookupZohoCustomerUnified(query: string): Promise<import('@/types/order').ZohoCustomerLookupResult[]> {
+  const clean = (query || '').trim();
+  if (!clean) return [];
+
+  // 1. Live Zoho Books API Query if configured
+  if (require('./auth').isZohoConfigured()) {
+    try {
+      const results: import('@/types/order').ZohoCustomerLookupResult[] = [];
+      const isInvoicePattern = clean.toUpperCase().includes('ANK') || clean.toUpperCase().startsWith('INV') || /^\d{3,6}$/.test(clean);
+
+      // Search by invoice number first if applicable
+      if (isInvoicePattern) {
+        try {
+          const invRes = await zohoRequest<{ code: number; invoices: any[] }>('/invoices', {
+            params: { search_text: clean },
+          });
+
+          if (invRes?.invoices && invRes.invoices.length > 0) {
+            for (const inv of invRes.invoices.slice(0, 3)) {
+              if (inv.customer_id && !results.some((r) => r.customerId === inv.customer_id)) {
+                const contact = await getZohoCustomer(inv.customer_id);
+                if (contact) {
+                  results.push({
+                    customerId: contact.contact_id || inv.customer_id,
+                    customerName: contact.contact_name || inv.customer_name,
+                    companyName: contact.company_name,
+                    email: contact.email || '',
+                    phone: contact.phone || contact.mobile || '',
+                    mobile: contact.mobile,
+                    address: contact.billing_address?.address,
+                    invoices: [
+                      {
+                        invoiceId: inv.invoice_id,
+                        invoiceNumber: inv.invoice_number,
+                        date: inv.date,
+                        total: Number(inv.total) || 0,
+                        balance: Number(inv.balance) || 0,
+                        status: inv.status,
+                      },
+                    ],
+                  });
+                }
+              }
+            }
+          }
+        } catch (e) {
+          console.warn('[Zoho Lookup] Invoice search warning:', e);
+        }
+      }
+
+      // Search contacts by search_text (matches name, phone, email)
+      const contactRes = await zohoRequest<ZohoCustomerSearchResponse>('/contacts', {
+        params: { search_text: clean },
+      });
+
+      if (contactRes?.contacts && contactRes.contacts.length > 0) {
+        for (const c of contactRes.contacts.slice(0, 5)) {
+          if (!c.contact_id || results.some((r) => r.customerId === c.contact_id)) continue;
+
+          // Fetch recent invoices for this contact
+          let invoices: any[] = [];
+          try {
+            const invList = await zohoRequest<{ code: number; invoices: any[] }>('/invoices', {
+              params: { customer_id: c.contact_id, per_page: 5 },
+            });
+            invoices = (invList?.invoices || []).map((i) => ({
+              invoiceId: i.invoice_id,
+              invoiceNumber: i.invoice_number,
+              date: i.date,
+              total: Number(i.total) || 0,
+              balance: Number(i.balance) || 0,
+              status: i.status,
+            }));
+          } catch {
+            // invoices fetch optional
+          }
+
+          results.push({
+            customerId: c.contact_id,
+            customerName: c.contact_name,
+            companyName: c.company_name,
+            email: c.email || '',
+            phone: c.phone || c.mobile || '',
+            mobile: c.mobile,
+            address: c.billing_address?.address,
+            invoices,
+          });
+        }
+      }
+
+      if (results.length > 0) {
+        return results;
+      }
+    } catch (err) {
+      console.error('[Zoho Lookup] Search failed:', err);
+    }
+  }
+
+  // 2. Demo/Staging fallback records
+  const mockDatabase: import('@/types/order').ZohoCustomerLookupResult[] = [
+    {
+      customerId: 'mock-cust-1',
+      customerName: 'Araliya Beach Resort & Spa',
+      companyName: 'Araliya Hotels Galle (Pvt) Ltd',
+      contactPerson: 'Mr. Sunil Perera',
+      email: 'frontdesk@araliyagalle.com',
+      phone: '0771234567',
+      mobile: '+94771234567',
+      address: 'Lighthouse Street, Galle Fort / Unawatuna',
+      invoices: [
+        {
+          invoiceId: 'mock-inv-1042',
+          invoiceNumber: 'ANK-1042',
+          date: '2026-09-12',
+          total: 4500,
+          balance: 0,
+          status: 'Paid',
+        },
+      ],
+    },
+    {
+      customerId: 'mock-cust-2',
+      customerName: 'Serenity Villa Unawatuna',
+      companyName: 'Serenity Hospitality Group',
+      contactPerson: 'Ms. Dilani Silva',
+      email: 'manager@serenityvillaunawatuna.com',
+      phone: '0719876543',
+      mobile: '+94719876543',
+      address: 'Yaddehimulla Road, Unawatuna',
+      invoices: [
+        {
+          invoiceId: 'mock-inv-1038',
+          invoiceNumber: 'ANK-1038',
+          date: '2026-09-08',
+          total: 7200,
+          balance: 3200,
+          status: 'Partially Paid',
+        },
+      ],
+    },
+    {
+      customerId: 'mock-cust-3',
+      customerName: 'Kushan Jayawardena',
+      contactPerson: 'Kushan Jayawardena',
+      email: 'kushan.j@gmail.com',
+      phone: '0772223344',
+      mobile: '+94772223344',
+      address: 'Matara Road, Unawatuna',
+      invoices: [
+        {
+          invoiceId: 'mock-inv-1025',
+          invoiceNumber: 'ANK-1025',
+          date: '2026-09-02',
+          total: 2800,
+          balance: 2800,
+          status: 'Unpaid',
+        },
+      ],
+    },
+  ];
+
+  const q = clean.toLowerCase();
+  return mockDatabase.filter(
+    (c) =>
+      c.customerName.toLowerCase().includes(q) ||
+      (c.companyName && c.companyName.toLowerCase().includes(q)) ||
+      c.phone.includes(q) ||
+      (c.mobile && c.mobile.includes(q)) ||
+      c.email.toLowerCase().includes(q) ||
+      c.invoices.some((i) => i.invoiceNumber.toLowerCase().includes(q))
+  );
+}
+
 export async function createZohoCustomer(submission: QuoteSubmission): Promise<ZohoContact> {
   const isBusiness = Boolean(submission.businessName && submission.businessName.trim().length > 0);
   

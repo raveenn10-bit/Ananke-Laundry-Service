@@ -264,3 +264,29 @@ Pushed full production release with 7 dedicated pages, complete mobile horizonta
 **Ananke Laundry - Secure Customer Invoice & Payment Receipt Portal (View My Bill) (2026-09-14)**
 
 Added premium customer portal for viewing Zoho Books invoices, payment receipts, and downloading official PDFs via Sri Lankan phone number + OTP verification.
+
+
+---
+
+## 11. Zoho Books Integrated Order Tracking & Customer Notification System (2026-09-14)
+
+### Objective
+Implemented a complete Order/Job management and Customer Notification system connected with Zoho Books. When an admin updates an order's status, the system identifies the customer using Zoho Books data, automatically dispatches email notifications, logs an audit timeline, and prepares one-click WhatsApp updates.
+
+### Key Deliverables & Architecture
+1. **Zoho Books Unified Customer Lookup (`src/services/zoho/contacts.ts`)**:
+   - Allows admin to search by **Zoho Invoice Number** (e.g. `ANK-1042`), **Customer Name** (e.g. `Araliya`), or **Customer Phone Number** (`0771234567`).
+   - Retrieves customer profile and active Invoices with balances to auto-fill orders without manual retyping.
+2. **Order / Job Record Data Structure (`src/types/order.ts`)**:
+   - Order ID, Zoho Customer ID, Zoho Invoice ID/Number, Item/Service Name, Quantity, Order Date, Target Date, Payment Status, Notes.
+   - 8 Order Statuses: `Received`, `Processing`, `In Progress`, `Ready`, `Completed`, `Collected`, `Delivered`, `Cancelled`.
+3. **Status Update & Audit History Timeline (`src/lib/storage/orderRepository.ts`)**:
+   - Logs complete history: previous status, new status, formatted date, time, admin user, notes, and notification flags.
+4. **Modular Automatic Email Notification Service (`src/services/notifications/emailService.ts`)**:
+   - Automatically triggered for key statuses: `Processing`, `Ready`, `Completed`, `Delivered`.
+   - Pluggable provider architecture: Resend, Brevo, SMTP, or zero-config Console/Logger fallback.
+5. **One-Click WhatsApp Update Action (`src/services/notifications/whatsappService.ts`)**:
+   - Formats emoji-styled, professional WhatsApp messages and generates direct `https://wa.me/{phone}?text={encodedText}` links.
+6. **Admin Dashboard UI Integration (`src/app/admin/zoho/page.tsx` & `src/components/admin/OrderManager.tsx`)**:
+   - Clean tabbed interface: `Orders & Customer Notifications` and `Zoho Sync & Enquiries`.
+   - Live status dropdown, New Order creation modal with instant Zoho lookup, timeline drawer, and search/filter bar.

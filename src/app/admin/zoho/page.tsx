@@ -12,10 +12,13 @@ import {
   Database,
   ArrowLeft,
   Key,
+  Package,
 } from 'lucide-react';
 import { EnquiryRecord, SyncStats } from '@/types/quote';
+import OrderManager from '@/components/admin/OrderManager';
 
 export default function ZohoAdminDashboard() {
+  const [activeTab, setActiveTab] = useState<'orders' | 'sync'>('orders');
   const [adminKey, setAdminKey] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [statusData, setStatusData] = useState<any>(null);
@@ -237,8 +240,38 @@ export default function ZohoAdminDashboard() {
           </div>
         )}
 
-        {/* Top Metric Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
+        {/* Module Tabs */}
+        <div className="flex items-center gap-3 mb-8 border-b border-gray-200 pb-4">
+          <button
+            onClick={() => setActiveTab('orders')}
+            className={`px-5 py-2.5 rounded-2xl font-semibold text-xs sm:text-sm flex items-center gap-2 transition-all ${
+              activeTab === 'orders'
+                ? 'bg-primary text-white shadow-md'
+                : 'bg-white text-gray-600 hover:text-dark border border-gray-200'
+            }`}
+          >
+            <Package size={16} className={activeTab === 'orders' ? 'text-accent' : ''} />
+            <span>Orders &amp; Customer Notifications</span>
+          </button>
+          <button
+            onClick={() => setActiveTab('sync')}
+            className={`px-5 py-2.5 rounded-2xl font-semibold text-xs sm:text-sm flex items-center gap-2 transition-all ${
+              activeTab === 'sync'
+                ? 'bg-primary text-white shadow-md'
+                : 'bg-white text-gray-600 hover:text-dark border border-gray-200'
+            }`}
+          >
+            <Database size={16} className={activeTab === 'sync' ? 'text-accent' : ''} />
+            <span>Zoho Sync &amp; Enquiries ({enquiries.length})</span>
+          </button>
+        </div>
+
+        {activeTab === 'orders' ? (
+          <OrderManager adminKey={adminKey} />
+        ) : (
+          <>
+            {/* Top Metric Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
           <div className="bg-white rounded-2xl p-5 border border-gray-200 shadow-sm flex flex-col justify-between">
             <div className="flex items-center justify-between mb-3">
               <span className="text-xs font-semibold uppercase tracking-wider text-gray-500">
@@ -475,6 +508,8 @@ export default function ZohoAdminDashboard() {
             )}
           </div>
         </div>
+        </>
+      )}
 
         {/* Security & Access Protection Footer */}
         <div className="bg-white rounded-2xl p-5 border border-gray-200 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-gray-500">
