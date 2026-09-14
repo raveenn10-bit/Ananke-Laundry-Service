@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Download, Printer, CheckCircle2, AlertCircle, Clock, ShieldCheck, Receipt } from 'lucide-react';
 import { ZohoInvoice, ZohoPayment } from '@/types/zoho';
@@ -118,18 +119,30 @@ export default function DocumentPreviewModal({
 
           {/* Printable Document Body */}
           <div className="p-6 sm:p-8 overflow-y-auto space-y-6 print:p-0 font-body text-dark">
-            {/* Top Brand Banner */}
+            {/* Top Brand Banner with Logo */}
             <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 pb-6 border-b border-gray-100">
-              <div>
-                <h2 className="font-heading font-bold text-xl sm:text-2xl text-dark tracking-tight">
-                  ANANKE LAUNDRY <span className="text-olive text-sm font-normal">(PVT) LTD</span>
-                </h2>
-                <p className="text-xs text-gray-500 mt-1">Part of Cleanline Linen Management Network</p>
-                <p className="text-xs text-gray-600 mt-0.5">No. 195/2, Matara Road, Unawatuna, Galle</p>
-                <p className="text-xs text-gray-600">Telephone: 091 225 0777 &bull; anankelaundry.com</p>
+              <div className="flex items-center sm:items-start gap-3.5">
+                <div className="relative w-14 h-14 sm:w-16 sm:h-16 shrink-0 rounded-2xl overflow-hidden bg-primary/5 p-1 border border-primary/10 flex items-center justify-center shadow-sm">
+                  <Image
+                    src="/logo.png"
+                    alt="Ananke Laundry Logo"
+                    width={64}
+                    height={64}
+                    className="object-contain w-full h-full"
+                    priority
+                  />
+                </div>
+                <div>
+                  <h2 className="font-heading font-bold text-lg sm:text-2xl text-dark tracking-tight leading-tight">
+                    ANANKE LAUNDRY <span className="text-olive text-xs sm:text-sm font-normal">(PVT) LTD</span>
+                  </h2>
+                  <p className="text-[11px] sm:text-xs text-gray-500 mt-0.5">Part of Cleanline Linen Management Network</p>
+                  <p className="text-[11px] sm:text-xs text-gray-600 mt-0.5">No. 195/2, Matara Road, Unawatuna, Galle</p>
+                  <p className="text-[11px] sm:text-xs text-gray-600">Telephone: 091 225 0777 &bull; anankelaundry.com</p>
+                </div>
               </div>
 
-              <div className="text-left sm:text-right">
+              <div className="text-left sm:text-right shrink-0">
                 <span className="inline-block bg-cream-dark/60 text-primary text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full mb-2">
                   {isInvoice ? 'Commercial Tax Invoice' : 'Official Payment Receipt'}
                 </span>

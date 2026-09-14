@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Phone,
@@ -296,8 +297,15 @@ export default function BillPortal() {
           className="max-w-md mx-auto bg-white rounded-3xl p-6 sm:p-8 shadow-xl border border-gray-100"
         >
           <div className="text-center mb-6">
-            <div className="w-14 h-14 rounded-2xl bg-olive/15 text-olive flex items-center justify-center mx-auto mb-4 shadow-inner">
-              <Receipt className="w-7 h-7" />
+            <div className="relative w-16 h-16 rounded-2xl overflow-hidden bg-primary/5 p-1.5 border border-primary/10 flex items-center justify-center mx-auto mb-4 shadow-sm">
+              <Image
+                src="/logo.png"
+                alt="Ananke Laundry Logo"
+                width={64}
+                height={64}
+                className="object-contain"
+                priority
+              />
             </div>
             <h2 className="font-heading font-bold text-2xl sm:text-3xl text-dark">
               View My <span className="text-olive italic">Bill &amp; Receipts</span>
@@ -483,20 +491,31 @@ export default function BillPortal() {
         >
           {/* Customer Top Bar */}
           <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-gray-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div>
-              <div className="flex items-center gap-2 text-olive font-semibold text-xs tracking-wider uppercase mb-1">
-                <Sparkles size={14} />
-                <span>Verified Customer Portal</span>
+            <div className="flex items-center gap-4">
+              <div className="relative w-14 h-14 rounded-2xl overflow-hidden bg-primary/5 p-1 border border-primary/10 flex items-center justify-center shrink-0 shadow-sm">
+                <Image
+                  src="/logo.png"
+                  alt="Ananke Laundry Logo"
+                  width={56}
+                  height={56}
+                  className="object-contain"
+                />
               </div>
-              <h2 className="text-2xl sm:text-3xl font-bold font-heading text-dark">
-                Welcome, {customer?.name || 'Valued Customer'}
-              </h2>
-              <p className="text-gray-500 text-xs sm:text-sm font-body mt-0.5">
-                Phone: <span className="font-mono text-dark font-medium">{customer?.formatted || customer?.phone}</span>
-                {customer?.customerId && (
-                  <span className="ml-2 text-gray-400">&bull; Account #{customer.customerId.slice(-6)}</span>
-                )}
-              </p>
+              <div>
+                <div className="flex items-center gap-2 text-olive font-semibold text-xs tracking-wider uppercase mb-1">
+                  <Sparkles size={14} />
+                  <span>Verified Customer Portal</span>
+                </div>
+                <h2 className="text-2xl sm:text-3xl font-bold font-heading text-dark">
+                  Welcome, {customer?.name || 'Valued Customer'}
+                </h2>
+                <p className="text-gray-500 text-xs sm:text-sm font-body mt-0.5">
+                  Phone: <span className="font-mono text-dark font-medium">{customer?.formatted || customer?.phone}</span>
+                  {customer?.customerId && (
+                    <span className="ml-2 text-gray-400">&bull; Account #{customer.customerId.slice(-6)}</span>
+                  )}
+                </p>
+              </div>
             </div>
 
             <div className="flex items-center gap-3">
