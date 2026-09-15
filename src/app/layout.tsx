@@ -4,6 +4,7 @@ import './globals.css';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import FloatingActions from '@/components/FloatingActions';
+import { OrderModalProvider } from '@/context/OrderModalContext';
 
 const playfair = Playfair_Display({
   subsets: ['latin'],
@@ -131,12 +132,14 @@ export default function RootLayout({
         />
       </head>
       <body className="antialiased bg-cream min-h-screen flex flex-col font-body text-dark selection:bg-accent/30 selection:text-dark">
-        <Header />
-        <main className="flex-1">
-          {children}
-        </main>
-        <FloatingActions />
-        <Footer />
+        <OrderModalProvider>
+          <Header />
+          <main className="flex-1">
+            {children}
+          </main>
+          <FloatingActions />
+          <Footer />
+        </OrderModalProvider>
       </body>
     </html>
   );

@@ -62,3 +62,37 @@ export interface ZohoCustomerLookupResult {
     status: string;
   }>;
 }
+
+export interface OrderItem {
+  id: string;
+  name: string;
+  quantity: number;
+}
+
+export type LaundryServiceType =
+  | 'Wash & Fold'
+  | 'Wash & Iron'
+  | 'Ironing Only'
+  | 'Dry Cleaning'
+  | 'Other';
+
+export interface WhatsAppOrderData {
+  orderId: string;
+  customerName: string;
+  customerPhone: string;
+  customerEmail?: string;
+  services: string[];
+  otherServiceDetails?: string;
+  items: OrderItem[];
+  collectionMethod: 'Pickup Required' | 'I will drop off the clothes';
+  pickupAddress?: string;
+  pickupDate?: string;
+  pickupTime?: string;
+  deliveryMethod: 'Delivery Required' | 'I will collect the clothes';
+  deliveryAddress?: string;
+  sameAsPickupAddress?: boolean;
+  specialInstructions?: string;
+  imageAttached?: boolean;
+  imageFileName?: string;
+  createdAt: string;
+}

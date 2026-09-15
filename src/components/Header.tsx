@@ -4,8 +4,9 @@ import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Menu, X, Phone, MapPin, Receipt } from 'lucide-react';
+import { Menu, X, Phone, MapPin, Receipt, Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useOrderModal } from '@/context/OrderModalContext';
 
 const NAV_LINKS = [
   { name: 'Home', href: '/' },
@@ -22,6 +23,7 @@ export default function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const pathname = usePathname();
+  const { openOrderModal } = useOrderModal();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -99,17 +101,25 @@ export default function Header() {
             })}
           </nav>
 
-          <div className="hidden lg:flex items-center gap-4">
+          <div className="hidden lg:flex items-center gap-3">
             <a
               href="tel:+94912250777"
-              className="flex items-center gap-2 text-white/90 hover:text-accent text-sm font-medium px-2 py-2 transition-colors"
+              className="flex items-center gap-1.5 text-white/90 hover:text-accent text-sm font-medium px-2 py-2 transition-colors"
             >
               <Phone size={14} className="text-accent" />
               091 225 0777
             </a>
+            <button
+              type="button"
+              onClick={openOrderModal}
+              className="bg-gradient-to-r from-emerald-600 via-emerald-500 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white font-bold px-4 py-2.5 rounded-full transition-all duration-300 text-sm shadow-[0_4px_15px_rgba(16,185,129,0.35)] hover:shadow-[0_6px_20px_rgba(16,185,129,0.5)] flex items-center gap-1.5 cursor-pointer active:scale-95"
+            >
+              <Sparkles size={14} className="text-accent" />
+              <span>Place an Order</span>
+            </button>
             <Link
               href="/contact"
-              className="bg-accent hover:bg-olive text-dark hover:text-white font-semibold px-4.5 py-2.5 rounded-full transition-all duration-300 text-sm shadow-md hover:shadow-accent/20"
+              className="bg-accent hover:bg-olive text-dark hover:text-white font-semibold px-4 py-2.5 rounded-full transition-all duration-300 text-sm shadow-md hover:shadow-accent/20"
             >
               Request a Quote
             </Link>
@@ -160,6 +170,17 @@ export default function Header() {
             </nav>
 
             <div className="flex flex-col gap-3 mt-6 w-full max-w-sm mx-auto shrink-0 pb-safe">
+              <button
+                type="button"
+                onClick={() => {
+                  closeMenu();
+                  openOrderModal();
+                }}
+                className="bg-gradient-to-r from-emerald-600 via-emerald-500 to-green-600 text-white font-bold text-sm sm:text-base px-5 py-3.5 rounded-full w-full shadow-[0_4px_20px_rgba(16,185,129,0.4)] min-h-[44px] flex items-center justify-center gap-2 cursor-pointer active:scale-95"
+              >
+                <Sparkles size={17} className="text-accent" />
+                <span>Place an Order (WhatsApp)</span>
+              </button>
               <Link
                 href="/my-bill"
                 className="bg-white/10 hover:bg-white/20 text-white font-semibold text-sm px-5 py-3.5 rounded-full w-full flex items-center justify-center gap-2 border border-white/20 shadow-md min-h-[44px]"

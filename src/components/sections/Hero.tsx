@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import { motion, AnimatePresence, useInView } from 'framer-motion';
 import { FileText, Phone, MapPin, Building, ShieldCheck, Sparkles, ChevronLeft, ChevronRight } from 'lucide-react';
+import { useOrderModal } from '@/context/OrderModalContext';
 
 const HERO_SLIDES = [
   {
@@ -31,6 +32,7 @@ const HERO_SLIDES = [
 const SLIDE_INTERVAL = 5000; // 5 seconds per slide
 
 export default function Hero() {
+  const { openOrderModal } = useOrderModal();
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: '-100px' });
   const [current, setCurrent] = useState(0);
@@ -177,26 +179,34 @@ export default function Hero() {
             Professional laundry and linen-care solutions for individuals, travellers and hospitality businesses in Sri Lanka&apos;s Southern region.
           </motion.p>
 
-          <motion.div variants={itemVariants} className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center md:justify-start gap-3 sm:gap-3.5 mb-8 sm:mb-10">
+          <motion.div variants={itemVariants} className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center justify-center md:justify-start gap-3 sm:gap-3.5 mb-8 sm:mb-10">
+            <button
+              type="button"
+              onClick={openOrderModal}
+              className="bg-gradient-to-r from-emerald-600 via-emerald-500 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white font-bold px-6 sm:px-7 py-3.5 sm:py-4 rounded-full transition-all duration-300 flex items-center justify-center gap-2 text-sm sm:text-base shadow-[0_8px_25px_rgba(16,185,129,0.45)] hover:scale-[1.02] active:scale-95 min-h-[44px] cursor-pointer"
+            >
+              <Sparkles className="w-5 h-5 text-accent" />
+              <span>Place an Order</span>
+            </button>
             <a
               href="/contact"
-              className="bg-accent hover:bg-olive text-dark hover:text-white font-bold px-6 sm:px-7 py-3.5 sm:py-4 rounded-full transition-all duration-300 flex items-center justify-center gap-2 text-sm sm:text-base shadow-lg hover:shadow-accent/25 hover:scale-[1.02] active:scale-95 min-h-[44px]"
+              className="bg-accent hover:bg-olive text-dark hover:text-white font-bold px-5 sm:px-6 py-3.5 sm:py-4 rounded-full transition-all duration-300 flex items-center justify-center gap-2 text-sm sm:text-base shadow-lg hover:shadow-accent/25 hover:scale-[1.02] active:scale-95 min-h-[44px]"
             >
-              <FileText className="w-5 h-5" />
+              <FileText className="w-4 h-4" />
               Request a Quote
             </a>
             <a
               href="tel:+94912250777"
-              className="border-2 border-white/40 hover:border-accent text-white hover:text-accent rounded-full px-5 sm:px-6 py-3 sm:py-3.5 transition-all duration-300 flex items-center justify-center gap-2 text-xs sm:text-base font-medium hover:bg-white/5 active:scale-95 min-h-[44px]"
+              className="border-2 border-white/40 hover:border-accent text-white hover:text-accent rounded-full px-4 sm:px-5 py-3 sm:py-3.5 transition-all duration-300 flex items-center justify-center gap-2 text-xs sm:text-base font-medium hover:bg-white/5 active:scale-95 min-h-[44px]"
             >
               <Phone className="w-4 h-4 text-accent" />
-              Call 091 225 0777
+              091 225 0777
             </a>
             <a
               href="https://maps.app.goo.gl/HLJGzPCVZwySjSTK6?g_st=ic"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-white/80 hover:text-accent rounded-full px-4 sm:px-5 py-3 sm:py-3.5 transition-all duration-300 flex items-center justify-center gap-2 text-xs sm:text-base font-medium hover:bg-white/5 min-h-[44px]"
+              className="text-white/80 hover:text-accent rounded-full px-3.5 sm:px-4 py-3 sm:py-3.5 transition-all duration-300 flex items-center justify-center gap-2 text-xs sm:text-base font-medium hover:bg-white/5 min-h-[44px]"
             >
               <MapPin className="w-4 h-4 text-accent" />
               Get Directions

@@ -7,6 +7,7 @@ import { motion } from 'framer-motion';
 
 const QUICK_LINKS = [
   { name: 'Home', href: '/' },
+  { name: 'Place an Order', href: '/order' },
   { name: 'About Us', href: '/about' },
   { name: 'Services', href: '/services' },
   { name: 'Commercial Laundry', href: '/commercial' },

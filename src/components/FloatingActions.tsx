@@ -1,7 +1,8 @@
 'use client';
 
-import { Phone, MapPin, FileText, Receipt } from 'lucide-react';
+import { Phone, MapPin, FileText, Receipt, Sparkles } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useOrderModal } from '@/context/OrderModalContext';
 
 function WhatsAppIcon({ className = 'w-6 h-6' }: { className?: string }) {
   return (
@@ -20,6 +21,8 @@ const WHATSAPP_URL =
   'https://wa.me/94742697909?text=Hello%20Ananke%20Laundry%2C%20I%20would%20like%20to%20inquire%20about%20your%20services.';
 
 export default function FloatingActions() {
+  const { openOrderModal } = useOrderModal();
+
   return (
     <>
       {/* Dedicated Floating WhatsApp Button (Bottom-Right) */}
@@ -60,6 +63,28 @@ export default function FloatingActions() {
 
       {/* Desktop Floating Actions Bar (Right Middle Dock) - Real Colors & Live Effect */}
       <div className="hidden lg:flex fixed right-5 top-1/2 -translate-y-1/2 flex-col gap-3.5 z-40">
+        {/* 0. Place Order (Real Emerald to WhatsApp Green Gradient) */}
+        <motion.div whileHover={{ scale: 1.12 }} whileTap={{ scale: 0.95 }} className="relative group">
+          <button
+            type="button"
+            onClick={openOrderModal}
+            className="relative w-12 h-12 rounded-full bg-gradient-to-tr from-emerald-600 via-emerald-500 to-green-500 flex items-center justify-center shadow-[0_4px_18px_rgba(16,185,129,0.55)] hover:shadow-[0_6px_25px_rgba(16,185,129,0.75)] transition-all duration-300 cursor-pointer border border-white/40 group"
+            aria-label="Place an Order"
+          >
+            <span className="absolute -inset-1 rounded-full bg-emerald-400/40 animate-pulse pointer-events-none" />
+            <span className="absolute top-0 right-0 w-3 h-3 bg-white rounded-full p-[1.5px] z-10">
+              <span className="block w-full h-full bg-accent rounded-full animate-pulse" />
+            </span>
+            <Sparkles className="text-white drop-shadow-xs relative z-10 transition-transform group-hover:rotate-12" size={20} />
+          </button>
+          <div className="absolute right-full mr-3.5 top-1/2 -translate-y-1/2 bg-[#1a2b25]/95 backdrop-blur-md text-white py-2 px-3.5 rounded-xl text-xs shadow-2xl border border-white/10 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap">
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-accent animate-pulse" />
+              <p className="font-semibold text-white leading-tight">Place an Order</p>
+            </div>
+            <p className="text-[10px] text-accent pl-4 mt-0.5 font-medium">Instant WhatsApp Laundry Order</p>
+          </div>
+        </motion.div>
         {/* 1. Phone Call (Real Calling Green Gradient) */}
         <motion.div whileHover={{ scale: 1.12 }} whileTap={{ scale: 0.95 }} className="relative group">
           <a
@@ -163,35 +188,44 @@ export default function FloatingActions() {
       </div>
 
       {/* Mobile Sticky Bottom Action Bar - Real Colors */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-primary/95 backdrop-blur-lg border-t border-white/15 px-3 py-2 pb-[max(0.625rem,env(safe-area-inset-bottom))] shadow-2xl">
-        <div className="flex items-center gap-2 max-w-md mx-auto">
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-primary/95 backdrop-blur-lg border-t border-white/15 px-2.5 py-2 pb-[max(0.625rem,env(safe-area-inset-bottom))] shadow-2xl">
+        <div className="flex items-center gap-1.5 max-w-md mx-auto">
+          <button
+            type="button"
+            onClick={openOrderModal}
+            className="flex-1 bg-gradient-to-r from-accent via-amber-400 to-accent text-dark font-extrabold text-xs py-2.5 px-2 rounded-xl flex items-center justify-center gap-1 shadow-[0_3px_12px_rgba(232,185,49,0.45)] min-h-[42px] transition-transform active:scale-95 cursor-pointer"
+            aria-label="Place an Order"
+          >
+            <Sparkles size={14} className="shrink-0 text-dark" />
+            <span className="truncate">Order</span>
+          </button>
           <a
             href="tel:+94912250777"
-            className="flex-1 bg-gradient-to-r from-emerald-600 to-green-600 text-white font-bold text-xs py-2.5 px-2 rounded-xl flex items-center justify-center gap-1.5 shadow-[0_3px_10px_rgba(16,185,129,0.3)] min-h-[42px] transition-transform active:scale-95"
+            className="flex-1 bg-gradient-to-r from-emerald-600 to-green-600 text-white font-bold text-xs py-2.5 px-2 rounded-xl flex items-center justify-center gap-1 shadow-[0_3px_10px_rgba(16,185,129,0.3)] min-h-[42px] transition-transform active:scale-95"
             aria-label="Call 091 225 0777"
           >
-            <Phone size={15} className="shrink-0" />
+            <Phone size={14} className="shrink-0" />
             <span className="truncate">Call</span>
           </a>
           <a
             href={WHATSAPP_URL}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex-1 bg-gradient-to-r from-[#128C7E] to-[#25D366] text-white font-bold text-xs py-2.5 px-2 rounded-xl flex items-center justify-center gap-1.5 shadow-[0_3px_10px_rgba(37,211,102,0.3)] min-h-[42px] transition-transform active:scale-95"
+            className="flex-1 bg-gradient-to-r from-[#128C7E] to-[#25D366] text-white font-bold text-xs py-2.5 px-2 rounded-xl flex items-center justify-center gap-1 shadow-[0_3px_10px_rgba(37,211,102,0.3)] min-h-[42px] transition-transform active:scale-95"
             aria-label="WhatsApp +94 74 269 7909"
           >
-            <WhatsAppIcon className="w-4 h-4 shrink-0 text-white fill-current" />
+            <WhatsAppIcon className="w-3.5 h-3.5 shrink-0 text-white fill-current" />
             <span className="truncate">WhatsApp</span>
           </a>
           <a
             href="https://maps.app.goo.gl/HLJGzPCVZwySjSTK6?g_st=ic"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex-1 bg-gradient-to-r from-red-600 to-rose-600 text-white font-semibold text-xs py-2.5 px-2 rounded-xl flex items-center justify-center gap-1.5 shadow-[0_3px_10px_rgba(239,68,68,0.3)] min-h-[42px] transition-transform active:scale-95"
+            className="flex-1 bg-gradient-to-r from-red-600 to-rose-600 text-white font-semibold text-xs py-2.5 px-1.5 rounded-xl flex items-center justify-center gap-1 shadow-[0_3px_10px_rgba(239,68,68,0.3)] min-h-[42px] transition-transform active:scale-95"
             aria-label="Get Directions to Unawatuna facility"
           >
-            <MapPin size={15} className="shrink-0" />
-            <span className="truncate">Directions</span>
+            <MapPin size={14} className="shrink-0" />
+            <span className="truncate">Map</span>
           </a>
         </div>
       </div>
