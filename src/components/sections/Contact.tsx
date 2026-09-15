@@ -199,6 +199,24 @@ export default function Contact() {
                 </div>
 
                 <div className="flex items-start gap-3.5">
+                  <div className="bg-blue-50 p-2.5 rounded-xl text-blue-600 shadow-sm shrink-0 mt-0.5">
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-dark text-sm mb-0.5">Email</h4>
+                    <a
+                      href="mailto:chinthaka.ananke@gmail.com"
+                      className="text-blue-600 hover:underline font-semibold transition-colors block text-sm sm:text-base"
+                    >
+                      chinthaka.ananke@gmail.com
+                    </a>
+                    <span className="text-xs text-gray-500">General inquiries & quotations</span>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3.5">
                   <div className="bg-white p-2.5 rounded-xl text-olive shadow-sm shrink-0 mt-0.5">
                     <Clock className="w-5 h-5" />
                   </div>

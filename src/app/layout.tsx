@@ -80,6 +80,7 @@ export default function RootLayout({
     '@id': 'https://anankelaundry.com/#organization',
     url: 'https://anankelaundry.com',
     telephone: '+94912250777',
+    email: 'chinthaka.ananke@gmail.com',
     priceRange: '$$',
     parentOrganization: {
       '@type': 'Organization',
