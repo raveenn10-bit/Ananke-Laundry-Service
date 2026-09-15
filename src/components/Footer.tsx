@@ -2,32 +2,58 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { Phone, MapPin, ArrowUpRight } from 'lucide-react';
+import {
+  BedDouble,
+  Shirt,
+  Sparkles,
+  Droplets,
+  Building,
+  WashingMachine,
+  BookOpen,
+  Tag,
+  Camera,
+  ShoppingBag,
+  Receipt,
+  Mail,
+  MapPin,
+  Phone,
+  Clock,
+  ShieldCheck,
+  ArrowUpRight,
+} from 'lucide-react';
+
+function WhatsAppIcon({ className = 'w-3.5 h-3.5' }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L0 24l6.335-1.662c1.746.952 3.71 1.453 5.711 1.454h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z" />
+    </svg>
+  );
+}
 
 const SERVICES_LINKS = [
-  { name: 'Hotel & Villa Linen Care', href: '/services' },
-  { name: 'Wash & Steam Pressing', href: '/services' },
-  { name: 'Dry Cleaning Solutions', href: '/services' },
-  { name: 'Stain Removal Treatment', href: '/services' },
-  { name: 'Commercial Hospitality', href: '/commercial' },
-  { name: 'Bulk Batch Washing', href: '/commercial' },
+  { name: 'Hotel & Villa Linen Care', href: '/services', icon: BedDouble },
+  { name: 'Wash & Steam Pressing', href: '/services', icon: Shirt },
+  { name: 'Dry Cleaning Solutions', href: '/services', icon: Sparkles },
+  { name: 'Stain Removal Treatment', href: '/services', icon: Droplets },
+  { name: 'Commercial Hospitality', href: '/commercial', icon: Building },
+  { name: 'Bulk Batch Washing', href: '/commercial', icon: WashingMachine },
 ];
 
 const COMPANY_LINKS = [
-  { name: 'Our Story & Facility', href: '/about' },
-  { name: 'Pricing & Quotations', href: '/pricing' },
-  { name: 'Facility Gallery', href: '/gallery' },
-  { name: 'Place an Order', href: '/order' },
-  { name: 'View My Bill & Receipts', href: '/my-bill' },
-  { name: 'Contact Us', href: '/contact' },
+  { name: 'Our Story & Facility', href: '/about', icon: BookOpen },
+  { name: 'Pricing & Quotations', href: '/pricing', icon: Tag },
+  { name: 'Facility Gallery', href: '/gallery', icon: Camera },
+  { name: 'Place an Order', href: '/order', icon: ShoppingBag },
+  { name: 'View My Bill & Receipts', href: '/my-bill', icon: Receipt },
+  { name: 'Contact Us', href: '/contact', icon: Mail },
 ];
 
 const FACILITY_LINKS = [
-  { name: 'No. 195/2, Matara Road, Unawatuna', href: 'https://maps.app.goo.gl/HLJGzPCVZwySjSTK6?g_st=ic', external: true },
-  { name: '091 225 0777 (Landline)', href: 'tel:+94912250777' },
-  { name: '074 269 7909 (WhatsApp)', href: 'https://wa.me/94742697909' },
-  { name: 'Opening Hours: 9 AM – 6 PM', href: '/contact' },
-  { name: 'Cleanline Linen Network', href: '/about' },
+  { name: 'No. 195/2, Matara Road, Unawatuna', href: 'https://maps.app.goo.gl/HLJGzPCVZwySjSTK6?g_st=ic', external: true, icon: MapPin },
+  { name: '091 225 0777 (Landline)', href: 'tel:+94912250777', icon: Phone },
+  { name: '074 269 7909 (WhatsApp)', href: 'https://wa.me/94742697909', external: true, icon: WhatsAppIcon },
+  { name: 'Opening Hours: 9 AM – 6 PM', href: '/contact', icon: Clock },
+  { name: 'Cleanline Linen Network', href: '/about', icon: ShieldCheck },
 ];
 
 export default function Footer() {
@@ -53,20 +79,26 @@ export default function Footer() {
       <div className="bg-[#C9E6B8] text-[#163824] pt-8 pb-24 sm:pb-16 px-5 sm:px-8 md:px-12 lg:px-16">
         <div className="max-w-7xl mx-auto">
           {/* Main 4-Column Grid */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 sm:gap-10 md:gap-8 pb-12">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 sm:gap-10 pb-12">
             {/* Col 1: Services */}
             <div>
-              <h4 className="font-heading font-bold text-sm sm:text-base text-[#163824] mb-4">
+              <h4 className="font-heading font-bold text-sm sm:text-base text-[#163824] mb-4 flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-[#163824]/60 animate-pulse" />
                 Services
               </h4>
-              <ul className="space-y-2.5">
+              <ul className="space-y-2">
                 {SERVICES_LINKS.map((item) => (
                   <li key={item.name}>
                     <Link
                       href={item.href}
-                      className="text-xs sm:text-sm text-[#163824]/80 hover:text-[#163824] hover:underline font-medium transition-all inline-block"
+                      className="group flex items-center gap-2.5 text-xs sm:text-sm text-[#163824]/80 hover:text-[#163824] font-medium transition-all py-1"
                     >
-                      {item.name}
+                      <span className="w-7 h-7 rounded-lg bg-[#163824]/10 text-[#163824] group-hover:bg-[#163824] group-hover:text-[#C9E6B8] flex items-center justify-center shrink-0 transition-all duration-300 shadow-2xs group-hover:scale-110 group-hover:shadow-sm">
+                        <item.icon className="w-3.5 h-3.5 transition-transform duration-300 group-hover:rotate-6 group-hover:scale-110" />
+                      </span>
+                      <span className="group-hover:translate-x-0.5 transition-transform duration-200">
+                        {item.name}
+                      </span>
                     </Link>
                   </li>
                 ))}
@@ -75,17 +107,23 @@ export default function Footer() {
 
             {/* Col 2: Company */}
             <div>
-              <h4 className="font-heading font-bold text-sm sm:text-base text-[#163824] mb-4">
+              <h4 className="font-heading font-bold text-sm sm:text-base text-[#163824] mb-4 flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-[#163824]/60 animate-pulse" />
                 Learn More
               </h4>
-              <ul className="space-y-2.5">
+              <ul className="space-y-2">
                 {COMPANY_LINKS.map((item) => (
                   <li key={item.name}>
                     <Link
                       href={item.href}
-                      className="text-xs sm:text-sm text-[#163824]/80 hover:text-[#163824] hover:underline font-medium transition-all inline-block"
+                      className="group flex items-center gap-2.5 text-xs sm:text-sm text-[#163824]/80 hover:text-[#163824] font-medium transition-all py-1"
                     >
-                      {item.name}
+                      <span className="w-7 h-7 rounded-lg bg-[#163824]/10 text-[#163824] group-hover:bg-[#163824] group-hover:text-[#C9E6B8] flex items-center justify-center shrink-0 transition-all duration-300 shadow-2xs group-hover:scale-110 group-hover:shadow-sm">
+                        <item.icon className="w-3.5 h-3.5 transition-transform duration-300 group-hover:rotate-6 group-hover:scale-110" />
+                      </span>
+                      <span className="group-hover:translate-x-0.5 transition-transform duration-200">
+                        {item.name}
+                      </span>
                     </Link>
                   </li>
                 ))}
@@ -93,11 +131,12 @@ export default function Footer() {
             </div>
 
             {/* Col 3: Facility Info */}
-            <div className="col-span-2 sm:col-span-1">
-              <h4 className="font-heading font-bold text-sm sm:text-base text-[#163824] mb-4">
+            <div>
+              <h4 className="font-heading font-bold text-sm sm:text-base text-[#163824] mb-4 flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-[#163824]/60 animate-pulse" />
                 Ananke Facility
               </h4>
-              <ul className="space-y-2.5">
+              <ul className="space-y-2">
                 {FACILITY_LINKS.map((item) => (
                   <li key={item.name}>
                     {item.external ? (
@@ -105,17 +144,27 @@ export default function Footer() {
                         href={item.href}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-xs sm:text-sm text-[#163824]/80 hover:text-[#163824] hover:underline font-medium transition-all inline-flex items-center gap-1"
+                        className="group flex items-center gap-2.5 text-xs sm:text-sm text-[#163824]/80 hover:text-[#163824] font-medium transition-all py-1"
                       >
-                        <span>{item.name}</span>
-                        <ArrowUpRight size={12} />
+                        <span className="w-7 h-7 rounded-lg bg-[#163824]/10 text-[#163824] group-hover:bg-[#163824] group-hover:text-[#C9E6B8] flex items-center justify-center shrink-0 transition-all duration-300 shadow-2xs group-hover:scale-110 group-hover:shadow-sm">
+                          <item.icon className="w-3.5 h-3.5 transition-transform duration-300 group-hover:rotate-6 group-hover:scale-110" />
+                        </span>
+                        <span className="group-hover:translate-x-0.5 transition-transform duration-200 inline-flex items-center gap-1">
+                          {item.name}
+                          <ArrowUpRight size={12} className="opacity-70 group-hover:opacity-100 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+                        </span>
                       </a>
                     ) : (
                       <Link
                         href={item.href}
-                        className="text-xs sm:text-sm text-[#163824]/80 hover:text-[#163824] hover:underline font-medium transition-all inline-block"
+                        className="group flex items-center gap-2.5 text-xs sm:text-sm text-[#163824]/80 hover:text-[#163824] font-medium transition-all py-1"
                       >
-                        {item.name}
+                        <span className="w-7 h-7 rounded-lg bg-[#163824]/10 text-[#163824] group-hover:bg-[#163824] group-hover:text-[#C9E6B8] flex items-center justify-center shrink-0 transition-all duration-300 shadow-2xs group-hover:scale-110 group-hover:shadow-sm">
+                          <item.icon className="w-3.5 h-3.5 transition-transform duration-300 group-hover:rotate-6 group-hover:scale-110" />
+                        </span>
+                        <span className="group-hover:translate-x-0.5 transition-transform duration-200">
+                          {item.name}
+                        </span>
                       </Link>
                     )}
                   </li>
