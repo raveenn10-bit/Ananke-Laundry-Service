@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import { ZohoInvoice, ZohoPayment } from '@/types/zoho';
 import DocumentPreviewModal from './DocumentPreviewModal';
+import InvoiceSegmentInput from './InvoiceSegmentInput';
 
 type PortalView = 'lookup' | 'dashboard';
 type FilterStatus = 'ALL' | 'PAID' | 'UNPAID' | 'PARTIALLY_PAID';
@@ -44,9 +45,33 @@ interface FinancialSummary {
 const OFFICIAL_WHATSAPP_NUMBER = '94742697909';
 const OFFICIAL_PHONE_DISPLAY = '091 225 0777';
 
+function isValidPhone(input: string): boolean {
+  const cleaned = input.trim().replace(/[\s\-\.\(\)]/g, '');
+  let digits = cleaned;
+  if (digits.startsWith('+94')) digits = digits.slice(3);
+  else if (digits.startsWith('0094')) digits = digits.slice(4);
+  else if (digits.startsWith('94') && digits.length === 11) digits = digits.slice(2);
+  else if (digits.startsWith('0') && digits.length === 10) digits = digits.slice(1);
+  return /^\d{9}$/.test(digits);
+}
+
+function maskPhone(input: string): string {
+  const cleaned = input.trim().replace(/[\s\-\.\(\)]/g, '');
+  let digits = cleaned;
+  if (digits.startsWith('+94')) digits = digits.slice(3);
+  else if (digits.startsWith('0094')) digits = digits.slice(4);
+  else if (digits.startsWith('94') && digits.length === 11) digits = digits.slice(2);
+  else if (digits.startsWith('0') && digits.length === 10) digits = digits.slice(1);
+  if (digits.length === 9) {
+    return `0${digits.slice(0, 2)} *** ${digits.slice(-4)}`;
+  }
+  return input;
+}
+
 export default function BillPortal() {
-  // View State
+  // View & Step State
   const [view, setView] = useState<PortalView>('lookup');
+  const [step, setStep] = useState<1 | 2>(1);
   const [invoiceInput, setInvoiceInput] = useState('');
   const [phoneInput, setPhoneInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -101,7 +126,26 @@ export default function BillPortal() {
     }
   };
 
-  // Handle Lookup Form Submission
+  // Step 1: Validate phone and proceed to Step 2
+  const handleStep1Next = (e: React.FormEvent) => {
+    e.preventDefault();
+    setErrorMsg(null);
+
+    const cleanPhone = phoneInput.trim();
+    if (!cleanPhone) {
+      setErrorMsg('Please enter your Phone or WhatsApp Number.');
+      return;
+    }
+
+    if (!isValidPhone(cleanPhone)) {
+      setErrorMsg('Please enter a valid phone number (e.g. 077 123 4567 or +94 77 123 4567).');
+      return;
+    }
+
+    setStep(2);
+  };
+
+  // Step 2: Handle Lookup Form Submission with Zoho
   const handleLookup = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     setErrorMsg(null);
@@ -116,6 +160,7 @@ export default function BillPortal() {
 
     if (!cleanPhone) {
       setErrorMsg('Please enter your Phone or WhatsApp Number.');
+      setStep(1);
       return;
     }
 
@@ -135,8 +180,7 @@ export default function BillPortal() {
 
       if (!res.ok || !data.success) {
         throw new Error(
-          data.message ||
-            "We couldn't find a matching bill with those details. Please double-check your Invoice Number and Phone Number, or contact our support team on WhatsApp."
+          "We couldn't find a bill matching those details. Please check your phone number and invoice number."
         );
       }
 
@@ -154,7 +198,10 @@ export default function BillPortal() {
       await loadPayments();
       setView('dashboard');
     } catch (err: any) {
-      setErrorMsg(err.message || 'Error communicating with billing server.');
+      setErrorMsg(
+        err.message ||
+          "We couldn't find a bill matching those details. Please check your phone number and invoice number."
+      );
     } finally {
       setIsLoading(false);
     }
@@ -174,6 +221,7 @@ export default function BillPortal() {
     setSummary(null);
     setInvoiceInput('');
     setPhoneInput('');
+    setStep(1);
     setView('lookup');
     setErrorMsg(null);
   };
@@ -224,7 +272,7 @@ export default function BillPortal() {
 
   return (
     <div className="w-full max-w-5xl mx-auto px-4 py-6 sm:py-8">
-      {/* View 1: Invoice Number & Phone Number Lookup */}
+      {/* View 1: 2-Step Invoice Lookup Flow */}
       {view === 'lookup' && (
         <motion.div
           initial={{ opacity: 0, y: 16 }}
@@ -232,8 +280,9 @@ export default function BillPortal() {
           transition={{ duration: 0.35 }}
           className="max-w-lg mx-auto bg-white rounded-3xl p-6 sm:p-9 shadow-xl border border-gray-100"
         >
+          {/* Logo & Step Progress Indicator */}
           <div className="text-center mb-6">
-            <div className="relative w-16 h-16 rounded-2xl overflow-hidden bg-primary/5 p-1.5 border border-primary/10 flex items-center justify-center mx-auto mb-4 shadow-sm">
+            <div className="relative w-16 h-16 rounded-2xl overflow-hidden bg-primary/5 p-1.5 border border-primary/10 flex items-center justify-center mx-auto mb-4 shadow-xs">
               <Image
                 src="/logo.png"
                 alt="Ananke Laundry Logo"
@@ -243,12 +292,60 @@ export default function BillPortal() {
                 priority
               />
             </div>
-            <h2 className="font-heading font-bold text-2xl sm:text-3xl text-dark tracking-tight">
-              View My <span className="text-olive italic">Bill &amp; Receipts</span>
-            </h2>
-            <p className="text-gray-600 text-xs sm:text-sm font-body mt-2 leading-relaxed">
-              Find your laundry invoices and download official receipts securely. Enter your Invoice Number and registered Phone Number below.
-            </p>
+
+            {/* Minimal Ananke Progress Indicator */}
+            <div className="flex items-center justify-center gap-3 mb-2">
+              <button
+                type="button"
+                onClick={() => {
+                  if (step === 2) {
+                    setErrorMsg(null);
+                    setStep(1);
+                  }
+                }}
+                className={`flex items-center gap-1.5 text-xs font-semibold transition-colors ${
+                  step === 1
+                    ? 'text-[#163824] cursor-default'
+                    : 'text-gray-500 hover:text-[#163824] cursor-pointer'
+                }`}
+              >
+                <span
+                  className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold transition-all ${
+                    step === 1
+                      ? 'bg-[#163824] text-white shadow-2xs'
+                      : 'bg-emerald-100 text-emerald-800'
+                  }`}
+                >
+                  {step > 1 ? <CheckCircle2 size={12} className="text-emerald-700" /> : '01'}
+                </span>
+                <span>Phone</span>
+              </button>
+
+              <div className="w-8 sm:w-12 h-0.5 bg-gray-200 rounded-full overflow-hidden">
+                <div
+                  className={`h-full bg-emerald-600 transition-all duration-300 ${
+                    step === 2 ? 'w-full' : 'w-0'
+                  }`}
+                />
+              </div>
+
+              <div
+                className={`flex items-center gap-1.5 text-xs font-semibold ${
+                  step === 2 ? 'text-[#163824]' : 'text-gray-400'
+                }`}
+              >
+                <span
+                  className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold transition-all ${
+                    step === 2
+                      ? 'bg-[#163824] text-white shadow-2xs'
+                      : 'bg-gray-100 text-gray-400'
+                  }`}
+                >
+                  02
+                </span>
+                <span>Invoice</span>
+              </div>
+            </div>
           </div>
 
           {errorMsg && (
@@ -258,85 +355,147 @@ export default function BillPortal() {
             </div>
           )}
 
-          <form onSubmit={handleLookup} className="space-y-4">
-            {/* Invoice Number Input */}
-            <div>
-              <label
-                htmlFor="invoiceNumber"
-                className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1.5"
+          {/* Animated 2-Step Transition */}
+          <AnimatePresence mode="wait">
+            {step === 1 ? (
+              <motion.div
+                key="step-1"
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.3 }}
               >
-                Invoice Number *
-              </label>
-              <div className="relative flex items-center">
-                <div className="absolute left-3.5 text-gray-400">
-                  <FileText size={16} />
+                <div className="text-center mb-6">
+                  <h2 className="font-heading font-bold text-2xl sm:text-3xl text-dark tracking-tight">
+                    View My <span className="text-olive italic">Bill &amp; Receipts</span>
+                  </h2>
+                  <p className="text-gray-600 text-xs sm:text-sm font-body mt-2 leading-relaxed">
+                    Enter the phone or WhatsApp number registered with your laundry order.
+                  </p>
                 </div>
-                <input
-                  id="invoiceNumber"
-                  type="text"
-                  value={invoiceInput}
-                  onChange={(e) => setInvoiceInput(e.target.value)}
-                  placeholder="e.g. INV-000123 or ANK-1042"
-                  className="w-full pl-10 pr-4 py-3.5 rounded-2xl border border-gray-200 text-dark font-medium text-sm sm:text-base focus:outline-none focus:border-olive focus:ring-2 focus:ring-olive/20 transition-all bg-cream/30"
-                  autoFocus
-                  required
-                />
-              </div>
-              <p className="text-[11px] text-gray-400 mt-1 pl-1">
-                Found on your physical receipt or billing notification.
-              </p>
-            </div>
 
-            {/* Phone Number Input */}
-            <div>
-              <label
-                htmlFor="phone"
-                className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1.5"
+                <form onSubmit={handleStep1Next} className="space-y-4">
+                  {/* Phone / WhatsApp Input */}
+                  <div>
+                    <label
+                      htmlFor="phone"
+                      className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1.5"
+                    >
+                      Phone / WhatsApp Number *
+                    </label>
+                    <div className="relative flex items-center">
+                      <div className="absolute left-3.5 flex items-center gap-1.5 text-xs font-semibold text-gray-500 border-r border-gray-200 pr-2.5">
+                        <span className="text-base leading-none">🇱🇰</span>
+                        <span>+94</span>
+                      </div>
+                      <input
+                        id="phone"
+                        type="tel"
+                        inputMode="tel"
+                        autoComplete="tel"
+                        value={phoneInput}
+                        onChange={(e) => setPhoneInput(e.target.value)}
+                        placeholder="077 123 4567"
+                        className="w-full pl-24 pr-4 py-3.5 rounded-2xl border border-gray-200 text-dark font-medium text-sm sm:text-base focus:outline-none focus:border-olive focus:ring-2 focus:ring-olive/20 transition-all bg-cream/30"
+                        autoFocus
+                        required
+                      />
+                    </div>
+                    <p className="text-[11px] text-gray-400 mt-1 pl-1">
+                      Accepts 07XXXXXXXX, +947XXXXXXXX, or landlines (e.g. 091 225 0777).
+                    </p>
+                  </div>
+
+                  {/* Next Button */}
+                  <button
+                    type="submit"
+                    disabled={!phoneInput.trim()}
+                    className="w-full mt-2 py-3.5 px-6 rounded-2xl bg-[#163824] hover:bg-olive text-white font-semibold text-sm transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 group cursor-pointer"
+                  >
+                    <span>Next</span>
+                    <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+                  </button>
+                </form>
+              </motion.div>
+            ) : (
+              <motion.div
+                key="step-2"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 20 }}
+                transition={{ duration: 0.3 }}
               >
-                Phone / WhatsApp Number *
-              </label>
-              <div className="relative flex items-center">
-                <div className="absolute left-3.5 flex items-center gap-1.5 text-xs font-semibold text-gray-500 border-r border-gray-200 pr-2.5">
-                  <span className="text-base leading-none">🇱🇰</span>
-                  <span>+94</span>
+                <div className="text-center mb-5">
+                  <div className="relative w-11 h-11 rounded-2xl bg-[#163824]/5 border border-[#163824]/10 flex items-center justify-center mx-auto mb-3 shadow-2xs">
+                    <Sparkles className="w-5 h-5 text-olive animate-pulse" />
+                  </div>
+                  <h2 className="font-heading font-bold text-2xl sm:text-3xl text-dark tracking-tight">
+                    Enter <span className="text-olive italic">Invoice Number</span>
+                  </h2>
+                  <p className="text-gray-600 text-xs sm:text-sm font-body mt-1.5 leading-relaxed">
+                    Enter the invoice number shown on your Ananke Laundry invoice or receipt.
+                  </p>
                 </div>
-                <input
-                  id="phone"
-                  type="tel"
-                  inputMode="tel"
-                  autoComplete="tel"
-                  value={phoneInput}
-                  onChange={(e) => setPhoneInput(e.target.value)}
-                  placeholder="077 123 4567"
-                  className="w-full pl-24 pr-4 py-3.5 rounded-2xl border border-gray-200 text-dark font-medium text-sm sm:text-base focus:outline-none focus:border-olive focus:ring-2 focus:ring-olive/20 transition-all bg-cream/30"
-                  required
-                />
-              </div>
-              <p className="text-[11px] text-gray-400 mt-1 pl-1">
-                Accepts 07XXXXXXXX, +947XXXXXXXX, or landlines (e.g. 091 225 0777).
-              </p>
-            </div>
 
-            {/* Submit Button */}
-            <button
-              type="submit"
-              disabled={isLoading || !invoiceInput.trim() || !phoneInput.trim()}
-              className="w-full mt-2 py-3.5 px-6 rounded-2xl bg-primary hover:bg-olive text-white font-semibold text-sm transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 group"
-            >
-              {isLoading ? (
-                <>
-                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  <span>Searching Records in Zoho...</span>
-                </>
-              ) : (
-                <>
-                  <Search size={16} />
-                  <span>Find My Bill</span>
-                  <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
-                </>
-              )}
-            </button>
-          </form>
+                {/* Discreet Registered Number Display with Change Button */}
+                <div className="bg-cream/70 border border-gray-200/80 rounded-2xl px-4 py-2.5 mb-5 flex items-center justify-between">
+                  <div>
+                    <span className="text-[10px] uppercase font-bold tracking-wider text-gray-500 block">
+                      Registered Number
+                    </span>
+                    <span className="font-mono font-semibold text-xs sm:text-sm text-dark">
+                      {maskPhone(phoneInput)}
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setErrorMsg(null);
+                      setStep(1);
+                    }}
+                    className="text-xs font-semibold text-olive hover:text-dark hover:underline transition-colors cursor-pointer"
+                  >
+                    [ Change ]
+                  </button>
+                </div>
+
+                <form onSubmit={handleLookup} className="space-y-4">
+                  {/* Segmented Invoice Input */}
+                  <div>
+                    <InvoiceSegmentInput
+                      value={invoiceInput}
+                      onChange={(val) => setInvoiceInput(val)}
+                      onEnter={() => handleLookup()}
+                      disabled={isLoading}
+                    />
+                    <p className="text-[11px] text-gray-400 mt-2 text-center">
+                      e.g. INV-000123 or ANK-1042 &bull; Case-insensitive
+                    </p>
+                  </div>
+
+                  {/* Find My Bill Button */}
+                  <button
+                    type="submit"
+                    disabled={isLoading || !invoiceInput.trim() || !phoneInput.trim()}
+                    className="w-full mt-3 py-3.5 px-6 rounded-2xl bg-[#163824] hover:bg-olive text-white font-semibold text-sm transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 group cursor-pointer"
+                  >
+                    {isLoading ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        <span>Searching Records in Zoho...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Search size={16} />
+                        <span>Find My Bill</span>
+                        <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+                      </>
+                    )}
+                  </button>
+                </form>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           {/* Quick Help & Security Guarantee */}
           <div className="mt-6 pt-5 border-t border-gray-100 space-y-2.5 text-center">
