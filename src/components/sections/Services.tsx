@@ -27,6 +27,7 @@ const services = [
     num: '01',
     title: 'Professional Washing',
     image: '/images/service-washing.jpg',
+    video: '/videos/services/service-washing.mp4',
     icon: WashingMachine,
     desc: 'Controlled commercial washing protocols using quality detergents and fabric-appropriate temperature cycles.',
   },
@@ -34,6 +35,7 @@ const services = [
     num: '02',
     title: 'Pressing',
     image: '/images/service-ironing.jpg',
+    video: '/videos/services/service-pressing.mp4',
     icon: Shirt,
     desc: 'Precision steam pressing and rotary ironing for crisp shirts, garments, uniforms, and hospitality linens.',
   },
@@ -41,6 +43,7 @@ const services = [
     num: '03',
     title: 'Dry Cleaning',
     image: '/images/service-drycleaning.jpg',
+    video: '/videos/services/service-drycleaning.mp4',
     icon: Sparkles,
     desc: 'Specialized solvent-based care for suits, formal attire, delicate fabrics, and structure-sensitive textiles.',
   },
@@ -48,6 +51,7 @@ const services = [
     num: '04',
     title: 'Stain Removal',
     image: '/images/service-stain.jpg',
+    video: '/videos/services/service-stain.mp4',
     icon: Droplets,
     desc: 'Targeted spot treatment and pre-wash stain extraction formulated to preserve fabric integrity.',
   },
@@ -55,6 +59,7 @@ const services = [
     num: '05',
     title: 'Linen Care',
     image: '/images/service-bedding.jpg',
+    video: '/videos/services/service-linencare.mp4',
     icon: Layers,
     desc: 'Thorough sanitation and fabric conditioning for duvet covers, bed sheets, pillowcases, and bath towels.',
   },
@@ -62,6 +67,7 @@ const services = [
     num: '06',
     title: 'Commercial Laundry Solutions',
     image: '/images/service-hotel.jpg',
+    video: '/videos/services/service-commercial.mp4',
     icon: Building,
     desc: 'High-volume recurring processing engineered for hotels, boutique villas, guest houses, and restaurants.',
   },
@@ -69,6 +75,7 @@ const services = [
     num: '07',
     title: 'Linen Management',
     image: '/images/gallery/quality-check.jpg',
+    video: '/videos/services/service-management.mp4',
     icon: ClipboardCheck,
     desc: 'Structured linen turnaround, quality inspection, batch sorting, and packaging for hospitality operations.',
   },
@@ -118,14 +125,27 @@ export default function Services() {
               className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 group flex flex-col w-[82vw] min-w-[250px] max-w-[320px] sm:w-auto sm:min-w-0 snap-start flex-shrink-0 sm:flex-shrink border border-gray-100"
             >
               <div className="relative h-[190px] sm:h-[210px] overflow-hidden bg-gray-200">
-                <Image
-                  src={service.image}
-                  alt={service.title}
-                  fill
-                  className="object-cover group-hover:scale-105 transition-transform duration-700"
-                  sizes="(max-width: 768px) 85vw, 33vw"
-                />
-                <div className="absolute top-3 right-3 bg-dark/80 backdrop-blur-md text-accent text-xs font-mono font-bold px-2.5 py-1 rounded-full border border-white/15">
+                {service.video ? (
+                  <video
+                    src={service.video}
+                    poster={service.image}
+                    autoPlay
+                    loop
+                    muted
+                    playsInline
+                    preload="metadata"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                  />
+                ) : (
+                  <Image
+                    src={service.image}
+                    alt={service.title}
+                    fill
+                    className="object-cover group-hover:scale-105 transition-transform duration-700"
+                    sizes="(max-width: 768px) 85vw, 33vw"
+                  />
+                )}
+                <div className="absolute top-3 right-3 bg-dark/80 backdrop-blur-md text-accent text-xs font-mono font-bold px-2.5 py-1 rounded-full border border-white/15 z-10">
                   {service.num}
                 </div>
                 <div className="absolute -bottom-4 left-6 w-12 h-12 bg-primary rounded-2xl flex items-center justify-center text-white border-4 border-white z-10 shadow-md group-hover:bg-olive transition-colors">
