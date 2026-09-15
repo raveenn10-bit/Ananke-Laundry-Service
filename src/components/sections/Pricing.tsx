@@ -3,6 +3,7 @@
 import { useState, useRef } from 'react';
 import { motion, AnimatePresence, useInView } from 'framer-motion';
 import { CheckCircle2, ArrowRight } from 'lucide-react';
+import { useMobileAutoScroll } from '@/hooks/useMobileAutoScroll';
 
 /*
  * CLIENT CONFIRMATION REQUIRED:
@@ -62,6 +63,7 @@ export default function Pricing() {
   const [activeTab, setActiveTab] = useState('Commercial & Hospitality');
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: '-80px' });
+  const scrollRef = useMobileAutoScroll<HTMLDivElement>({ interval: 3500 });
 
   const filteredTiers = tierData.filter((item) => item.category === activeTab);
 
@@ -111,6 +113,7 @@ export default function Pricing() {
 
         {/* Tier Cards */}
         <div
+          ref={scrollRef}
           className={`flex overflow-x-auto snap-x snap-mandatory gap-6 pb-6 -mx-4 px-4 sm:mx-0 sm:px-0 sm:grid sm:gap-6 no-scrollbar scrollbar-none mx-auto justify-center ${
             filteredTiers.length === 2
               ? 'sm:grid-cols-2 max-w-3xl'

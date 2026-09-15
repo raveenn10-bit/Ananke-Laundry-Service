@@ -1,8 +1,10 @@
 'use client';
 
-import { Phone, MapPin, FileText, Receipt, Sparkles } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { useState, useEffect } from 'react';
+import { Phone, MapPin, Receipt, Sparkles, X, Menu, FileText } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useOrderModal } from '@/context/OrderModalContext';
+import Link from 'next/link';
 
 function WhatsAppIcon({ className = 'w-6 h-6' }: { className?: string }) {
   return (
@@ -19,51 +21,202 @@ function WhatsAppIcon({ className = 'w-6 h-6' }: { className?: string }) {
 
 const WHATSAPP_URL =
   'https://wa.me/94742697909?text=Hello%20Ananke%20Laundry%2C%20I%20would%20like%20to%20inquire%20about%20your%20services.';
+const PHONE_NUMBER = '+94912250777';
+const MAPS_URL = 'https://maps.app.goo.gl/HLJGzPCVZwySjSTK6?g_st=ic';
 
 export default function FloatingActions() {
   const { openOrderModal } = useOrderModal();
+  const [isMobileOpen, setIsMobileOpen] = useState(false);
+
+  // Close mobile expandable menu when pressing Escape
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setIsMobileOpen(false);
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   return (
     <>
-      {/* Dedicated Floating WhatsApp Button (Bottom-Right) */}
-      <div className="fixed bottom-[calc(4.75rem+env(safe-area-inset-bottom))] lg:bottom-7 right-4 sm:right-6 lg:right-7 z-50 flex items-center group">
-        {/* Tooltip on Desktop hover */}
-        <div className="absolute right-full mr-3.5 top-1/2 -translate-y-1/2 pointer-events-none hidden sm:flex items-center gap-2.5 bg-[#1a2b25]/95 backdrop-blur-md text-white py-2 px-3.5 rounded-xl text-xs shadow-2xl border border-white/10 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap">
-          <span className="w-2.5 h-2.5 rounded-full bg-[#25D366] animate-pulse shrink-0" />
-          <div className="text-left">
-            <p className="font-semibold text-white leading-tight">Chat on WhatsApp</p>
-            <p className="text-[11px] text-[#25D366] font-mono leading-tight font-medium mt-0.5">
-              +94 74 269 7909 · Online Now
-            </p>
-          </div>
+      {/* =========================================================================
+          MOBILE ONLY (< 768px): Single Compact Expandable Floating Action Button
+          ========================================================================= */}
+      <div className="md:hidden">
+        {/* Backdrop for tapping outside to close */}
+        <AnimatePresence>
+          {isMobileOpen && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              onClick={() => setIsMobileOpen(false)}
+              className="fixed inset-0 bg-black/40 backdrop-blur-xs z-35"
+              aria-hidden="true"
+            />
+          )}
+        </AnimatePresence>
+
+        {/* Expandable Quick Actions Menu (Stacks upwards) */}
+        <div className="fixed bottom-[calc(4.5rem+env(safe-area-inset-bottom))] right-4 z-40 flex flex-col items-end gap-3 pointer-events-none">
+          <AnimatePresence>
+            {isMobileOpen && (
+              <>
+                {/* 1. Place an Order */}
+                <motion.div
+                  initial={{ opacity: 0, y: 20, scale: 0.85 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 15, scale: 0.85 }}
+                  transition={{ duration: 0.22, delay: 0.04 }}
+                  className="flex items-center gap-2.5 pointer-events-auto"
+                >
+                  <span className="bg-[#163824] text-white text-xs font-semibold px-3 py-1.5 rounded-xl shadow-lg border border-white/20 whitespace-nowrap">
+                    Place an Order
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsMobileOpen(false);
+                      openOrderModal();
+                    }}
+                    className="w-11 h-11 rounded-full bg-gradient-to-tr from-emerald-600 via-emerald-500 to-green-500 text-white flex items-center justify-center shadow-lg border border-white/40 active:scale-95 transition-transform"
+                    aria-label="Place an Order"
+                  >
+                    <Sparkles size={19} className="text-white" />
+                  </button>
+                </motion.div>
+
+                {/* 2. Call */}
+                <motion.div
+                  initial={{ opacity: 0, y: 20, scale: 0.85 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 15, scale: 0.85 }}
+                  transition={{ duration: 0.22, delay: 0.08 }}
+                  className="flex items-center gap-2.5 pointer-events-auto"
+                >
+                  <span className="bg-[#163824] text-white text-xs font-semibold px-3 py-1.5 rounded-xl shadow-lg border border-white/20 whitespace-nowrap">
+                    Call 091 225 0777
+                  </span>
+                  <a
+                    href={`tel:${PHONE_NUMBER}`}
+                    onClick={() => setIsMobileOpen(false)}
+                    className="w-11 h-11 rounded-full bg-gradient-to-tr from-emerald-600 via-green-500 to-emerald-400 text-white flex items-center justify-center shadow-lg border border-white/40 active:scale-95 transition-transform"
+                    aria-label="Call Ananke Laundry"
+                  >
+                    <Phone size={19} className="text-white" />
+                  </a>
+                </motion.div>
+
+                {/* 3. WhatsApp */}
+                <motion.div
+                  initial={{ opacity: 0, y: 20, scale: 0.85 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 15, scale: 0.85 }}
+                  transition={{ duration: 0.22, delay: 0.12 }}
+                  className="flex items-center gap-2.5 pointer-events-auto"
+                >
+                  <span className="bg-[#163824] text-white text-xs font-semibold px-3 py-1.5 rounded-xl shadow-lg border border-white/20 whitespace-nowrap">
+                    Chat on WhatsApp
+                  </span>
+                  <a
+                    href={WHATSAPP_URL}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={() => setIsMobileOpen(false)}
+                    className="w-11 h-11 rounded-full bg-gradient-to-tr from-[#128C7E] via-[#25D366] to-[#4ade80] text-white flex items-center justify-center shadow-lg border border-white/40 active:scale-95 transition-transform"
+                    aria-label="Chat with Ananke Laundry on WhatsApp"
+                  >
+                    <WhatsAppIcon className="w-5 h-5 text-white fill-current" />
+                  </a>
+                </motion.div>
+
+                {/* 4. Directions */}
+                <motion.div
+                  initial={{ opacity: 0, y: 20, scale: 0.85 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 15, scale: 0.85 }}
+                  transition={{ duration: 0.22, delay: 0.16 }}
+                  className="flex items-center gap-2.5 pointer-events-auto"
+                >
+                  <span className="bg-[#163824] text-white text-xs font-semibold px-3 py-1.5 rounded-xl shadow-lg border border-white/20 whitespace-nowrap">
+                    Get Directions
+                  </span>
+                  <a
+                    href={MAPS_URL}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={() => setIsMobileOpen(false)}
+                    className="w-11 h-11 rounded-full bg-gradient-to-tr from-red-600 via-rose-500 to-red-400 text-white flex items-center justify-center shadow-lg border border-white/40 active:scale-95 transition-transform"
+                    aria-label="Get Directions on Google Maps"
+                  >
+                    <MapPin size={19} className="text-white" />
+                  </a>
+                </motion.div>
+
+                {/* 5. View My Bill */}
+                <motion.div
+                  initial={{ opacity: 0, y: 20, scale: 0.85 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 15, scale: 0.85 }}
+                  transition={{ duration: 0.22, delay: 0.2 }}
+                  className="flex items-center gap-2.5 pointer-events-auto"
+                >
+                  <span className="bg-[#163824] text-white text-xs font-semibold px-3 py-1.5 rounded-xl shadow-lg border border-white/20 whitespace-nowrap">
+                    View My Bill
+                  </span>
+                  <Link
+                    href="/my-bill"
+                    onClick={() => setIsMobileOpen(false)}
+                    className="w-11 h-11 rounded-full bg-gradient-to-tr from-blue-600 via-indigo-500 to-sky-400 text-white flex items-center justify-center shadow-lg border border-white/40 active:scale-95 transition-transform"
+                    aria-label="View My Bill & Receipts"
+                  >
+                    <Receipt size={19} className="text-white" />
+                  </Link>
+                </motion.div>
+              </>
+            )}
+          </AnimatePresence>
         </div>
 
-        {/* WhatsApp Round Floating Action Button */}
-        <motion.a
-          href={WHATSAPP_URL}
-          target="_blank"
-          rel="noopener noreferrer"
-          aria-label="Chat with Ananke Laundry on WhatsApp (+94 74 269 7909)"
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.95 }}
-          className="relative flex items-center justify-center w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-gradient-to-tr from-[#128C7E] via-[#25D366] to-[#4ade80] text-white shadow-[0_8px_25px_rgba(37,211,102,0.55)] hover:shadow-[0_12px_32px_rgba(37,211,102,0.75)] transition-all duration-300 cursor-pointer border border-white/30"
-        >
-          {/* Subtle Radar/Ping Glow */}
-          <span className="absolute -inset-1 rounded-full bg-[#25D366] opacity-35 animate-ping pointer-events-none" />
+        {/* Single Main Mobile Floating Action Button (FAB) */}
+        <div className="fixed bottom-[max(1rem,env(safe-area-inset-bottom))] right-4 z-40">
+          <motion.button
+            type="button"
+            onClick={() => setIsMobileOpen((prev) => !prev)}
+            whileTap={{ scale: 0.92 }}
+            className={`relative flex items-center justify-center w-14 h-14 rounded-full shadow-[0_8px_25px_rgba(22,56,36,0.45)] border border-white/30 transition-all duration-300 cursor-pointer ${
+              isMobileOpen
+                ? 'bg-[#163824] text-white shadow-xl rotate-90'
+                : 'bg-gradient-to-tr from-[#163824] via-[#1b432c] to-[#25D366] text-white'
+            }`}
+            aria-label={isMobileOpen ? 'Close Quick Actions' : 'Open Quick Actions'}
+            aria-expanded={isMobileOpen}
+          >
+            {/* Status pulse when closed */}
+            {!isMobileOpen && (
+              <>
+                <span className="absolute -inset-1 rounded-full bg-[#25D366] opacity-30 animate-ping pointer-events-none" />
+                <span className="absolute top-0 right-0 w-3.5 h-3.5 bg-white rounded-full p-[2px] z-20 shadow-xs">
+                  <span className="block w-full h-full bg-[#25D366] rounded-full animate-pulse" />
+                </span>
+              </>
+            )}
 
-          {/* Online green indicator badge */}
-          <span className="absolute top-0 right-0 w-3.5 h-3.5 sm:w-4 sm:h-4 bg-white rounded-full p-[2px] z-20 shadow-xs">
-            <span className="block w-full h-full bg-[#10b981] rounded-full animate-pulse" />
-          </span>
-
-          {/* SVG WhatsApp Logo */}
-          <WhatsAppIcon className="w-8 h-8 sm:w-9 sm:h-9 relative z-10 text-white fill-current drop-shadow-md" />
-        </motion.a>
+            {isMobileOpen ? (
+              <X size={24} className="text-white" />
+            ) : (
+              <Sparkles size={24} className="text-[#C9E6B8] animate-pulse" />
+            )}
+          </motion.button>
+        </div>
       </div>
 
-      {/* Desktop Floating Actions Bar (Right Middle Dock) - Real Colors & Live Effect */}
-      <div className="hidden lg:flex fixed right-5 top-1/2 -translate-y-1/2 flex-col gap-3.5 z-40">
-        {/* 0. Place Order (Real Emerald to WhatsApp Green Gradient) */}
+      {/* =========================================================================
+          DESKTOP ONLY (>= 768px): Vertical Dock on Right Side (Single WhatsApp)
+          ========================================================================= */}
+      <div className="hidden md:flex fixed right-5 top-1/2 -translate-y-1/2 flex-col gap-3.5 z-40">
+        {/* 1. Place Order */}
         <motion.div whileHover={{ scale: 1.12 }} whileTap={{ scale: 0.95 }} className="relative group">
           <button
             type="button"
@@ -77,18 +230,19 @@ export default function FloatingActions() {
             </span>
             <Sparkles className="text-white drop-shadow-xs relative z-10 transition-transform group-hover:rotate-12" size={20} />
           </button>
-          <div className="absolute right-full mr-3.5 top-1/2 -translate-y-1/2 bg-[#1a2b25]/95 backdrop-blur-md text-white py-2 px-3.5 rounded-xl text-xs shadow-2xl border border-white/10 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap">
+          <div className="absolute right-full mr-3.5 top-1/2 -translate-y-1/2 bg-[#163824]/95 backdrop-blur-md text-white py-2 px-3.5 rounded-xl text-xs shadow-2xl border border-white/10 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap">
             <div className="flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-accent animate-pulse" />
               <p className="font-semibold text-white leading-tight">Place an Order</p>
             </div>
-            <p className="text-[10px] text-accent pl-4 mt-0.5 font-medium">Instant WhatsApp Laundry Order</p>
+            <p className="text-[10px] text-accent pl-4 mt-0.5 font-medium">Instant Laundry Order</p>
           </div>
         </motion.div>
-        {/* 1. Phone Call (Real Calling Green Gradient) */}
+
+        {/* 2. Phone Call */}
         <motion.div whileHover={{ scale: 1.12 }} whileTap={{ scale: 0.95 }} className="relative group">
           <a
-            href="tel:+94912250777"
+            href={`tel:${PHONE_NUMBER}`}
             className="relative w-12 h-12 rounded-full bg-gradient-to-tr from-emerald-600 via-green-500 to-emerald-400 flex items-center justify-center shadow-[0_4px_18px_rgba(16,185,129,0.5)] hover:shadow-[0_6px_25px_rgba(16,185,129,0.7)] transition-all duration-300 cursor-pointer border border-white/30 group"
             aria-label="Call 091 225 0777"
           >
@@ -98,16 +252,16 @@ export default function FloatingActions() {
             </span>
             <Phone className="text-white drop-shadow-xs relative z-10 transition-transform group-hover:rotate-12" size={20} />
           </a>
-          <div className="absolute right-full mr-3.5 top-1/2 -translate-y-1/2 bg-[#1a2b25]/95 backdrop-blur-md text-white py-2 px-3.5 rounded-xl text-xs shadow-2xl border border-white/10 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap">
+          <div className="absolute right-full mr-3.5 top-1/2 -translate-y-1/2 bg-[#163824]/95 backdrop-blur-md text-white py-2 px-3.5 rounded-xl text-xs shadow-2xl border border-white/10 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap">
             <div className="flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
               <p className="font-semibold text-white leading-tight">Call 091 225 0777</p>
             </div>
-            <p className="text-[10px] text-emerald-300 pl-4 mt-0.5 font-medium">Open Now · 9:00 AM – 6:00 PM</p>
+            <p className="text-[10px] text-emerald-300 pl-4 mt-0.5 font-medium">Open 9:00 AM – 6:00 PM</p>
           </div>
         </motion.div>
 
-        {/* 2. WhatsApp (Real WhatsApp Green Gradient) */}
+        {/* 3. WhatsApp (Single Clean Instance) */}
         <motion.div whileHover={{ scale: 1.12 }} whileTap={{ scale: 0.95 }} className="relative group">
           <a
             href={WHATSAPP_URL}
@@ -121,7 +275,7 @@ export default function FloatingActions() {
             </span>
             <WhatsAppIcon className="w-5 h-5 text-white fill-current drop-shadow-xs relative z-10" />
           </a>
-          <div className="absolute right-full mr-3.5 top-1/2 -translate-y-1/2 bg-[#1a2b25]/95 backdrop-blur-md text-white py-2 px-3.5 rounded-xl text-xs shadow-2xl border border-white/10 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap">
+          <div className="absolute right-full mr-3.5 top-1/2 -translate-y-1/2 bg-[#163824]/95 backdrop-blur-md text-white py-2 px-3.5 rounded-xl text-xs shadow-2xl border border-white/10 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap">
             <div className="flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-[#25D366] animate-pulse" />
               <p className="font-semibold text-white leading-tight">WhatsApp 074 269 7909</p>
@@ -130,10 +284,10 @@ export default function FloatingActions() {
           </div>
         </motion.div>
 
-        {/* 3. Google Maps (Real Google Maps Red Gradient) */}
+        {/* 4. Google Maps Directions */}
         <motion.div whileHover={{ scale: 1.12 }} whileTap={{ scale: 0.95 }} className="relative group">
           <a
-            href="https://maps.app.goo.gl/HLJGzPCVZwySjSTK6?g_st=ic"
+            href={MAPS_URL}
             target="_blank"
             rel="noopener noreferrer"
             className="relative w-12 h-12 rounded-full bg-gradient-to-tr from-red-600 via-rose-500 to-red-400 flex items-center justify-center shadow-[0_4px_18px_rgba(239,68,68,0.5)] hover:shadow-[0_6px_25px_rgba(239,68,68,0.7)] transition-all duration-300 cursor-pointer border border-white/30 group"
@@ -141,7 +295,7 @@ export default function FloatingActions() {
           >
             <MapPin className="text-white drop-shadow-xs relative z-10 transition-transform group-hover:-translate-y-0.5" size={20} />
           </a>
-          <div className="absolute right-full mr-3.5 top-1/2 -translate-y-1/2 bg-[#1a2b25]/95 backdrop-blur-md text-white py-2 px-3.5 rounded-xl text-xs shadow-2xl border border-white/10 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap">
+          <div className="absolute right-full mr-3.5 top-1/2 -translate-y-1/2 bg-[#163824]/95 backdrop-blur-md text-white py-2 px-3.5 rounded-xl text-xs shadow-2xl border border-white/10 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap">
             <div className="flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-rose-400 animate-pulse" />
               <p className="font-semibold text-white leading-tight">Google Maps Directions</p>
@@ -150,34 +304,34 @@ export default function FloatingActions() {
           </div>
         </motion.div>
 
-        {/* 4. Live Bill Portal (Real Financial Sapphire Blue Gradient) */}
+        {/* 5. Live Bill Portal */}
         <motion.div whileHover={{ scale: 1.12 }} whileTap={{ scale: 0.95 }} className="relative group">
-          <a
+          <Link
             href="/my-bill"
             className="relative w-12 h-12 rounded-full bg-gradient-to-tr from-blue-600 via-indigo-500 to-sky-400 flex items-center justify-center shadow-[0_4px_18px_rgba(59,130,246,0.5)] hover:shadow-[0_6px_25px_rgba(59,130,246,0.7)] transition-all duration-300 cursor-pointer border border-white/30 group"
             aria-label="View My Bill & Receipts"
           >
             <Receipt className="text-white drop-shadow-xs relative z-10 transition-transform group-hover:scale-105" size={20} />
-          </a>
-          <div className="absolute right-full mr-3.5 top-1/2 -translate-y-1/2 bg-[#1a2b25]/95 backdrop-blur-md text-white py-2 px-3.5 rounded-xl text-xs shadow-2xl border border-white/10 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap">
+          </Link>
+          <div className="absolute right-full mr-3.5 top-1/2 -translate-y-1/2 bg-[#163824]/95 backdrop-blur-md text-white py-2 px-3.5 rounded-xl text-xs shadow-2xl border border-white/10 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap">
             <div className="flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-sky-400 animate-pulse" />
               <p className="font-semibold text-white leading-tight">View My Bill &amp; Receipts</p>
             </div>
-            <p className="text-[10px] text-sky-300 pl-4 mt-0.5">Live Zoho Portal · Instant Search</p>
+            <p className="text-[10px] text-sky-300 pl-4 mt-0.5">Zoho Portal · Instant Lookup</p>
           </div>
         </motion.div>
 
-        {/* 5. Request a Quote (Real Amber / Gold Gradient) */}
+        {/* 6. Request a Quote */}
         <motion.div whileHover={{ scale: 1.12 }} whileTap={{ scale: 0.95 }} className="relative group">
           <a
-            href="/contact"
+            href="#contact"
             className="relative w-12 h-12 rounded-full bg-gradient-to-tr from-amber-600 via-amber-500 to-yellow-400 flex items-center justify-center shadow-[0_4px_18px_rgba(245,158,11,0.5)] hover:shadow-[0_6px_25px_rgba(245,158,11,0.7)] transition-all duration-300 cursor-pointer border border-white/30 group"
             aria-label="Request a Quote"
           >
             <FileText className="text-white drop-shadow-xs relative z-10 transition-transform group-hover:scale-105" size={20} />
           </a>
-          <div className="absolute right-full mr-3.5 top-1/2 -translate-y-1/2 bg-[#1a2b25]/95 backdrop-blur-md text-white py-2 px-3.5 rounded-xl text-xs shadow-2xl border border-white/10 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap">
+          <div className="absolute right-full mr-3.5 top-1/2 -translate-y-1/2 bg-[#163824]/95 backdrop-blur-md text-white py-2 px-3.5 rounded-xl text-xs shadow-2xl border border-white/10 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap">
             <div className="flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
               <p className="font-semibold text-white leading-tight">Request a Quote</p>
@@ -185,49 +339,6 @@ export default function FloatingActions() {
             <p className="text-[10px] text-amber-300 pl-4 mt-0.5">Commercial &amp; Bulk Pricing</p>
           </div>
         </motion.div>
-      </div>
-
-      {/* Mobile Sticky Bottom Action Bar - Real Colors */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-primary/95 backdrop-blur-lg border-t border-white/15 px-2.5 py-2 pb-[max(0.625rem,env(safe-area-inset-bottom))] shadow-2xl">
-        <div className="flex items-center gap-1.5 max-w-md mx-auto">
-          <button
-            type="button"
-            onClick={openOrderModal}
-            className="flex-1 bg-gradient-to-r from-accent via-amber-400 to-accent text-dark font-extrabold text-xs py-2.5 px-2 rounded-xl flex items-center justify-center gap-1 shadow-[0_3px_12px_rgba(232,185,49,0.45)] min-h-[42px] transition-transform active:scale-95 cursor-pointer"
-            aria-label="Place an Order"
-          >
-            <Sparkles size={14} className="shrink-0 text-dark" />
-            <span className="truncate">Order</span>
-          </button>
-          <a
-            href="tel:+94912250777"
-            className="flex-1 bg-gradient-to-r from-emerald-600 to-green-600 text-white font-bold text-xs py-2.5 px-2 rounded-xl flex items-center justify-center gap-1 shadow-[0_3px_10px_rgba(16,185,129,0.3)] min-h-[42px] transition-transform active:scale-95"
-            aria-label="Call 091 225 0777"
-          >
-            <Phone size={14} className="shrink-0" />
-            <span className="truncate">Call</span>
-          </a>
-          <a
-            href={WHATSAPP_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex-1 bg-gradient-to-r from-[#128C7E] to-[#25D366] text-white font-bold text-xs py-2.5 px-2 rounded-xl flex items-center justify-center gap-1 shadow-[0_3px_10px_rgba(37,211,102,0.3)] min-h-[42px] transition-transform active:scale-95"
-            aria-label="WhatsApp +94 74 269 7909"
-          >
-            <WhatsAppIcon className="w-3.5 h-3.5 shrink-0 text-white fill-current" />
-            <span className="truncate">WhatsApp</span>
-          </a>
-          <a
-            href="https://maps.app.goo.gl/HLJGzPCVZwySjSTK6?g_st=ic"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex-1 bg-gradient-to-r from-red-600 to-rose-600 text-white font-semibold text-xs py-2.5 px-1.5 rounded-xl flex items-center justify-center gap-1 shadow-[0_3px_10px_rgba(239,68,68,0.3)] min-h-[42px] transition-transform active:scale-95"
-            aria-label="Get Directions to Unawatuna facility"
-          >
-            <MapPin size={14} className="shrink-0" />
-            <span className="truncate">Map</span>
-          </a>
-        </div>
       </div>
     </>
   );

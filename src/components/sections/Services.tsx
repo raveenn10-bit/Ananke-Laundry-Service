@@ -4,6 +4,7 @@ import { useRef } from 'react';
 import Image from 'next/image';
 import { motion, useInView } from 'framer-motion';
 import Link from 'next/link';
+import { useMobileAutoScroll } from '@/hooks/useMobileAutoScroll';
 import {
   WashingMachine,
   Sparkles,
@@ -82,7 +83,7 @@ const services = [
 ];
 
 export default function Services() {
-  const ref = useRef(null);
+  const scrollRef = useMobileAutoScroll<HTMLDivElement>({ interval: 3400 });
 
   return (
     <section id="services" className="py-20 md:py-28 bg-cream">
@@ -111,7 +112,7 @@ export default function Services() {
         </div>
 
         <div
-          ref={ref}
+          ref={scrollRef}
           className="flex overflow-x-auto snap-x snap-mandatory gap-5 pb-6 -mx-4 px-4 sm:mx-0 sm:px-0 sm:grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 sm:gap-6 no-scrollbar scrollbar-none"
           style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
         >

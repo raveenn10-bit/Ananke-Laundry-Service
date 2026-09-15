@@ -3,6 +3,7 @@
 import { useState, useRef } from 'react';
 import Image from 'next/image';
 import { motion, AnimatePresence, useInView } from 'framer-motion';
+import { useMobileAutoScroll } from '@/hooks/useMobileAutoScroll';
 
 const filterCategories = ['All', 'Team', 'Machines', 'Process', 'Facility'];
 
@@ -27,6 +28,7 @@ export default function Gallery() {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: '-80px' });
+  const scrollRef = useMobileAutoScroll<HTMLDivElement>({ interval: 3300 });
 
   const filteredImages = activeFilter === 'All' 
     ? images 
@@ -75,7 +77,7 @@ export default function Gallery() {
         </div>
 
         {/* Gallery Container - Horizontally scrollable on mobile, masonry grid on desktop */}
-        <div className="flex overflow-x-auto snap-x snap-mandatory gap-4 pb-6 -mx-4 px-4 md:mx-0 md:px-0 md:columns-3 md:gap-4 md:space-y-4 md:block no-scrollbar scrollbar-none" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+        <div ref={scrollRef} className="flex overflow-x-auto snap-x snap-mandatory gap-4 pb-6 -mx-4 px-4 md:mx-0 md:px-0 md:columns-3 md:gap-4 md:space-y-4 md:block no-scrollbar scrollbar-none" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
           <AnimatePresence mode="popLayout">
             {filteredImages.map((img, idx) => (
               <motion.div

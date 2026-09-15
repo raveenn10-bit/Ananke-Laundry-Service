@@ -191,9 +191,15 @@ export default function Footer() {
 
           {/* Bottom Row matching the design image */}
           <div className="pt-6 border-t border-[#163824]/15 flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
-            <p className="text-[11px] sm:text-xs text-[#163824]/70 font-body">
-              &copy; {new Date().getFullYear()} anankelaundry.com &bull; Ananke Laundry (Pvt) Ltd.
-            </p>
+            <div className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2">
+              <p className="text-[11px] sm:text-xs text-[#163824]/70 font-body">
+                &copy; {new Date().getFullYear()} anankelaundry.com &bull; Ananke Laundry (Pvt) Ltd.
+              </p>
+              <span className="hidden sm:inline text-[#163824]/40">&bull;</span>
+              <p className="text-[11px] sm:text-xs text-[#163824]/80 font-medium">
+                Designed &amp; Developed by <span className="font-semibold text-[#163824]">Harsh Apex Digital Solutions</span>
+              </p>
+            </div>
             <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-[11px] sm:text-xs text-[#163824]/70 font-medium">
               <Link href="/services" className="hover:text-[#163824] hover:underline">
                 Terms of Service
