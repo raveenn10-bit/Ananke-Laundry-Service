@@ -1,12 +1,12 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Phone, MapPin, Receipt, Sparkles, X, Menu, FileText } from 'lucide-react';
+import { Phone, MapPin, Receipt, Sparkles, X, FileText, ArrowUp } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useOrderModal } from '@/context/OrderModalContext';
 import Link from 'next/link';
 
-function WhatsAppIcon({ className = 'w-6 h-6' }: { className?: string }) {
+function WhatsAppIcon({ className = 'w-5 h-5' }: { className?: string }) {
   return (
     <svg
       className={className}
@@ -26,319 +26,204 @@ const MAPS_URL = 'https://maps.app.goo.gl/HLJGzPCVZwySjSTK6?g_st=ic';
 
 export default function FloatingActions() {
   const { openOrderModal } = useOrderModal();
-  const [isMobileOpen, setIsMobileOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
 
-  // Close mobile expandable menu when pressing Escape
+  // Close when pressing Escape key
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setIsMobileOpen(false);
+      if (e.key === 'Escape') setIsOpen(false);
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
+  // Quick Action Definitions in visual upward order (Top to Bottom visually)
+  const actionItems = [
+    {
+      id: 'order',
+      label: 'Place an Order',
+      icon: Sparkles,
+      iconColor: 'text-white',
+      bgGradient: 'from-emerald-600 via-emerald-500 to-green-500',
+      type: 'button' as const,
+      onClick: () => openOrderModal(),
+    },
+    {
+      id: 'call',
+      label: 'Call 091 225 0777',
+      icon: Phone,
+      iconColor: 'text-white',
+      bgGradient: 'from-emerald-600 via-green-500 to-emerald-400',
+      type: 'link' as const,
+      href: `tel:${PHONE_NUMBER}`,
+    },
+    {
+      id: 'whatsapp',
+      label: 'Chat on WhatsApp',
+      icon: WhatsAppIcon,
+      iconColor: 'text-white',
+      bgGradient: 'from-[#128C7E] via-[#25D366] to-[#4ade80]',
+      type: 'external' as const,
+      href: WHATSAPP_URL,
+    },
+    {
+      id: 'directions',
+      label: 'Get Directions',
+      icon: MapPin,
+      iconColor: 'text-white',
+      bgGradient: 'from-red-600 via-rose-500 to-red-400',
+      type: 'external' as const,
+      href: MAPS_URL,
+    },
+    {
+      id: 'bill',
+      label: 'View My Bill',
+      icon: Receipt,
+      iconColor: 'text-white',
+      bgGradient: 'from-blue-600 via-indigo-500 to-sky-400',
+      type: 'route' as const,
+      href: '/my-bill',
+    },
+    {
+      id: 'quote',
+      label: 'Request a Quote',
+      icon: FileText,
+      iconColor: 'text-white',
+      bgGradient: 'from-amber-600 via-amber-500 to-yellow-400',
+      type: 'route' as const,
+      href: '/contact',
+    },
+  ];
+
   return (
     <>
-      {/* =========================================================================
-          MOBILE ONLY (< 768px): Single Compact Expandable Floating Action Button
-          ========================================================================= */}
-      <div className="md:hidden">
-        {/* Backdrop for tapping outside to close */}
-        <AnimatePresence>
-          {isMobileOpen && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              onClick={() => setIsMobileOpen(false)}
-              className="fixed inset-0 bg-black/40 backdrop-blur-xs z-35"
-              aria-hidden="true"
-            />
-          )}
-        </AnimatePresence>
+      {/* Dimmed backdrop when menu is open */}
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            onClick={() => setIsOpen(false)}
+            className="fixed inset-0 bg-black/35 backdrop-blur-xs z-35"
+            aria-hidden="true"
+          />
+        )}
+      </AnimatePresence>
 
-        {/* Expandable Quick Actions Menu (Stacks upwards) */}
-        <div className="fixed bottom-[calc(4.5rem+env(safe-area-inset-bottom))] right-4 z-40 flex flex-col items-end gap-3 pointer-events-none">
-          <AnimatePresence>
-            {isMobileOpen && (
-              <>
-                {/* 1. Place an Order */}
+      {/* Expanded Actions Menu (Originates from bottom-left and expands UPWARDS) */}
+      <div className="fixed left-[clamp(14px,2vw,24px)] bottom-[calc(4.75rem+env(safe-area-inset-bottom))] z-40 flex flex-col items-start gap-2.5 pointer-events-none">
+        <AnimatePresence>
+          {isOpen &&
+            actionItems.map((item, idx) => {
+              // Stagger delay from closest to furthest: bottom item opens first
+              const reverseIndex = actionItems.length - 1 - idx;
+              const delay = reverseIndex * 0.04;
+
+              const content = (
                 <motion.div
-                  initial={{ opacity: 0, y: 20, scale: 0.85 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: 15, scale: 0.85 }}
-                  transition={{ duration: 0.22, delay: 0.04 }}
-                  className="flex items-center gap-2.5 pointer-events-auto"
+                  key={item.id}
+                  initial={{ opacity: 0, scale: 0.65, y: 20 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.65, y: 20 }}
+                  transition={{ duration: 0.26, delay }}
+                  className="flex items-center gap-3 pointer-events-auto group cursor-pointer"
                 >
-                  <span className="bg-[#163824] text-white text-xs font-semibold px-3 py-1.5 rounded-xl shadow-lg border border-white/20 whitespace-nowrap">
-                    Place an Order
+                  {/* Action Circular Icon Button */}
+                  <div
+                    className={`w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-gradient-to-tr ${item.bgGradient} text-white flex items-center justify-center shadow-lg border border-white/35 transition-transform duration-200 group-hover:scale-108 active:scale-95 shrink-0`}
+                  >
+                    <item.icon className="w-5 h-5 drop-shadow-xs" />
+                  </div>
+
+                  {/* Action Text Label to the RIGHT of icon */}
+                  <span className="bg-[#163824]/95 backdrop-blur-md text-white text-xs sm:text-sm font-semibold px-3.5 py-2 rounded-xl shadow-xl border border-white/15 whitespace-nowrap transition-all duration-200 group-hover:bg-[#163824] group-hover:translate-x-1 group-hover:shadow-2xl">
+                    {item.label}
                   </span>
+                </motion.div>
+              );
+
+              if (item.type === 'button') {
+                return (
                   <button
+                    key={item.id}
                     type="button"
                     onClick={() => {
-                      setIsMobileOpen(false);
-                      openOrderModal();
+                      setIsOpen(false);
+                      item.onClick();
                     }}
-                    className="w-11 h-11 rounded-full bg-gradient-to-tr from-emerald-600 via-emerald-500 to-green-500 text-white flex items-center justify-center shadow-lg border border-white/40 active:scale-95 transition-transform"
-                    aria-label="Place an Order"
+                    className="text-left"
+                    aria-label={item.label}
                   >
-                    <Sparkles size={19} className="text-white" />
+                    {content}
                   </button>
-                </motion.div>
+                );
+              }
 
-                {/* 2. Call */}
-                <motion.div
-                  initial={{ opacity: 0, y: 20, scale: 0.85 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: 15, scale: 0.85 }}
-                  transition={{ duration: 0.22, delay: 0.08 }}
-                  className="flex items-center gap-2.5 pointer-events-auto"
-                >
-                  <span className="bg-[#163824] text-white text-xs font-semibold px-3 py-1.5 rounded-xl shadow-lg border border-white/20 whitespace-nowrap">
-                    Call 091 225 0777
-                  </span>
-                  <a
-                    href={`tel:${PHONE_NUMBER}`}
-                    onClick={() => setIsMobileOpen(false)}
-                    className="w-11 h-11 rounded-full bg-gradient-to-tr from-emerald-600 via-green-500 to-emerald-400 text-white flex items-center justify-center shadow-lg border border-white/40 active:scale-95 transition-transform"
-                    aria-label="Call Ananke Laundry"
-                  >
-                    <Phone size={19} className="text-white" />
-                  </a>
-                </motion.div>
-
-                {/* 3. WhatsApp */}
-                <motion.div
-                  initial={{ opacity: 0, y: 20, scale: 0.85 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: 15, scale: 0.85 }}
-                  transition={{ duration: 0.22, delay: 0.12 }}
-                  className="flex items-center gap-2.5 pointer-events-auto"
-                >
-                  <span className="bg-[#163824] text-white text-xs font-semibold px-3 py-1.5 rounded-xl shadow-lg border border-white/20 whitespace-nowrap">
-                    Chat on WhatsApp
-                  </span>
-                  <a
-                    href={WHATSAPP_URL}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    onClick={() => setIsMobileOpen(false)}
-                    className="w-11 h-11 rounded-full bg-gradient-to-tr from-[#128C7E] via-[#25D366] to-[#4ade80] text-white flex items-center justify-center shadow-lg border border-white/40 active:scale-95 transition-transform"
-                    aria-label="Chat with Ananke Laundry on WhatsApp"
-                  >
-                    <WhatsAppIcon className="w-5 h-5 text-white fill-current" />
-                  </a>
-                </motion.div>
-
-                {/* 4. Directions */}
-                <motion.div
-                  initial={{ opacity: 0, y: 20, scale: 0.85 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: 15, scale: 0.85 }}
-                  transition={{ duration: 0.22, delay: 0.16 }}
-                  className="flex items-center gap-2.5 pointer-events-auto"
-                >
-                  <span className="bg-[#163824] text-white text-xs font-semibold px-3 py-1.5 rounded-xl shadow-lg border border-white/20 whitespace-nowrap">
-                    Get Directions
-                  </span>
-                  <a
-                    href={MAPS_URL}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    onClick={() => setIsMobileOpen(false)}
-                    className="w-11 h-11 rounded-full bg-gradient-to-tr from-red-600 via-rose-500 to-red-400 text-white flex items-center justify-center shadow-lg border border-white/40 active:scale-95 transition-transform"
-                    aria-label="Get Directions on Google Maps"
-                  >
-                    <MapPin size={19} className="text-white" />
-                  </a>
-                </motion.div>
-
-                {/* 5. View My Bill */}
-                <motion.div
-                  initial={{ opacity: 0, y: 20, scale: 0.85 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: 15, scale: 0.85 }}
-                  transition={{ duration: 0.22, delay: 0.2 }}
-                  className="flex items-center gap-2.5 pointer-events-auto"
-                >
-                  <span className="bg-[#163824] text-white text-xs font-semibold px-3 py-1.5 rounded-xl shadow-lg border border-white/20 whitespace-nowrap">
-                    View My Bill
-                  </span>
+              if (item.type === 'route') {
+                return (
                   <Link
-                    href="/my-bill"
-                    onClick={() => setIsMobileOpen(false)}
-                    className="w-11 h-11 rounded-full bg-gradient-to-tr from-blue-600 via-indigo-500 to-sky-400 text-white flex items-center justify-center shadow-lg border border-white/40 active:scale-95 transition-transform"
-                    aria-label="View My Bill & Receipts"
+                    key={item.id}
+                    href={item.href}
+                    onClick={() => setIsOpen(false)}
+                    aria-label={item.label}
                   >
-                    <Receipt size={19} className="text-white" />
+                    {content}
                   </Link>
-                </motion.div>
-              </>
-            )}
-          </AnimatePresence>
-        </div>
+                );
+              }
 
-        {/* Single Main Mobile Floating Action Button (FAB) */}
-        <div className="fixed bottom-[max(1rem,env(safe-area-inset-bottom))] right-4 z-40">
-          <motion.button
-            type="button"
-            onClick={() => setIsMobileOpen((prev) => !prev)}
-            whileTap={{ scale: 0.92 }}
-            className={`relative flex items-center justify-center w-14 h-14 rounded-full shadow-[0_8px_25px_rgba(22,56,36,0.45)] border border-white/30 transition-all duration-300 cursor-pointer ${
-              isMobileOpen
-                ? 'bg-[#163824] text-white shadow-xl rotate-90'
-                : 'bg-gradient-to-tr from-[#163824] via-[#1b432c] to-[#25D366] text-white'
-            }`}
-            aria-label={isMobileOpen ? 'Close Quick Actions' : 'Open Quick Actions'}
-            aria-expanded={isMobileOpen}
-          >
-            {/* Status pulse when closed */}
-            {!isMobileOpen && (
-              <>
-                <span className="absolute -inset-1 rounded-full bg-[#25D366] opacity-30 animate-ping pointer-events-none" />
-                <span className="absolute top-0 right-0 w-3.5 h-3.5 bg-white rounded-full p-[2px] z-20 shadow-xs">
-                  <span className="block w-full h-full bg-[#25D366] rounded-full animate-pulse" />
-                </span>
-              </>
-            )}
-
-            {isMobileOpen ? (
-              <X size={24} className="text-white" />
-            ) : (
-              <Sparkles size={24} className="text-[#C9E6B8] animate-pulse" />
-            )}
-          </motion.button>
-        </div>
+              return (
+                <a
+                  key={item.id}
+                  href={item.href}
+                  target={item.type === 'external' ? '_blank' : undefined}
+                  rel={item.type === 'external' ? 'noopener noreferrer' : undefined}
+                  onClick={() => setIsOpen(false)}
+                  aria-label={item.label}
+                >
+                  {content}
+                </a>
+              );
+            })}
+        </AnimatePresence>
       </div>
 
-      {/* =========================================================================
-          DESKTOP ONLY (>= 768px): Vertical Dock on Right Side (Single WhatsApp)
-          ========================================================================= */}
-      <div className="hidden md:flex fixed right-5 top-1/2 -translate-y-1/2 flex-col gap-3.5 z-40">
-        {/* 1. Place Order */}
-        <motion.div whileHover={{ scale: 1.12 }} whileTap={{ scale: 0.95 }} className="relative group">
-          <button
-            type="button"
-            onClick={openOrderModal}
-            className="relative w-12 h-12 rounded-full bg-gradient-to-tr from-emerald-600 via-emerald-500 to-green-500 flex items-center justify-center shadow-[0_4px_18px_rgba(16,185,129,0.55)] hover:shadow-[0_6px_25px_rgba(16,185,129,0.75)] transition-all duration-300 cursor-pointer border border-white/40 group"
-            aria-label="Place an Order"
-          >
-            <span className="absolute -inset-1 rounded-full bg-emerald-400/40 animate-pulse pointer-events-none" />
-            <span className="absolute top-0 right-0 w-3 h-3 bg-white rounded-full p-[1.5px] z-10">
-              <span className="block w-full h-full bg-accent rounded-full animate-pulse" />
-            </span>
-            <Sparkles className="text-white drop-shadow-xs relative z-10 transition-transform group-hover:rotate-12" size={20} />
-          </button>
-          <div className="absolute right-full mr-3.5 top-1/2 -translate-y-1/2 bg-[#163824]/95 backdrop-blur-md text-white py-2 px-3.5 rounded-xl text-xs shadow-2xl border border-white/10 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap">
-            <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-accent animate-pulse" />
-              <p className="font-semibold text-white leading-tight">Place an Order</p>
-            </div>
-            <p className="text-[10px] text-accent pl-4 mt-0.5 font-medium">Instant Laundry Order</p>
-          </div>
-        </motion.div>
+      {/* Main Global Floating Action Button at BOTTOM-LEFT */}
+      <div className="fixed left-[clamp(14px,2vw,24px)] bottom-[calc(18px+env(safe-area-inset-bottom))] z-40">
+        <motion.button
+          type="button"
+          onClick={() => setIsOpen((prev) => !prev)}
+          whileTap={{ scale: 0.92 }}
+          whileHover={{ scale: 1.06 }}
+          className={`relative flex items-center justify-center w-14 h-14 sm:w-[58px] sm:h-[58px] rounded-full shadow-[0_8px_28px_rgba(22,56,36,0.5)] border border-white/35 transition-all duration-300 cursor-pointer ${
+            isOpen
+              ? 'bg-[#163824] text-white rotate-90 shadow-2xl'
+              : 'bg-gradient-to-tr from-[#163824] via-[#1b432c] to-[#25D366] text-white'
+          }`}
+          aria-label={isOpen ? 'Close Quick Actions' : 'Open Quick Actions'}
+          aria-expanded={isOpen}
+        >
+          {/* Status pulse indicator when closed */}
+          {!isOpen && (
+            <>
+              <span className="absolute -inset-1 rounded-full bg-[#25D366] opacity-35 animate-ping pointer-events-none" />
+              <span className="absolute top-0.5 right-0.5 w-3.5 h-3.5 bg-white rounded-full p-[2px] z-20 shadow-xs">
+                <span className="block w-full h-full bg-[#25D366] rounded-full animate-pulse" />
+              </span>
+            </>
+          )}
 
-        {/* 2. Phone Call */}
-        <motion.div whileHover={{ scale: 1.12 }} whileTap={{ scale: 0.95 }} className="relative group">
-          <a
-            href={`tel:${PHONE_NUMBER}`}
-            className="relative w-12 h-12 rounded-full bg-gradient-to-tr from-emerald-600 via-green-500 to-emerald-400 flex items-center justify-center shadow-[0_4px_18px_rgba(16,185,129,0.5)] hover:shadow-[0_6px_25px_rgba(16,185,129,0.7)] transition-all duration-300 cursor-pointer border border-white/30 group"
-            aria-label="Call 091 225 0777"
-          >
-            <span className="absolute -inset-1 rounded-full bg-emerald-500/30 animate-pulse pointer-events-none" />
-            <span className="absolute top-0 right-0 w-3 h-3 bg-white rounded-full p-[1.5px] z-10">
-              <span className="block w-full h-full bg-emerald-400 rounded-full animate-pulse" />
-            </span>
-            <Phone className="text-white drop-shadow-xs relative z-10 transition-transform group-hover:rotate-12" size={20} />
-          </a>
-          <div className="absolute right-full mr-3.5 top-1/2 -translate-y-1/2 bg-[#163824]/95 backdrop-blur-md text-white py-2 px-3.5 rounded-xl text-xs shadow-2xl border border-white/10 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap">
-            <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              <p className="font-semibold text-white leading-tight">Call 091 225 0777</p>
+          {/* Icon: Vertical Arrow Up when closed, X when open */}
+          {isOpen ? (
+            <X size={24} className="text-white drop-shadow-xs" />
+          ) : (
+            <div className="flex flex-col items-center justify-center">
+              <ArrowUp size={22} className="text-[#C9E6B8] drop-shadow-xs animate-bounce stroke-[2.5]" />
             </div>
-            <p className="text-[10px] text-emerald-300 pl-4 mt-0.5 font-medium">Open 9:00 AM – 6:00 PM</p>
-          </div>
-        </motion.div>
-
-        {/* 3. WhatsApp (Single Clean Instance) */}
-        <motion.div whileHover={{ scale: 1.12 }} whileTap={{ scale: 0.95 }} className="relative group">
-          <a
-            href={WHATSAPP_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="relative w-12 h-12 rounded-full bg-gradient-to-tr from-[#128C7E] via-[#25D366] to-[#4ade80] flex items-center justify-center shadow-[0_4px_18px_rgba(37,211,102,0.5)] hover:shadow-[0_6px_25px_rgba(37,211,102,0.7)] transition-all duration-300 cursor-pointer border border-white/30 group"
-            aria-label="WhatsApp +94 74 269 7909"
-          >
-            <span className="absolute top-0 right-0 w-3 h-3 bg-white rounded-full p-[1.5px] z-10">
-              <span className="block w-full h-full bg-emerald-300 rounded-full animate-pulse" />
-            </span>
-            <WhatsAppIcon className="w-5 h-5 text-white fill-current drop-shadow-xs relative z-10" />
-          </a>
-          <div className="absolute right-full mr-3.5 top-1/2 -translate-y-1/2 bg-[#163824]/95 backdrop-blur-md text-white py-2 px-3.5 rounded-xl text-xs shadow-2xl border border-white/10 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap">
-            <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-[#25D366] animate-pulse" />
-              <p className="font-semibold text-white leading-tight">WhatsApp 074 269 7909</p>
-            </div>
-            <p className="text-[10px] text-[#25D366] pl-4 mt-0.5 font-medium">Chat Online · Quick Turnaround</p>
-          </div>
-        </motion.div>
-
-        {/* 4. Google Maps Directions */}
-        <motion.div whileHover={{ scale: 1.12 }} whileTap={{ scale: 0.95 }} className="relative group">
-          <a
-            href={MAPS_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="relative w-12 h-12 rounded-full bg-gradient-to-tr from-red-600 via-rose-500 to-red-400 flex items-center justify-center shadow-[0_4px_18px_rgba(239,68,68,0.5)] hover:shadow-[0_6px_25px_rgba(239,68,68,0.7)] transition-all duration-300 cursor-pointer border border-white/30 group"
-            aria-label="Get Directions on Google Maps"
-          >
-            <MapPin className="text-white drop-shadow-xs relative z-10 transition-transform group-hover:-translate-y-0.5" size={20} />
-          </a>
-          <div className="absolute right-full mr-3.5 top-1/2 -translate-y-1/2 bg-[#163824]/95 backdrop-blur-md text-white py-2 px-3.5 rounded-xl text-xs shadow-2xl border border-white/10 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap">
-            <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-rose-400 animate-pulse" />
-              <p className="font-semibold text-white leading-tight">Google Maps Directions</p>
-            </div>
-            <p className="text-[10px] text-rose-300 pl-4 mt-0.5">Matara Road, Unawatuna, Galle</p>
-          </div>
-        </motion.div>
-
-        {/* 5. Live Bill Portal */}
-        <motion.div whileHover={{ scale: 1.12 }} whileTap={{ scale: 0.95 }} className="relative group">
-          <Link
-            href="/my-bill"
-            className="relative w-12 h-12 rounded-full bg-gradient-to-tr from-blue-600 via-indigo-500 to-sky-400 flex items-center justify-center shadow-[0_4px_18px_rgba(59,130,246,0.5)] hover:shadow-[0_6px_25px_rgba(59,130,246,0.7)] transition-all duration-300 cursor-pointer border border-white/30 group"
-            aria-label="View My Bill & Receipts"
-          >
-            <Receipt className="text-white drop-shadow-xs relative z-10 transition-transform group-hover:scale-105" size={20} />
-          </Link>
-          <div className="absolute right-full mr-3.5 top-1/2 -translate-y-1/2 bg-[#163824]/95 backdrop-blur-md text-white py-2 px-3.5 rounded-xl text-xs shadow-2xl border border-white/10 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap">
-            <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-sky-400 animate-pulse" />
-              <p className="font-semibold text-white leading-tight">View My Bill &amp; Receipts</p>
-            </div>
-            <p className="text-[10px] text-sky-300 pl-4 mt-0.5">Zoho Portal · Instant Lookup</p>
-          </div>
-        </motion.div>
-
-        {/* 6. Request a Quote */}
-        <motion.div whileHover={{ scale: 1.12 }} whileTap={{ scale: 0.95 }} className="relative group">
-          <a
-            href="#contact"
-            className="relative w-12 h-12 rounded-full bg-gradient-to-tr from-amber-600 via-amber-500 to-yellow-400 flex items-center justify-center shadow-[0_4px_18px_rgba(245,158,11,0.5)] hover:shadow-[0_6px_25px_rgba(245,158,11,0.7)] transition-all duration-300 cursor-pointer border border-white/30 group"
-            aria-label="Request a Quote"
-          >
-            <FileText className="text-white drop-shadow-xs relative z-10 transition-transform group-hover:scale-105" size={20} />
-          </a>
-          <div className="absolute right-full mr-3.5 top-1/2 -translate-y-1/2 bg-[#163824]/95 backdrop-blur-md text-white py-2 px-3.5 rounded-xl text-xs shadow-2xl border border-white/10 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap">
-            <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
-              <p className="font-semibold text-white leading-tight">Request a Quote</p>
-            </div>
-            <p className="text-[10px] text-amber-300 pl-4 mt-0.5">Commercial &amp; Bulk Pricing</p>
-          </div>
-        </motion.div>
+          )}
+        </motion.button>
       </div>
     </>
   );
