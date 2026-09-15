@@ -111,7 +111,11 @@ export default function Pricing() {
 
         {/* Tier Cards */}
         <div
-          className="flex overflow-x-auto snap-x snap-mandatory gap-6 pb-6 -mx-4 px-4 sm:mx-0 sm:px-0 sm:grid sm:grid-cols-2 lg:grid-cols-3 max-w-6xl mx-auto sm:gap-6 no-scrollbar scrollbar-none"
+          className={`flex overflow-x-auto snap-x snap-mandatory gap-6 pb-6 -mx-4 px-4 sm:mx-0 sm:px-0 sm:grid sm:gap-6 no-scrollbar scrollbar-none mx-auto justify-center ${
+            filteredTiers.length === 2
+              ? 'sm:grid-cols-2 max-w-3xl'
+              : 'sm:grid-cols-2 lg:grid-cols-3 max-w-5xl'
+          }`}
           style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
         >
           <AnimatePresence mode="popLayout">
@@ -124,7 +128,7 @@ export default function Pricing() {
                 exit={{ opacity: 0, scale: 0.95, y: 20 }}
                 whileHover={{ y: -6 }}
                 transition={{ duration: 0.35, delay: idx * 0.06 }}
-                className="bg-white rounded-3xl p-6 sm:p-7 shadow-sm border border-gray-100/90 hover:border-olive/40 hover:shadow-lg transition-all flex flex-col justify-between w-[82vw] min-w-[250px] max-w-[340px] sm:w-auto sm:min-w-0 snap-start flex-shrink-0 sm:flex-shrink"
+                className="bg-white rounded-3xl p-6 sm:p-7 shadow-sm border border-gray-100/90 hover:border-olive/40 hover:shadow-lg transition-all flex flex-col justify-between w-[82vw] min-w-[260px] sm:w-full snap-start flex-shrink-0 sm:flex-shrink"
               >
                 <div>
                   <div className="inline-block bg-olive/10 text-olive text-[11px] font-semibold uppercase tracking-wider px-3 py-1 rounded-full mb-3">

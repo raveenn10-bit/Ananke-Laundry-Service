@@ -77,6 +77,10 @@ export async function getAuthorizedCustomerInvoice(
     throw new Error('Unauthorized: You do not have access to this invoice.');
   }
 
+  return mapZohoInvoiceDetail(inv);
+}
+
+export function mapZohoInvoiceDetail(inv: any): ZohoInvoice {
   const total = Number(inv.total) || 0;
   const balance = Number(inv.balance) ?? total;
   const amount_paid = Math.max(0, total - balance);
@@ -109,6 +113,65 @@ export async function getAuthorizedCustomerInvoice(
     line_items: line_items.length > 0 ? line_items : undefined,
     payment_date: amount_paid > 0 ? (inv.last_payment_date || inv.date) : undefined,
   };
+}
+
+/**
+ * Searches for a Zoho Invoice by invoice number.
+ * Supports exact match on invoice_number and fallback search.
+ */
+export async function findZohoInvoiceByNumber(invoiceNumber: string): Promise<ZohoInvoice | null> {
+  const cleanNum = invoiceNumber.trim();
+  if (!cleanNum) return null;
+
+  const { isZohoConfigured } = await import('./auth');
+
+  if (isZohoConfigured()) {
+    try {
+      // 1. Try exact invoice_number filter
+      const res = await zohoRequest<{ code: number; invoices: any[] }>('/invoices', {
+        params: { invoice_number: cleanNum },
+      }).catch(() => null);
+
+      if (res?.invoices && res.invoices.length > 0) {
+        const full = await zohoRequest<{ code: number; invoice: any }>(
+          `/invoices/${res.invoices[0].invoice_id}`
+        ).catch(() => null);
+        if (full?.invoice) {
+          return mapZohoInvoiceDetail(full.invoice);
+        }
+      }
+
+      // 2. Fallback to search_text
+      const searchRes = await zohoRequest<{ code: number; invoices: any[] }>('/invoices', {
+        params: { search_text: cleanNum },
+      }).catch(() => null);
+
+      if (searchRes?.invoices && searchRes.invoices.length > 0) {
+        const exactMatch =
+          searchRes.invoices.find(
+            (i) => (i.invoice_number || '').trim().toLowerCase() === cleanNum.toLowerCase()
+          ) || searchRes.invoices[0];
+
+        const full = await zohoRequest<{ code: number; invoice: any }>(
+          `/invoices/${exactMatch.invoice_id}`
+        ).catch(() => null);
+        if (full?.invoice) {
+          return mapZohoInvoiceDetail(full.invoice);
+        }
+      }
+    } catch (err: any) {
+      console.warn('[Zoho Invoices] Error searching invoice by number:', err.message || err);
+    }
+  }
+
+  // Demo fallback mode when Zoho is not configured or for mock demo numbers
+  const mockInvoices = getMockCustomerInvoices('0771234567', 'Valued Customer');
+  const found = mockInvoices.find(
+    (i) =>
+      i.invoice_number.toLowerCase() === cleanNum.toLowerCase() ||
+      i.invoice_id.toLowerCase() === cleanNum.toLowerCase()
+  );
+  return found || null;
 }
 
 /**

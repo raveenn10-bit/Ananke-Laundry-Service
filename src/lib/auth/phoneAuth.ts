@@ -114,6 +114,8 @@ export interface CustomerSession {
   localPhone: string;       // Normalized local phone (07XXXXXXXX)
   customerId?: string | null;
   customerName?: string | null;
+  authorizedInvoiceId?: string | null;
+  authorizedInvoiceNumber?: string | null;
   issuedAt: number;         // ms
   expiresAt: number;        // ms
 }

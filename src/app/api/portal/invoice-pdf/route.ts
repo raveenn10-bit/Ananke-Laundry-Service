@@ -44,6 +44,18 @@ export async function GET(req: NextRequest) {
   }
 
   try {
+    // Enforce IDOR protection: session must authorize this specific invoice if scoped
+    if (
+      session.authorizedInvoiceId &&
+      session.authorizedInvoiceId !== invoiceId &&
+      session.authorizedInvoiceNumber !== invoiceId
+    ) {
+      return NextResponse.json(
+        { success: false, message: 'Unauthorized: You do not have permission to access this invoice.' },
+        { status: 403 }
+      );
+    }
+
     // 3. Multi-Tenant Authorization Check
     let expectedCustomerId = session.customerId;
 

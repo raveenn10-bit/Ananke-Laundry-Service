@@ -46,8 +46,16 @@ export async function GET(req: NextRequest) {
     let customerId = session.customerId;
     let customerName = session.customerName || 'Valued Customer';
 
-    // 3. Fetch live records from Zoho Books
-    if (isZohoConfigured()) {
+    // 3. Fetch live records from Zoho Books or scoped authorized invoice
+    if (session.authorizedInvoiceNumber) {
+      const { findZohoInvoiceByNumber } = await import('@/services/zoho');
+      const inv = await findZohoInvoiceByNumber(session.authorizedInvoiceNumber);
+      if (inv) {
+        invoices = [inv];
+        customerName = inv.customer_name || customerName;
+        customerId = inv.customer_id || customerId;
+      }
+    } else if (isZohoConfigured()) {
       if (!customerId) {
         const contact = await findZohoCustomerByPhoneVariants([
           session.phone,

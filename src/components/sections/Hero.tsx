@@ -82,59 +82,30 @@ export default function Hero() {
   return (
     <section id="home" className="relative min-h-[85vh] md:min-h-screen flex items-center pt-24 pb-24 sm:pb-20 md:pb-16 overflow-hidden bg-primary">
 
-      {/* === Background Slideshow === */}
-      <div className="absolute inset-0 z-0 overflow-hidden">
-        <AnimatePresence custom={direction} mode="sync">
-          <motion.div
-            key={current}
-            custom={direction}
-            initial={{
-              x: direction > 0 ? '8%' : '-8%',
-              opacity: 0,
-              scale: 1.04,
-            }}
-            animate={{
-              x: 0,
-              opacity: 1,
-              scale: 1,
-              transition: { duration: 1.1, ease: [0.43, 0.13, 0.23, 0.96] },
-            }}
-            exit={{
-              x: direction > 0 ? '-8%' : '8%',
-              opacity: 0,
-              scale: 0.97,
-              transition: { duration: 0.7, ease: [0.43, 0.13, 0.23, 0.96] },
-            }}
-            className="absolute inset-0"
-          >
-            <Image
-              src={HERO_SLIDES[current].src}
-              alt={HERO_SLIDES[current].alt}
-              fill
-              priority={current === 0}
-              className="object-cover"
-              sizes="100vw"
-            />
-          </motion.div>
-        </AnimatePresence>
+      {/* === Background Video === */}
+      <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+        <video
+          autoPlay
+          loop
+          muted
+          playsInline
+          poster="/images/hero.jpg"
+          className="absolute inset-0 w-full h-full object-cover scale-[1.03]"
+        >
+          <source src="/videos/hero-building-exterior.mp4" type="video/mp4" />
+        </video>
 
         {/* Dark gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-r from-dark/95 via-dark/80 to-primary/60 z-10" />
+        <div className="absolute inset-0 bg-gradient-to-r from-dark/95 via-dark/80 to-primary/65 z-10" />
         {/* Bottom vignette for text legibility on mobile */}
-        <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-dark/80 to-transparent z-10" />
+        <div className="absolute bottom-0 left-0 right-0 h-36 bg-gradient-to-t from-dark/90 via-dark/40 to-transparent z-10" />
+        <div className="absolute inset-0 bg-black/20 z-10" />
 
-        {/* Current slide label badge */}
-        <motion.div
-          key={`label-${current}`}
-          initial={{ opacity: 0, y: 6 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -6 }}
-          transition={{ duration: 0.5 }}
-          className="absolute top-6 right-6 z-20 hidden sm:flex items-center gap-2 bg-black/40 backdrop-blur-md border border-white/15 text-white/90 text-[10px] uppercase tracking-[0.2em] font-semibold px-3.5 py-1.5 rounded-full"
-        >
-          <Sparkles size={10} className="text-accent" />
-          {HERO_SLIDES[current].label}
-        </motion.div>
+        {/* Current facility badge */}
+        <div className="absolute top-6 right-6 z-20 hidden sm:flex items-center gap-2 bg-black/45 backdrop-blur-md border border-white/15 text-white/90 text-[10px] uppercase tracking-[0.2em] font-semibold px-3.5 py-1.5 rounded-full">
+          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+          <span>Unawatuna Facility &bull; Live View</span>
+        </div>
       </div>
 
       {/* === Ambient Floating Particles === */}

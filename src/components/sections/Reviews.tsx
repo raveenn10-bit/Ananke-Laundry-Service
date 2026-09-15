@@ -131,7 +131,7 @@ export default function Reviews() {
   };
 
   return (
-    <section id="reviews" className="py-20 md:py-28 bg-primary text-white relative overflow-hidden">
+    <section id="reviews" ref={ref} className="py-20 md:py-28 bg-primary text-white relative overflow-hidden">
       {/* Ambient background blur circles */}
       <div className="absolute top-1/4 -left-20 w-80 h-80 bg-olive/20 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute bottom-10 -right-20 w-80 h-80 bg-accent/10 rounded-full blur-3xl pointer-events-none" />
@@ -147,7 +147,7 @@ export default function Reviews() {
               What Our Customers <span className="italic font-normal text-accent font-serif">Say</span>
             </h2>
             <p className="text-white/80 text-base md:text-lg">
-              Authentic 5-star feedback from locals, tourists, hotels, and villa owners in Unawatuna & Galle.
+              Authentic 5-star feedback from locals, tourists, hotels, and villa owners in Unawatuna &amp; Galle.
             </p>
           </div>
 
@@ -193,9 +193,10 @@ export default function Reviews() {
           {REVIEWS.map((rev, idx) => (
             <motion.div
               key={rev.id}
-              initial={{ opacity: 0, y: 30 }}
-              animate={isInView ? { opacity: 1, y: 0 } : {}}
-              transition={{ delay: 0.08 * idx, duration: 0.5 }}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: '-30px' }}
+              transition={{ delay: 0.05 * (idx % 4), duration: 0.45 }}
               className="bg-white/10 backdrop-blur-md border border-white/15 rounded-2xl p-6 min-w-[290px] sm:min-w-[340px] md:min-w-[380px] max-w-[380px] snap-start flex flex-col justify-between hover:border-accent/40 hover:bg-white/[0.13] transition-all group"
             >
               <div>

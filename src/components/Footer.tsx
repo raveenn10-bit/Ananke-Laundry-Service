@@ -2,192 +2,216 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { Phone, MapPin, Clock, ArrowUpRight } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { Phone, MapPin, ArrowUpRight } from 'lucide-react';
 
-const QUICK_LINKS = [
-  { name: 'Home', href: '/' },
-  { name: 'Place an Order', href: '/order' },
-  { name: 'About Us', href: '/about' },
-  { name: 'Services', href: '/services' },
-  { name: 'Commercial Laundry', href: '/commercial' },
-  { name: 'Pricing & Tiers', href: '/pricing' },
-  { name: 'Our Facility', href: '/gallery' },
-  { name: 'View My Bill & Receipts', href: '/my-bill' },
-  { name: 'Contact & Quote', href: '/contact' },
+const SERVICES_LINKS = [
+  { name: 'Hotel & Villa Linen Care', href: '/services' },
+  { name: 'Wash & Steam Pressing', href: '/services' },
+  { name: 'Dry Cleaning Solutions', href: '/services' },
+  { name: 'Stain Removal Treatment', href: '/services' },
+  { name: 'Commercial Hospitality', href: '/commercial' },
+  { name: 'Bulk Batch Washing', href: '/commercial' },
 ];
 
-const SERVICES = [
-  { name: 'Professional Washing', href: '/services' },
-  { name: 'Steam Pressing & Ironing', href: '/services' },
-  { name: 'Dry Cleaning Solutions', href: '/services' },
-  { name: 'Stain Removal Care', href: '/services' },
-  { name: 'Linen Care & Sanitizing', href: '/services' },
-  { name: 'Commercial Hospitality', href: '/commercial' },
-  { name: 'Hotel Linen Management', href: '/commercial' },
+const COMPANY_LINKS = [
+  { name: 'Our Story & Facility', href: '/about' },
+  { name: 'Pricing & Quotations', href: '/pricing' },
+  { name: 'Facility Gallery', href: '/gallery' },
+  { name: 'Place an Order', href: '/order' },
+  { name: 'View My Bill & Receipts', href: '/my-bill' },
+  { name: 'Contact Us', href: '/contact' },
+];
+
+const FACILITY_LINKS = [
+  { name: 'No. 195/2, Matara Road, Unawatuna', href: 'https://maps.app.goo.gl/HLJGzPCVZwySjSTK6?g_st=ic', external: true },
+  { name: '091 225 0777 (Landline)', href: 'tel:+94912250777' },
+  { name: '074 269 7909 (WhatsApp)', href: 'https://wa.me/94742697909' },
+  { name: 'Opening Hours: 9 AM – 6 PM', href: '/contact' },
+  { name: 'Cleanline Linen Network', href: '/about' },
 ];
 
 export default function Footer() {
   return (
-    <footer className="bg-primary text-cream pt-16 pb-28 lg:pb-14 border-t border-white/10 relative overflow-hidden">
-      {/* Ambient background glow */}
-      <div className="absolute top-0 right-1/4 w-96 h-96 bg-olive/10 rounded-full blur-3xl pointer-events-none" />
+    <footer className="relative w-full overflow-hidden">
+      {/* Organic Curved Wave Divider Header */}
+      <div className="w-full overflow-hidden leading-none bg-transparent">
+        <svg
+          viewBox="0 0 1440 90"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+          className="w-full h-12 sm:h-16 md:h-20 block -mb-[1px] preserve-3d"
+          preserveAspectRatio="none"
+        >
+          <path
+            d="M0,35 C320,80 640,-10 1020,45 C1240,75 1380,40 1440,30 L1440,90 L0,90 Z"
+            fill="#C9E6B8"
+          />
+        </svg>
+      </div>
 
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-10 mb-12">
-          {/* Col 1: Brand & Positioning - spans 2 columns on mobile */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="col-span-2 md:col-span-1 flex flex-col gap-4"
-          >
-            <div className="relative h-[55px] w-full max-w-[180px]">
-              <Image
-                src="/logo.png"
-                alt="Ananke Laundry Logo"
-                fill
-                className="object-contain object-left"
-              />
+      {/* Fresh Matcha Green Footer Body matching Tenzo-style minimalist design */}
+      <div className="bg-[#C9E6B8] text-[#163824] pt-8 pb-24 sm:pb-16 px-5 sm:px-8 md:px-12 lg:px-16">
+        <div className="max-w-7xl mx-auto">
+          {/* Main 4-Column Grid */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 sm:gap-10 md:gap-8 pb-12">
+            {/* Col 1: Services */}
+            <div>
+              <h4 className="font-heading font-bold text-sm sm:text-base text-[#163824] mb-4">
+                Services
+              </h4>
+              <ul className="space-y-2.5">
+                {SERVICES_LINKS.map((item) => (
+                  <li key={item.name}>
+                    <Link
+                      href={item.href}
+                      className="text-xs sm:text-sm text-[#163824]/80 hover:text-[#163824] hover:underline font-medium transition-all inline-block"
+                    >
+                      {item.name}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
             </div>
-            <p className="font-body text-cream/80 text-xs sm:text-sm leading-relaxed">
-              Professional laundry and linen-care solutions from Unawatuna, serving individual customers and hospitality businesses across Sri Lanka&apos;s Southern region.
-            </p>
-            <div className="pt-2 text-xs text-cream/60">
-              <span className="text-accent font-semibold block mb-0.5">ANANKE LAUNDRY (PVT) LTD</span>
-              Part of Cleanline Linen Management&apos;s professional network.
+
+            {/* Col 2: Company */}
+            <div>
+              <h4 className="font-heading font-bold text-sm sm:text-base text-[#163824] mb-4">
+                Learn More
+              </h4>
+              <ul className="space-y-2.5">
+                {COMPANY_LINKS.map((item) => (
+                  <li key={item.name}>
+                    <Link
+                      href={item.href}
+                      className="text-xs sm:text-sm text-[#163824]/80 hover:text-[#163824] hover:underline font-medium transition-all inline-block"
+                    >
+                      {item.name}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
             </div>
-            <div className="flex flex-col gap-1.5 pt-1 text-xs sm:text-sm">
-              <a
-                href="tel:+94912250777"
-                className="inline-flex items-center gap-2 text-cream hover:text-accent transition-colors"
-              >
-                <Phone size={14} className="text-accent shrink-0" />
-                <span>091 225 0777 (Landline)</span>
-              </a>
-              <a
-                href="https://wa.me/94742697909?text=Hello%20Ananke%20Laundry%2C%20I%20would%20like%20to%20inquire%20about%20your%20services."
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 text-cream hover:text-[#25D366] transition-colors"
-              >
-                <span className="w-3.5 h-3.5 rounded-full bg-[#25D366] flex items-center justify-center shrink-0">
-                  <svg className="w-2 h-2 text-white fill-current" viewBox="0 0 24 24">
+
+            {/* Col 3: Facility Info */}
+            <div className="col-span-2 sm:col-span-1">
+              <h4 className="font-heading font-bold text-sm sm:text-base text-[#163824] mb-4">
+                Ananke Facility
+              </h4>
+              <ul className="space-y-2.5">
+                {FACILITY_LINKS.map((item) => (
+                  <li key={item.name}>
+                    {item.external ? (
+                      <a
+                        href={item.href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs sm:text-sm text-[#163824]/80 hover:text-[#163824] hover:underline font-medium transition-all inline-flex items-center gap-1"
+                      >
+                        <span>{item.name}</span>
+                        <ArrowUpRight size={12} />
+                      </a>
+                    ) : (
+                      <Link
+                        href={item.href}
+                        className="text-xs sm:text-sm text-[#163824]/80 hover:text-[#163824] hover:underline font-medium transition-all inline-block"
+                      >
+                        {item.name}
+                      </Link>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Col 4: Follow Us with circular dark green social badges */}
+            <div className="col-span-2 md:col-span-1 flex flex-col justify-start md:items-start">
+              <h4 className="font-heading font-bold text-sm sm:text-base text-[#163824] mb-4">
+                Follow us
+              </h4>
+
+              {/* Social Round Buttons */}
+              <div className="flex items-center gap-2.5 mb-6">
+                {/* Facebook */}
+                <a
+                  href="https://facebook.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Facebook"
+                  className="w-9 h-9 rounded-full bg-[#163824] text-[#C9E6B8] hover:bg-[#0f2819] hover:scale-105 transition-all flex items-center justify-center shadow-sm"
+                >
+                  <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
+                    <path d="M9 8H6v4h3v12h5V12h3.642L18 8h-4V6.333C14 5.374 14.5 5 15.6 5H18V0h-3.808C10.595 0 9 1.583 9 4.615V8z" />
+                  </svg>
+                </a>
+
+                {/* Instagram */}
+                <a
+                  href="https://instagram.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Instagram"
+                  className="w-9 h-9 rounded-full bg-[#163824] text-[#C9E6B8] hover:bg-[#0f2819] hover:scale-105 transition-all flex items-center justify-center shadow-sm"
+                >
+                  <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
+                    <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" />
+                  </svg>
+                </a>
+
+                {/* WhatsApp */}
+                <a
+                  href="https://wa.me/94742697909"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="WhatsApp"
+                  className="w-9 h-9 rounded-full bg-[#163824] text-[#C9E6B8] hover:bg-[#0f2819] hover:scale-105 transition-all flex items-center justify-center shadow-sm"
+                >
+                  <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
                     <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L0 24l6.335-1.662c1.746.952 3.71 1.453 5.711 1.454h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z" />
                   </svg>
-                </span>
-                <span>074 269 7909 (WhatsApp)</span>
-              </a>
-              <a
-                href="mailto:chinthaka.ananke@gmail.com"
-                className="inline-flex items-center gap-2 text-cream hover:text-accent transition-colors"
-              >
-                <svg className="w-3.5 h-3.5 text-accent shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
-                </svg>
-                <span>chinthaka.ananke@gmail.com</span>
-              </a>
-              <a
-                href="https://maps.app.goo.gl/HLJGzPCVZwySjSTK6?g_st=ic"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-start gap-2 text-cream/80 hover:text-accent transition-colors"
-              >
-                <MapPin size={14} className="text-accent shrink-0 mt-1" />
-                <span>No. 195/2, Matara Road, Unawatuna, Galle</span>
-              </a>
+                </a>
+
+                {/* Google Maps / Location */}
+                <a
+                  href="https://maps.app.goo.gl/HLJGzPCVZwySjSTK6?g_st=ic"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Google Maps"
+                  className="w-9 h-9 rounded-full bg-[#163824] text-[#C9E6B8] hover:bg-[#0f2819] hover:scale-105 transition-all flex items-center justify-center shadow-sm"
+                >
+                  <MapPin size={15} />
+                </a>
+              </div>
+
+              {/* Brand Tagline */}
+              <p className="text-xs text-[#163824]/75 leading-relaxed font-body">
+                Premium commercial laundry and fine garment care in Unawatuna, Galle.
+              </p>
             </div>
-          </motion.div>
+          </div>
 
-          {/* Col 2: Quick Links - 1 column on mobile */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.1 }}
-            className="col-span-1"
-          >
-            <h4 className="font-heading text-base sm:text-lg font-semibold mb-4 text-accent">Quick Links</h4>
-            <ul className="flex flex-col gap-2.5">
-              {QUICK_LINKS.map((link) => (
-                <li key={link.name}>
-                  <Link href={link.href} className="font-body text-cream/70 hover:text-accent text-xs sm:text-sm transition-colors hover:translate-x-1 inline-block">
-                    {link.name}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </motion.div>
-
-          {/* Col 3: Services - 1 column on mobile */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.2 }}
-            className="col-span-1"
-          >
-            <h4 className="font-heading text-base sm:text-lg font-semibold mb-4 text-accent">Services</h4>
-            <ul className="flex flex-col gap-2.5">
-              {SERVICES.map((service) => (
-                <li key={service.name}>
-                  <Link href={service.href} className="font-body text-cream/70 hover:text-accent text-xs sm:text-sm transition-colors hover:translate-x-1 inline-block">
-                    {service.name}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </motion.div>
-
-          {/* Col 4: Business Hours & Location - spans 2 columns on mobile */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.3 }}
-            className="col-span-2 md:col-span-1 flex flex-col gap-3"
-          >
-            <h4 className="font-heading text-base sm:text-lg font-semibold text-accent flex items-center gap-2">
-              <Clock size={16} /> Opening Hours
-            </h4>
-            <div className="space-y-1.5 text-xs sm:text-sm text-cream/80">
-              <div className="flex justify-between border-b border-white/10 pb-1">
-                <span>Monday:</span>
-                <span className="font-medium text-cream">9:00 AM – 5:00 PM</span>
-              </div>
-              <div className="flex justify-between border-b border-white/10 pb-1">
-                <span>Tuesday – Friday:</span>
-                <span className="font-medium text-cream">9:00 AM – 6:00 PM</span>
-              </div>
-              <div className="flex justify-between border-b border-white/10 pb-1">
-                <span>Saturday – Sunday:</span>
-                <span className="font-medium text-cream">9:00 AM – 5:00 PM</span>
-              </div>
-            </div>
-            <p className="text-[11px] sm:text-xs text-cream/60 leading-normal mt-1">
-              * Opening hours may vary on public holidays. Please contact us before visiting.
+          {/* Bottom Row matching the design image */}
+          <div className="pt-6 border-t border-[#163824]/15 flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
+            <p className="text-[11px] sm:text-xs text-[#163824]/70 font-body">
+              &copy; {new Date().getFullYear()} anankelaundry.com &bull; Ananke Laundry (Pvt) Ltd.
             </p>
-            <div className="pt-2">
-              <a
-                href="https://maps.app.goo.gl/HLJGzPCVZwySjSTK6?g_st=ic"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 text-xs font-semibold bg-white/10 hover:bg-white/20 text-cream px-3.5 py-2 rounded-lg transition-colors border border-white/15"
-              >
-                <span>Get Directions (Google Maps)</span>
-                <ArrowUpRight size={13} className="text-accent" />
-              </a>
+            <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-[11px] sm:text-xs text-[#163824]/70 font-medium">
+              <Link href="/services" className="hover:text-[#163824] hover:underline">
+                Terms of Service
+              </Link>
+              <span>|</span>
+              <Link href="/contact" className="hover:text-[#163824] hover:underline">
+                Privacy Policy
+              </Link>
+              <span>|</span>
+              <Link href="/pricing" className="hover:text-[#163824] hover:underline">
+                Refund Policy
+              </Link>
+              <span>|</span>
+              <Link href="/about" className="hover:text-[#163824] hover:underline">
+                Accessibility Policy
+              </Link>
             </div>
-          </motion.div>
-        </div>
-
-        <div className="pt-8 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left">
-          <p className="font-body text-cream/60 text-xs sm:text-sm">
-            &copy; {new Date().getFullYear()} Ananke Laundry (Pvt) Ltd. All Rights Reserved.
-          </p>
-          <p className="font-body text-cream/40 text-[11px] sm:text-xs">
-            Unawatuna, Galle, Sri Lanka &bull; Cleanline Linen Management Network
-          </p>
+          </div>
         </div>
       </div>
     </footer>

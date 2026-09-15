@@ -52,12 +52,10 @@ function renderErrorPage(title: string, message: string, detail?: string): strin
 function renderSuccessPage(data: {
   apiDomain: string;
   organizationId: string;
-  refreshToken: string;
 }): string {
   // Rigorously sanitize values for HTML display
   const escapedDomain = escapeHtml(data.apiDomain);
   const escapedOrgId = escapeHtml(data.organizationId);
-  const safeToken = escapeHtml(data.refreshToken);
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -166,72 +164,29 @@ function renderSuccessPage(data: {
       margin-right: 6px;
       margin-bottom: 4px;
     }
-    .token-box {
-      background: #090e17;
-      border: 1px dashed #3b82f6;
+    .secure-notice {
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid #059669;
       border-radius: 14px;
-      padding: 20px;
+      padding: 18px;
       margin-bottom: 24px;
     }
-    .token-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 10px;
-    }
-    .token-title {
-      color: #60a5fa;
+    .secure-title {
+      color: #34d399;
       font-size: 13px;
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.05em;
-    }
-    .token-input {
-      width: 100%;
-      background: #020617;
-      border: 1px solid #1e293b;
-      border-radius: 8px;
-      padding: 10px 14px;
-      color: #f8fafc;
-      font-family: monospace;
-      font-size: 13px;
-      box-sizing: border-box;
-      margin-bottom: 12px;
-      word-break: break-all;
-    }
-    .btn-row {
+      margin-bottom: 6px;
       display: flex;
-      gap: 10px;
-    }
-    .btn {
-      cursor: pointer;
-      display: inline-flex;
       align-items: center;
-      justify-content: center;
       gap: 6px;
-      padding: 10px 18px;
-      border-radius: 8px;
-      font-size: 13px;
-      font-weight: 600;
-      border: none;
-      transition: all 0.2s ease;
-      text-decoration: none;
     }
-    .btn-primary {
-      background: #2563eb;
-      color: #fff;
-    }
-    .btn-primary:hover {
-      background: #1d4ed8;
-    }
-    .btn-secondary {
-      background: #1e293b;
+    .secure-desc {
       color: #cbd5e1;
-      border: 1px solid #475569;
-    }
-    .btn-secondary:hover {
-      background: #334155;
-      color: #fff;
+      font-size: 13px;
+      line-height: 1.5;
+      margin: 0;
     }
     .instructions {
       color: #94a3b8;
@@ -269,52 +224,19 @@ function renderSuccessPage(data: {
       <span class="scope-tag">ZohoBooks.customerpayments.READ</span>
     </div>
 
-    <div class="token-box">
-      <div class="token-header">
-        <span class="token-title">Initial Setup: Secure Refresh Token</span>
-        <span style="font-size: 11px; color: #64748b;">Save to Environment Variables</span>
-      </div>
-      <input type="password" id="tokenField" class="token-input" value="${safeToken}" readonly />
-      <div class="btn-row">
-        <button type="button" class="btn btn-primary" id="copyBtn" onclick="copyToken()">📋 Copy Refresh Token</button>
-        <button type="button" class="btn btn-secondary" id="toggleBtn" onclick="toggleVisibility()">👁️ Reveal Token</button>
-      </div>
+    <div class="secure-notice">
+      <div class="secure-title">🔒 Security Hardening Active</div>
+      <p class="secure-desc">
+        To protect production secrets, the OAuth refresh token has been logged exclusively to the secure server console output. It is never exposed in browser DOM or client-side code.
+      </p>
     </div>
 
     <ol class="instructions">
-      <li>Copy the Refresh Token above.</li>
-      <li>Open your <strong>Vercel Dashboard &gt; Project Settings &gt; Environment Variables</strong> (or local <code>.env.local</code>).</li>
-      <li>Add <code>ZOHO_REFRESH_TOKEN</code> with the copied value.</li>
-      <li>Test live connectivity anytime at: <a href="/api/zoho/test" style="color: #38bdf8;" target="_blank">/api/zoho/test</a>.</li>
+      <li>Check the secure server terminal / deployment runtime logs for the generated refresh token.</li>
+      <li>Set <code>ZOHO_REFRESH_TOKEN</code> in your Vercel Dashboard (or local <code>.env.local</code>).</li>
+      <li>Verify live connectivity anytime at: <a href="/api/zoho/test" style="color: #38bdf8;" target="_blank">/api/zoho/test</a>.</li>
     </ol>
   </div>
-
-  <script>
-    function copyToken() {
-      const field = document.getElementById('tokenField');
-      field.type = 'text';
-      navigator.clipboard.writeText(field.value).then(() => {
-        const btn = document.getElementById('copyBtn');
-        btn.innerHTML = '✅ Copied to Clipboard!';
-        btn.style.background = '#059669';
-        setTimeout(() => {
-          btn.innerHTML = '📋 Copy Refresh Token';
-          btn.style.background = '#2563eb';
-        }, 3000);
-      });
-    }
-    function toggleVisibility() {
-      const field = document.getElementById('tokenField');
-      const toggle = document.getElementById('toggleBtn');
-      if (field.type === 'password') {
-        field.type = 'text';
-        toggle.innerHTML = '🔒 Hide Token';
-      } else {
-        field.type = 'password';
-        toggle.innerHTML = '👁️ Reveal Token';
-      }
-    }
-  </script>
 </body>
 </html>`;
 }
@@ -406,7 +328,6 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const html = renderSuccessPage({
       apiDomain: tokenData.api_domain || 'https://www.zohoapis.com',
       organizationId,
-      refreshToken: tokenData.refresh_token,
     });
 
     const response = new NextResponse(html, {

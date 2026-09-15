@@ -1,4 +1,12 @@
+export type LaundryOperationalStatus =
+  | 'ORDER RECEIVED'
+  | 'WASHING'
+  | 'DRYING'
+  | 'READY FOR PICKUP'
+  | 'DELIVERED';
+
 export type OrderStatus =
+  | LaundryOperationalStatus
   | 'Received'
   | 'Processing'
   | 'In Progress'
@@ -22,6 +30,72 @@ export interface StatusHistoryEntry {
   emailSent?: boolean;
   emailRecipient?: string;
   whatsAppPrepared?: boolean;
+}
+
+export interface TrackingStageDetail {
+  key: LaundryOperationalStatus;
+  label: string;
+  shortLabel: string;
+  description: string;
+  order: number;
+}
+
+export const LAUNDRY_OPERATIONAL_STAGES: TrackingStageDetail[] = [
+  {
+    key: 'ORDER RECEIVED',
+    label: 'Order Received',
+    shortLabel: 'Received',
+    description: 'Garments received, inspected & tagged at facility',
+    order: 1,
+  },
+  {
+    key: 'WASHING',
+    label: 'Washing',
+    shortLabel: 'Washing',
+    description: 'Eco-friendly deep wash & specialized stain treatment',
+    order: 2,
+  },
+  {
+    key: 'DRYING',
+    label: 'Drying',
+    shortLabel: 'Drying',
+    description: 'Controlled temperature drying & moisture extraction',
+    order: 3,
+  },
+  {
+    key: 'READY FOR PICKUP',
+    label: 'Ready for Pickup',
+    shortLabel: 'Ready',
+    description: 'Steam pressed, packaged & ready for collection',
+    order: 4,
+  },
+  {
+    key: 'DELIVERED',
+    label: 'Delivered',
+    shortLabel: 'Delivered',
+    description: 'Completed and collected or delivered successfully',
+    order: 5,
+  },
+];
+
+export interface OrderTrackingSummary {
+  orderId: string;
+  invoiceNumber: string;
+  currentStatus: LaundryOperationalStatus;
+  currentStageIndex: number;
+  stages: Array<{
+    key: LaundryOperationalStatus;
+    label: string;
+    shortLabel: string;
+    description: string;
+    isCompleted: boolean;
+    isCurrent: boolean;
+    timestamp?: string;
+    formattedDate?: string;
+    formattedTime?: string;
+  }>;
+  statusHistory: StatusHistoryEntry[];
+  updatedAt: string;
 }
 
 export interface OrderRecord {

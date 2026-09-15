@@ -1,7 +1,14 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import crypto from 'node:crypto';
-import { OrderRecord, OrderStatus, StatusHistoryEntry } from '@/types/order';
+import {
+  OrderRecord,
+  OrderStatus,
+  StatusHistoryEntry,
+  LaundryOperationalStatus,
+  LAUNDRY_OPERATIONAL_STAGES,
+  OrderTrackingSummary,
+} from '@/types/order';
 
 const DATA_DIR = path.join(process.cwd(), '.data');
 const ORDERS_FILE = path.join(DATA_DIR, 'orders.json');
@@ -10,8 +17,18 @@ let memoryOrders: OrderRecord[] = [];
 let isInitialized = false;
 
 function formatDateTime(d = new Date()) {
-  const dateStr = d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
-  const timeStr = d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: true });
+  const dateStr = d.toLocaleDateString('en-GB', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+    timeZone: 'Asia/Colombo',
+  });
+  const timeStr = d.toLocaleTimeString('en-GB', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: true,
+    timeZone: 'Asia/Colombo',
+  });
   return { dateStr, timeStr };
 }
 
@@ -308,4 +325,210 @@ export const orderRepository = {
 
     return order;
   },
+
+  /**
+   * Finds or idempotently creates an operational tracking record for an invoice.
+   * Ensures every verified Zoho invoice has a persistent lifecycle state.
+   */
+  async getOrCreateTrackingByInvoice(
+    invoiceNumber: string,
+    invoiceId?: string,
+    customerName?: string,
+    customerPhone?: string
+  ): Promise<OrderRecord> {
+    await ensureDataFiles();
+    const cleanNum = invoiceNumber.trim().toUpperCase();
+
+    // Search by zohoInvoiceNumber, invoiceId, or orderId
+    let order = memoryOrders.find(
+      (o) =>
+        (o.zohoInvoiceNumber && o.zohoInvoiceNumber.trim().toUpperCase() === cleanNum) ||
+        (invoiceId && o.zohoInvoiceId === invoiceId) ||
+        o.orderId.toUpperCase() === cleanNum
+    );
+
+    if (order) {
+      // Update missing fields if available
+      let updated = false;
+      if (invoiceId && !order.zohoInvoiceId) {
+        order.zohoInvoiceId = invoiceId;
+        updated = true;
+      }
+      if (customerName && (!order.customerName || order.customerName === 'Valued Customer')) {
+        order.customerName = customerName;
+        updated = true;
+      }
+      if (customerPhone && !order.customerPhone) {
+        order.customerPhone = customerPhone;
+        updated = true;
+      }
+      if (updated) {
+        await persistOrders();
+      }
+      return order;
+    }
+
+    // Initialize new tracking record for this invoice
+    const now = new Date();
+    const { dateStr, timeStr } = formatDateTime(now);
+    const sanitizedId = cleanNum.replace(/[^A-Z0-9]/g, '') || String(Date.now());
+    const orderId = `ORD-${sanitizedId}`;
+
+    const initialHistory: StatusHistoryEntry = {
+      id: `hist_${Date.now()}_init`,
+      previousStatus: undefined,
+      newStatus: 'ORDER RECEIVED',
+      date: dateStr,
+      time: timeStr,
+      timestamp: now.toISOString(),
+      changedBy: 'Ananke System (Intake)',
+      notes: 'Order received & registered at Unawatuna facility.',
+    };
+
+    const newRecord: OrderRecord = {
+      orderId,
+      zohoCustomerId: customerPhone || 'cust-auto',
+      zohoInvoiceId: invoiceId,
+      zohoInvoiceNumber: invoiceNumber.trim(),
+      customerName: customerName || 'Valued Customer',
+      customerPhone: customerPhone || '',
+      customerEmail: '',
+      itemName: 'Commercial Laundry & Linen Care Services',
+      quantity: 1,
+      orderDate: dateStr,
+      expectedCompletionDate: '',
+      currentStatus: 'ORDER RECEIVED',
+      paymentStatus: 'Unpaid',
+      notes: 'Customer portal invoice tracking',
+      statusHistory: [initialHistory],
+      createdAt: now.toISOString(),
+      updatedAt: now.toISOString(),
+    };
+
+    memoryOrders.unshift(newRecord);
+    await persistOrders();
+
+    return newRecord;
+  },
+
+  /**
+   * Update operational status by orderId or zohoInvoiceNumber
+   */
+  async updateOperationalStatusByIdentifier(
+    identifier: string,
+    newStatus: LaundryOperationalStatus | OrderStatus,
+    changedBy = 'Admin',
+    notes?: string
+  ): Promise<OrderRecord | null> {
+    await ensureDataFiles();
+    const clean = identifier.trim().toUpperCase();
+
+    const order = memoryOrders.find(
+      (o) =>
+        o.orderId.toUpperCase() === clean ||
+        (o.zohoInvoiceNumber && o.zohoInvoiceNumber.toUpperCase() === clean) ||
+        (o.zohoInvoiceId && o.zohoInvoiceId === identifier.trim())
+    );
+
+    if (!order) return null;
+
+    return this.updateOrderStatus(order.orderId, newStatus, changedBy, notes);
+  },
 };
+
+/**
+ * Normalizes any freeform or legacy status into canonical LaundryOperationalStatus
+ */
+export function normalizeOperationalStatus(status?: string): LaundryOperationalStatus {
+  if (!status) return 'ORDER RECEIVED';
+  const s = status.trim().toUpperCase();
+  if (s.includes('DELIVER') || s.includes('COLLECT') || s.includes('COMPLETE')) {
+    return 'DELIVERED';
+  }
+  if (s.includes('READY')) {
+    return 'READY FOR PICKUP';
+  }
+  if (s.includes('DRY')) {
+    return 'DRYING';
+  }
+  if (s.includes('WASH') || s.includes('PROCESS') || s.includes('PROGRESS')) {
+    return 'WASHING';
+  }
+  return 'ORDER RECEIVED';
+}
+
+/**
+ * Builds structured customer-facing tracking summary with active stage pulse,
+ * progress order, and timestamps per stage.
+ */
+export function buildTrackingSummary(order: OrderRecord): OrderTrackingSummary {
+  const currentOpStatus = normalizeOperationalStatus(order.currentStatus);
+
+  const stageOrderMap: Record<LaundryOperationalStatus, number> = {
+    'ORDER RECEIVED': 1,
+    'WASHING': 2,
+    'DRYING': 3,
+    'READY FOR PICKUP': 4,
+    'DELIVERED': 5,
+  };
+
+  const currentOrderNum = stageOrderMap[currentOpStatus] || 1;
+  const currentStageIndex = currentOrderNum - 1;
+
+  // Extract recorded timestamps from history for each stage
+  const stageTimes: Partial<
+    Record<LaundryOperationalStatus, { timestamp: string; date: string; time: string }>
+  > = {};
+
+  // Walk in chronological order (history is newest first, so reverse)
+  const historyRev = [...(order.statusHistory || [])].reverse();
+  for (const entry of historyRev) {
+    const norm = normalizeOperationalStatus(entry.newStatus);
+    if (!stageTimes[norm]) {
+      stageTimes[norm] = {
+        timestamp: entry.timestamp,
+        date: entry.date,
+        time: entry.time,
+      };
+    }
+  }
+
+  // Fallback for stage 1 if missing
+  if (!stageTimes['ORDER RECEIVED'] && order.createdAt) {
+    const cd = new Date(order.createdAt);
+    const { dateStr, timeStr } = formatDateTime(cd);
+    stageTimes['ORDER RECEIVED'] = {
+      timestamp: order.createdAt,
+      date: dateStr,
+      time: timeStr,
+    };
+  }
+
+  const stages = LAUNDRY_OPERATIONAL_STAGES.map((s) => {
+    const isCompleted = s.order < currentOrderNum || (s.order === 5 && currentOpStatus === 'DELIVERED');
+    const isCurrent = s.key === currentOpStatus;
+    const timeInfo = stageTimes[s.key];
+
+    return {
+      key: s.key,
+      label: s.label,
+      shortLabel: s.shortLabel,
+      description: s.description,
+      isCompleted,
+      isCurrent,
+      timestamp: timeInfo?.timestamp,
+      formattedDate: timeInfo?.date,
+      formattedTime: timeInfo?.time,
+    };
+  });
+
+  return {
+    orderId: order.orderId,
+    invoiceNumber: order.zohoInvoiceNumber || order.orderId,
+    currentStatus: currentOpStatus,
+    currentStageIndex,
+    stages,
+    statusHistory: order.statusHistory || [],
+    updatedAt: order.updatedAt,
+  };
+}

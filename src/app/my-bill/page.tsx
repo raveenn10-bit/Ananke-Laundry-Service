@@ -6,7 +6,7 @@ import { ShieldCheck, Phone, Clock, FileCheck } from 'lucide-react';
 export const metadata: Metadata = {
   title: 'View My Bill & Receipts | Ananke Laundry Unawatuna, Galle',
   description:
-    'Securely view and download your commercial laundry invoices and payment receipts from Ananke Laundry in Unawatuna, Galle using phone number OTP verification.',
+    'Securely view and download your commercial laundry invoices and payment receipts from Ananke Laundry in Unawatuna, Galle using your invoice number and verified phone number.',
   alternates: {
     canonical: 'https://anankelaundry.com/my-bill',
   },
@@ -19,7 +19,7 @@ export default function MyBillPage() {
         badge="SECURE CUSTOMER PORTAL"
         title="View My Bill &"
         highlightedTitle="Payment Receipts"
-        subtitle="Access your laundry invoices, view real-time payment status, and download official PDF tax invoices and receipts securely with one-time verification."
+        subtitle="Access your laundry invoices, view real-time payment status, and download official PDF tax invoices and receipts securely using your invoice number and registered phone number."
         breadcrumbs={[{ label: 'View My Bill' }]}
       />
 
@@ -42,7 +42,7 @@ export default function MyBillPage() {
                   Bank-Grade Encryption
                 </h4>
                 <p className="text-[11px] text-gray-500 mt-0.5">
-                  Your bills and receipts are protected with one-time verification and signed customer sessions.
+                  Your bills and receipts are protected with signed customer sessions and strict multi-tenant authorization.
                 </p>
               </div>
             </div>
