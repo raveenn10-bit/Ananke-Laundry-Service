@@ -22,7 +22,7 @@ const WHATSAPP_URL =
 export default function FloatingActions() {
   return (
     <>
-      {/* Dedicated Floating WhatsApp Button */}
+      {/* Dedicated Floating WhatsApp Button (Bottom-Right) */}
       <div className="fixed bottom-[calc(4.75rem+env(safe-area-inset-bottom))] lg:bottom-7 right-4 sm:right-6 lg:right-7 z-50 flex items-center group">
         {/* Tooltip on Desktop hover */}
         <div className="absolute right-full mr-3.5 top-1/2 -translate-y-1/2 pointer-events-none hidden sm:flex items-center gap-2.5 bg-[#1a2b25]/95 backdrop-blur-md text-white py-2 px-3.5 rounded-xl text-xs shadow-2xl border border-white/10 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap">
@@ -30,7 +30,7 @@ export default function FloatingActions() {
           <div className="text-left">
             <p className="font-semibold text-white leading-tight">Chat on WhatsApp</p>
             <p className="text-[11px] text-[#25D366] font-mono leading-tight font-medium mt-0.5">
-              +94 74 269 7909
+              +94 74 269 7909 · Online Now
             </p>
           </div>
         </div>
@@ -41,101 +41,133 @@ export default function FloatingActions() {
           target="_blank"
           rel="noopener noreferrer"
           aria-label="Chat with Ananke Laundry on WhatsApp (+94 74 269 7909)"
-          whileHover={{ scale: 1.08 }}
+          whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.95 }}
-          className="relative flex items-center justify-center w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-[#25D366] text-white shadow-[0_8px_25px_-4px_rgba(37,211,102,0.6)] hover:bg-[#20ba5a] hover:shadow-[0_12px_30px_-4px_rgba(37,211,102,0.7)] transition-all duration-300 cursor-pointer"
+          className="relative flex items-center justify-center w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-gradient-to-tr from-[#128C7E] via-[#25D366] to-[#4ade80] text-white shadow-[0_8px_25px_rgba(37,211,102,0.55)] hover:shadow-[0_12px_32px_rgba(37,211,102,0.75)] transition-all duration-300 cursor-pointer border border-white/30"
         >
           {/* Subtle Radar/Ping Glow */}
           <span className="absolute -inset-1 rounded-full bg-[#25D366] opacity-35 animate-ping pointer-events-none" />
 
           {/* Online green indicator badge */}
           <span className="absolute top-0 right-0 w-3.5 h-3.5 sm:w-4 sm:h-4 bg-white rounded-full p-[2px] z-20 shadow-xs">
-            <span className="block w-full h-full bg-[#10b981] rounded-full" />
+            <span className="block w-full h-full bg-[#10b981] rounded-full animate-pulse" />
           </span>
 
           {/* SVG WhatsApp Logo */}
-          <WhatsAppIcon className="w-8 h-8 sm:w-9 sm:h-9 relative z-10 text-white fill-current drop-shadow-xs" />
+          <WhatsAppIcon className="w-8 h-8 sm:w-9 sm:h-9 relative z-10 text-white fill-current drop-shadow-md" />
         </motion.a>
       </div>
 
-      {/* Desktop Floating Actions Bar (Right Middle Dock) */}
-      <div className="hidden lg:flex fixed right-5 top-1/2 -translate-y-1/2 flex-col gap-3 z-40">
-        <motion.div whileHover={{ scale: 1.08 }} whileTap={{ scale: 0.95 }} className="relative group">
+      {/* Desktop Floating Actions Bar (Right Middle Dock) - Real Colors & Live Effect */}
+      <div className="hidden lg:flex fixed right-5 top-1/2 -translate-y-1/2 flex-col gap-3.5 z-40">
+        {/* 1. Phone Call (Real Calling Green Gradient) */}
+        <motion.div whileHover={{ scale: 1.12 }} whileTap={{ scale: 0.95 }} className="relative group">
           <a
             href="tel:+94912250777"
-            className="w-12 h-12 bg-primary hover:bg-olive border border-white/20 rounded-full flex items-center justify-center shadow-xl transition-all cursor-pointer group"
+            className="relative w-12 h-12 rounded-full bg-gradient-to-tr from-emerald-600 via-green-500 to-emerald-400 flex items-center justify-center shadow-[0_4px_18px_rgba(16,185,129,0.5)] hover:shadow-[0_6px_25px_rgba(16,185,129,0.7)] transition-all duration-300 cursor-pointer border border-white/30 group"
             aria-label="Call 091 225 0777"
           >
-            <Phone className="text-accent group-hover:text-white transition-colors" size={20} />
+            <span className="absolute -inset-1 rounded-full bg-emerald-500/30 animate-pulse pointer-events-none" />
+            <span className="absolute top-0 right-0 w-3 h-3 bg-white rounded-full p-[1.5px] z-10">
+              <span className="block w-full h-full bg-emerald-400 rounded-full animate-pulse" />
+            </span>
+            <Phone className="text-white drop-shadow-xs relative z-10 transition-transform group-hover:rotate-12" size={20} />
           </a>
-          <div className="absolute right-full mr-3 top-1/2 -translate-y-1/2 bg-dark/95 backdrop-blur-md text-white px-3.5 py-1.5 rounded-lg text-xs font-medium opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all whitespace-nowrap shadow-lg border border-white/10">
-            Call 091 225 0777
+          <div className="absolute right-full mr-3.5 top-1/2 -translate-y-1/2 bg-[#1a2b25]/95 backdrop-blur-md text-white py-2 px-3.5 rounded-xl text-xs shadow-2xl border border-white/10 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap">
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              <p className="font-semibold text-white leading-tight">Call 091 225 0777</p>
+            </div>
+            <p className="text-[10px] text-emerald-300 pl-4 mt-0.5 font-medium">Open Now · 9:00 AM – 6:00 PM</p>
           </div>
         </motion.div>
 
-        <motion.div whileHover={{ scale: 1.08 }} whileTap={{ scale: 0.95 }} className="relative group">
+        {/* 2. WhatsApp (Real WhatsApp Green Gradient) */}
+        <motion.div whileHover={{ scale: 1.12 }} whileTap={{ scale: 0.95 }} className="relative group">
           <a
             href={WHATSAPP_URL}
             target="_blank"
             rel="noopener noreferrer"
-            className="w-12 h-12 bg-[#25D366] hover:bg-[#20ba5a] border border-white/20 rounded-full flex items-center justify-center shadow-xl transition-all cursor-pointer group"
+            className="relative w-12 h-12 rounded-full bg-gradient-to-tr from-[#128C7E] via-[#25D366] to-[#4ade80] flex items-center justify-center shadow-[0_4px_18px_rgba(37,211,102,0.5)] hover:shadow-[0_6px_25px_rgba(37,211,102,0.7)] transition-all duration-300 cursor-pointer border border-white/30 group"
             aria-label="WhatsApp +94 74 269 7909"
           >
-            <WhatsAppIcon className="w-5 h-5 text-white" />
+            <span className="absolute top-0 right-0 w-3 h-3 bg-white rounded-full p-[1.5px] z-10">
+              <span className="block w-full h-full bg-emerald-300 rounded-full animate-pulse" />
+            </span>
+            <WhatsAppIcon className="w-5 h-5 text-white fill-current drop-shadow-xs relative z-10" />
           </a>
-          <div className="absolute right-full mr-3 top-1/2 -translate-y-1/2 bg-dark/95 backdrop-blur-md text-white px-3.5 py-1.5 rounded-lg text-xs font-medium opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all whitespace-nowrap shadow-lg border border-white/10">
-            WhatsApp 074 269 7909
+          <div className="absolute right-full mr-3.5 top-1/2 -translate-y-1/2 bg-[#1a2b25]/95 backdrop-blur-md text-white py-2 px-3.5 rounded-xl text-xs shadow-2xl border border-white/10 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap">
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-[#25D366] animate-pulse" />
+              <p className="font-semibold text-white leading-tight">WhatsApp 074 269 7909</p>
+            </div>
+            <p className="text-[10px] text-[#25D366] pl-4 mt-0.5 font-medium">Chat Online · Quick Turnaround</p>
           </div>
         </motion.div>
 
-        <motion.div whileHover={{ scale: 1.08 }} whileTap={{ scale: 0.95 }} className="relative group">
+        {/* 3. Google Maps (Real Google Maps Red Gradient) */}
+        <motion.div whileHover={{ scale: 1.12 }} whileTap={{ scale: 0.95 }} className="relative group">
           <a
             href="https://maps.app.goo.gl/HLJGzPCVZwySjSTK6?g_st=ic"
             target="_blank"
             rel="noopener noreferrer"
-            className="w-12 h-12 bg-olive hover:bg-accent border border-white/20 rounded-full flex items-center justify-center shadow-xl transition-all cursor-pointer group"
+            className="relative w-12 h-12 rounded-full bg-gradient-to-tr from-red-600 via-rose-500 to-red-400 flex items-center justify-center shadow-[0_4px_18px_rgba(239,68,68,0.5)] hover:shadow-[0_6px_25px_rgba(239,68,68,0.7)] transition-all duration-300 cursor-pointer border border-white/30 group"
             aria-label="Get Directions on Google Maps"
           >
-            <MapPin className="text-white group-hover:text-dark transition-colors" size={20} />
+            <MapPin className="text-white drop-shadow-xs relative z-10 transition-transform group-hover:-translate-y-0.5" size={20} />
           </a>
-          <div className="absolute right-full mr-3 top-1/2 -translate-y-1/2 bg-dark/95 backdrop-blur-md text-white px-3.5 py-1.5 rounded-lg text-xs font-medium opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all whitespace-nowrap shadow-lg border border-white/10">
-            Get Directions
+          <div className="absolute right-full mr-3.5 top-1/2 -translate-y-1/2 bg-[#1a2b25]/95 backdrop-blur-md text-white py-2 px-3.5 rounded-xl text-xs shadow-2xl border border-white/10 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap">
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-rose-400 animate-pulse" />
+              <p className="font-semibold text-white leading-tight">Google Maps Directions</p>
+            </div>
+            <p className="text-[10px] text-rose-300 pl-4 mt-0.5">Matara Road, Unawatuna, Galle</p>
           </div>
         </motion.div>
 
-        <motion.div whileHover={{ scale: 1.08 }} whileTap={{ scale: 0.95 }} className="relative group">
+        {/* 4. Live Bill Portal (Real Financial Sapphire Blue Gradient) */}
+        <motion.div whileHover={{ scale: 1.12 }} whileTap={{ scale: 0.95 }} className="relative group">
           <a
             href="/my-bill"
-            className="w-12 h-12 bg-white/10 hover:bg-olive border border-white/20 rounded-full flex items-center justify-center shadow-xl transition-all cursor-pointer group backdrop-blur-md"
+            className="relative w-12 h-12 rounded-full bg-gradient-to-tr from-blue-600 via-indigo-500 to-sky-400 flex items-center justify-center shadow-[0_4px_18px_rgba(59,130,246,0.5)] hover:shadow-[0_6px_25px_rgba(59,130,246,0.7)] transition-all duration-300 cursor-pointer border border-white/30 group"
             aria-label="View My Bill & Receipts"
           >
-            <Receipt className="text-accent group-hover:text-white transition-colors" size={20} />
+            <Receipt className="text-white drop-shadow-xs relative z-10 transition-transform group-hover:scale-105" size={20} />
           </a>
-          <div className="absolute right-full mr-3 top-1/2 -translate-y-1/2 bg-dark/95 backdrop-blur-md text-white px-3.5 py-1.5 rounded-lg text-xs font-medium opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all whitespace-nowrap shadow-lg border border-white/10">
-            View My Bill
+          <div className="absolute right-full mr-3.5 top-1/2 -translate-y-1/2 bg-[#1a2b25]/95 backdrop-blur-md text-white py-2 px-3.5 rounded-xl text-xs shadow-2xl border border-white/10 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap">
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-sky-400 animate-pulse" />
+              <p className="font-semibold text-white leading-tight">View My Bill &amp; Receipts</p>
+            </div>
+            <p className="text-[10px] text-sky-300 pl-4 mt-0.5">Live Zoho Portal · Instant Search</p>
           </div>
         </motion.div>
 
-        <motion.div whileHover={{ scale: 1.08 }} whileTap={{ scale: 0.95 }} className="relative group">
+        {/* 5. Request a Quote (Real Amber / Gold Gradient) */}
+        <motion.div whileHover={{ scale: 1.12 }} whileTap={{ scale: 0.95 }} className="relative group">
           <a
             href="/contact"
-            className="w-12 h-12 bg-accent hover:bg-olive rounded-full flex items-center justify-center shadow-xl transition-all cursor-pointer group"
+            className="relative w-12 h-12 rounded-full bg-gradient-to-tr from-amber-600 via-amber-500 to-yellow-400 flex items-center justify-center shadow-[0_4px_18px_rgba(245,158,11,0.5)] hover:shadow-[0_6px_25px_rgba(245,158,11,0.7)] transition-all duration-300 cursor-pointer border border-white/30 group"
             aria-label="Request a Quote"
           >
-            <FileText className="text-dark group-hover:text-white transition-colors" size={20} />
+            <FileText className="text-white drop-shadow-xs relative z-10 transition-transform group-hover:scale-105" size={20} />
           </a>
-          <div className="absolute right-full mr-3 top-1/2 -translate-y-1/2 bg-dark/95 backdrop-blur-md text-white px-3.5 py-1.5 rounded-lg text-xs font-medium opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all whitespace-nowrap shadow-lg border border-white/10">
-            Request a Quote
+          <div className="absolute right-full mr-3.5 top-1/2 -translate-y-1/2 bg-[#1a2b25]/95 backdrop-blur-md text-white py-2 px-3.5 rounded-xl text-xs shadow-2xl border border-white/10 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap">
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
+              <p className="font-semibold text-white leading-tight">Request a Quote</p>
+            </div>
+            <p className="text-[10px] text-amber-300 pl-4 mt-0.5">Commercial &amp; Bulk Pricing</p>
           </div>
         </motion.div>
       </div>
 
-      {/* Mobile Sticky Bottom Action Bar */}
+      {/* Mobile Sticky Bottom Action Bar - Real Colors */}
       <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-primary/95 backdrop-blur-lg border-t border-white/15 px-3 py-2 pb-[max(0.625rem,env(safe-area-inset-bottom))] shadow-2xl">
         <div className="flex items-center gap-2 max-w-md mx-auto">
           <a
             href="tel:+94912250777"
-            className="flex-1 bg-accent hover:bg-accent/90 text-dark font-bold text-xs py-2.5 px-2 rounded-xl flex items-center justify-center gap-1.5 shadow-md min-h-[42px] transition-transform active:scale-95"
+            className="flex-1 bg-gradient-to-r from-emerald-600 to-green-600 text-white font-bold text-xs py-2.5 px-2 rounded-xl flex items-center justify-center gap-1.5 shadow-[0_3px_10px_rgba(16,185,129,0.3)] min-h-[42px] transition-transform active:scale-95"
             aria-label="Call 091 225 0777"
           >
             <Phone size={15} className="shrink-0" />
@@ -145,7 +177,7 @@ export default function FloatingActions() {
             href={WHATSAPP_URL}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex-1 bg-[#25D366] hover:bg-[#20ba5a] text-white font-bold text-xs py-2.5 px-2 rounded-xl flex items-center justify-center gap-1.5 shadow-md min-h-[42px] transition-transform active:scale-95"
+            className="flex-1 bg-gradient-to-r from-[#128C7E] to-[#25D366] text-white font-bold text-xs py-2.5 px-2 rounded-xl flex items-center justify-center gap-1.5 shadow-[0_3px_10px_rgba(37,211,102,0.3)] min-h-[42px] transition-transform active:scale-95"
             aria-label="WhatsApp +94 74 269 7909"
           >
             <WhatsAppIcon className="w-4 h-4 shrink-0 text-white fill-current" />
@@ -155,10 +187,10 @@ export default function FloatingActions() {
             href="https://maps.app.goo.gl/HLJGzPCVZwySjSTK6?g_st=ic"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex-1 bg-white/10 hover:bg-white/15 text-white font-semibold text-xs py-2.5 px-2 rounded-xl flex items-center justify-center gap-1.5 border border-white/20 min-h-[42px] transition-transform active:scale-95"
+            className="flex-1 bg-gradient-to-r from-red-600 to-rose-600 text-white font-semibold text-xs py-2.5 px-2 rounded-xl flex items-center justify-center gap-1.5 shadow-[0_3px_10px_rgba(239,68,68,0.3)] min-h-[42px] transition-transform active:scale-95"
             aria-label="Get Directions to Unawatuna facility"
           >
-            <MapPin size={15} className="text-accent shrink-0" />
+            <MapPin size={15} className="shrink-0" />
             <span className="truncate">Directions</span>
           </a>
         </div>
