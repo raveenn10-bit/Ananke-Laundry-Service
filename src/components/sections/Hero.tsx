@@ -84,13 +84,26 @@ export default function Hero() {
 
       {/* === Background Video === */}
       <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+        {/* Mobile Background Video (< 768px) */}
         <video
           autoPlay
           loop
           muted
           playsInline
           poster="/images/hero.jpg"
-          className="absolute inset-0 w-full h-full object-cover scale-[1.03]"
+          className="absolute inset-0 w-full h-full object-cover scale-[1.03] block md:hidden"
+        >
+          <source src="/videos/hero-building-exterior-mobile.mp4" type="video/mp4" />
+        </video>
+
+        {/* Desktop Background Video (>= 768px) */}
+        <video
+          autoPlay
+          loop
+          muted
+          playsInline
+          poster="/images/hero.jpg"
+          className="absolute inset-0 w-full h-full object-cover scale-[1.03] hidden md:block"
         >
           <source src="/videos/hero-building-exterior.mp4" type="video/mp4" />
         </video>
