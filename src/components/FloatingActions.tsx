@@ -43,7 +43,6 @@ export default function FloatingActions() {
       id: 'order',
       label: 'Place an Order',
       icon: Sparkles,
-      iconColor: 'text-white',
       bgGradient: 'from-emerald-600 via-emerald-500 to-green-500',
       type: 'button' as const,
       onClick: () => openOrderModal(),
@@ -52,7 +51,6 @@ export default function FloatingActions() {
       id: 'call',
       label: 'Call 091 225 0777',
       icon: Phone,
-      iconColor: 'text-white',
       bgGradient: 'from-emerald-600 via-green-500 to-emerald-400',
       type: 'link' as const,
       href: `tel:${PHONE_NUMBER}`,
@@ -61,7 +59,6 @@ export default function FloatingActions() {
       id: 'whatsapp',
       label: 'Chat on WhatsApp',
       icon: WhatsAppIcon,
-      iconColor: 'text-white',
       bgGradient: 'from-[#128C7E] via-[#25D366] to-[#4ade80]',
       type: 'external' as const,
       href: WHATSAPP_URL,
@@ -70,7 +67,6 @@ export default function FloatingActions() {
       id: 'directions',
       label: 'Get Directions',
       icon: MapPin,
-      iconColor: 'text-white',
       bgGradient: 'from-red-600 via-rose-500 to-red-400',
       type: 'external' as const,
       href: MAPS_URL,
@@ -79,7 +75,6 @@ export default function FloatingActions() {
       id: 'bill',
       label: 'View My Bill',
       icon: Receipt,
-      iconColor: 'text-white',
       bgGradient: 'from-blue-600 via-indigo-500 to-sky-400',
       type: 'route' as const,
       href: '/my-bill',
@@ -88,7 +83,6 @@ export default function FloatingActions() {
       id: 'quote',
       label: 'Request a Quote',
       icon: FileText,
-      iconColor: 'text-white',
       bgGradient: 'from-amber-600 via-amber-500 to-yellow-400',
       type: 'route' as const,
       href: '/contact',
@@ -112,12 +106,12 @@ export default function FloatingActions() {
         )}
       </AnimatePresence>
 
-      {/* Expanded Actions Menu (Originates from bottom-left and expands UPWARDS) */}
-      <div className="fixed left-[clamp(14px,2vw,24px)] bottom-[calc(4.75rem+env(safe-area-inset-bottom))] z-40 flex flex-col items-start gap-2.5 pointer-events-none">
+      {/* Expanded Actions Menu (Originates from bottom-right and expands UPWARDS) */}
+      <div className="fixed right-[clamp(14px,2vw,24px)] bottom-[calc(4.75rem+env(safe-area-inset-bottom))] z-40 flex flex-col items-end gap-2.5 pointer-events-none">
         <AnimatePresence>
           {isOpen &&
             actionItems.map((item, idx) => {
-              // Stagger delay from closest to furthest: bottom item opens first
+              // Stagger delay: bottom item opens first
               const reverseIndex = actionItems.length - 1 - idx;
               const delay = reverseIndex * 0.04;
 
@@ -130,17 +124,17 @@ export default function FloatingActions() {
                   transition={{ duration: 0.26, delay }}
                   className="flex items-center gap-3 pointer-events-auto group cursor-pointer"
                 >
+                  {/* Action Text Label to the LEFT of icon */}
+                  <span className="bg-[#163824]/95 backdrop-blur-md text-white text-xs sm:text-sm font-semibold px-3.5 py-2 rounded-xl shadow-xl border border-white/15 whitespace-nowrap transition-all duration-200 group-hover:bg-[#163824] group-hover:-translate-x-1 group-hover:shadow-2xl">
+                    {item.label}
+                  </span>
+
                   {/* Action Circular Icon Button */}
                   <div
                     className={`w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-gradient-to-tr ${item.bgGradient} text-white flex items-center justify-center shadow-lg border border-white/35 transition-transform duration-200 group-hover:scale-108 active:scale-95 shrink-0`}
                   >
                     <item.icon className="w-5 h-5 drop-shadow-xs" />
                   </div>
-
-                  {/* Action Text Label to the RIGHT of icon */}
-                  <span className="bg-[#163824]/95 backdrop-blur-md text-white text-xs sm:text-sm font-semibold px-3.5 py-2 rounded-xl shadow-xl border border-white/15 whitespace-nowrap transition-all duration-200 group-hover:bg-[#163824] group-hover:translate-x-1 group-hover:shadow-2xl">
-                    {item.label}
-                  </span>
                 </motion.div>
               );
 
@@ -153,7 +147,7 @@ export default function FloatingActions() {
                       setIsOpen(false);
                       item.onClick();
                     }}
-                    className="text-left"
+                    className="text-right"
                     aria-label={item.label}
                   >
                     {content}
@@ -190,8 +184,8 @@ export default function FloatingActions() {
         </AnimatePresence>
       </div>
 
-      {/* Main Global Floating Action Button at BOTTOM-LEFT */}
-      <div className="fixed left-[clamp(14px,2vw,24px)] bottom-[calc(18px+env(safe-area-inset-bottom))] z-40">
+      {/* Main Global Floating Action Button at BOTTOM-RIGHT */}
+      <div className="fixed right-[clamp(14px,2vw,24px)] bottom-[calc(18px+env(safe-area-inset-bottom))] z-40">
         <motion.button
           type="button"
           onClick={() => setIsOpen((prev) => !prev)}
