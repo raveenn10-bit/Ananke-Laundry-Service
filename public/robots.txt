@@ -1,9 +1,16 @@
 User-agent: *
+Disallow: /admin/
+Disallow: /api/
 Allow: /
-Sitemap: https://anankelaundry.com/sitemap.xml
 
 User-agent: Googlebot
+Disallow: /admin/
+Disallow: /api/
 Allow: /
 
 User-agent: Bingbot
+Disallow: /admin/
+Disallow: /api/
 Allow: /
+
+Sitemap: https://anankelaundry.com/sitemap.xml

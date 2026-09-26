@@ -208,8 +208,8 @@ function renderSuccessPage(data: {
 
     <div class="meta-grid">
       <div class="meta-item">
-        <div class="meta-label">Organization ID</div>
-        <div class="meta-val">${escapedOrgId}</div>
+        <div class="meta-label">Organization</div>
+        <div class="meta-val">${escapedOrgId ? `****${escapedOrgId.slice(-4)}` : 'Connected'}</div>
       </div>
       <div class="meta-item">
         <div class="meta-label">API Regional Domain</div>
@@ -227,14 +227,13 @@ function renderSuccessPage(data: {
     <div class="secure-notice">
       <div class="secure-title">🔒 Security Hardening Active</div>
       <p class="secure-desc">
-        To protect production secrets, the OAuth refresh token has been logged exclusively to the secure server console output. It is never exposed in browser DOM or client-side code.
+        To protect production secrets, all sensitive tokens are securely isolated in server runtime storage and never exposed to the public.
       </p>
     </div>
 
     <ol class="instructions">
-      <li>Check the secure server terminal / deployment runtime logs for the generated refresh token.</li>
-      <li>Set <code>ZOHO_REFRESH_TOKEN</code> in your Vercel Dashboard (or local <code>.env.local</code>).</li>
-      <li>Verify live connectivity anytime at: <a href="/api/zoho/test" style="color: #38bdf8;" target="_blank">/api/zoho/test</a>.</li>
+      <li>Check the secure server terminal / deployment runtime logs for authorization output.</li>
+      <li>Set <code>ZOHO_REFRESH_TOKEN</code> in your environment variables.</li>
     </ol>
   </div>
 </body>

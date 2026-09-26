@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
 import { buildZohoAuthUrl, getZohoRedirectUri } from '@/services/zoho/auth';
 import { getClientIp, checkRateLimit } from '@/lib/security/rateLimiter';
+import { isAuthorizedAdmin } from '@/lib/auth/adminAuth';
 
 export const dynamic = 'force-dynamic';
 
@@ -47,6 +48,11 @@ export function verifyOAuthState(stateString?: string | null): boolean {
  * Initiates the Zoho OAuth authorization flow with CSRF state token protection.
  */
 export async function GET(request: NextRequest): Promise<NextResponse> {
+  // 1. Strict Admin Authorization Check - Deny public access
+  if (!isAuthorizedAdmin(request)) {
+    return NextResponse.json({ error: 'Not Found' }, { status: 404 });
+  }
+
   const ip = getClientIp(request);
   const rateLimit = checkRateLimit(ip, {
     windowMs: 5 * 60 * 1000,
@@ -64,31 +70,19 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Zoho Connection - Missing Configuration</title>
+  <title>Zoho Connection - Configuration Pending</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #0b1120; color: #f8fafc; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; padding: 20px; box-sizing: border-box; }
     .card { background: #1e293b; border: 1px solid #334155; border-radius: 16px; max-width: 540px; width: 100%; padding: 32px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5); }
     h1 { color: #f59e0b; margin-top: 0; font-size: 24px; font-weight: 700; }
     p { color: #cbd5e1; line-height: 1.6; font-size: 15px; }
-    .code-box { background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 14px; font-family: monospace; font-size: 13px; color: #38bdf8; word-break: break-all; margin: 16px 0; }
-    .step { margin: 12px 0; padding-left: 12px; border-left: 3px solid #3b82f6; }
   </style>
 </head>
 <body>
   <div class="card">
-    <h1>⚠️ ZOHO_CLIENT_ID Missing</h1>
-    <p>The Zoho OAuth flow cannot be initiated because <code>ZOHO_CLIENT_ID</code> is not yet configured in your environment variables.</p>
-    <div class="step">
-      <strong>Step 1:</strong> In your Zoho API Console, find your <strong>Client ID</strong>.
-    </div>
-    <div class="step">
-      <strong>Step 2:</strong> Add it to <strong>Vercel Environment Variables</strong> (or local <code>.env.local</code>):
-      <div class="code-box">ZOHO_CLIENT_ID=your_client_id_here<br>ZOHO_CLIENT_SECRET=your_client_secret_here<br>ZOHO_ORGANIZATION_ID=777888456</div>
-    </div>
-    <div class="step">
-      <strong>Step 3:</strong> Redeploy or restart, then refresh this URL to authorize.
-    </div>
+    <h1>⚠️ Configuration Required</h1>
+    <p>Please configure the Zoho credentials in your server environment variables before initiating authorization.</p>
   </div>
 </body>
 </html>`;

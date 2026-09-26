@@ -13,11 +13,18 @@ import {
   ArrowLeft,
   Key,
   Package,
+  Lock,
+  LogOut,
+  AlertCircle,
 } from 'lucide-react';
 import { EnquiryRecord, SyncStats } from '@/types/quote';
 import OrderManager from '@/components/admin/OrderManager';
 
 export default function ZohoAdminDashboard() {
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  const [passcodeInput, setPasscodeInput] = useState('');
+  const [authError, setAuthError] = useState<string | null>(null);
+
   const [activeTab, setActiveTab] = useState<'orders' | 'sync'>('orders');
   const [adminKey, setAdminKey] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -35,10 +42,11 @@ export default function ZohoAdminDashboard() {
     setActionMessage(null);
     try {
       const statusRes = await fetch('/api/admin/zoho/status', {
-        headers: { 'x-admin-key': keyToUse },
+        headers: keyToUse ? { 'x-admin-key': keyToUse } : {},
       });
 
-      if (statusRes.status === 401) {
+      if (statusRes.status === 401 || statusRes.status === 404) {
+        setIsAuthenticated(false);
         setIsLoading(false);
         return;
       }
@@ -47,13 +55,14 @@ export default function ZohoAdminDashboard() {
       setStatusData(statusJson);
 
       const quotesRes = await fetch('/api/admin/quotes', {
-        headers: { 'x-admin-key': keyToUse },
+        headers: keyToUse ? { 'x-admin-key': keyToUse } : {},
       });
       const quotesJson = await quotesRes.json();
       if (quotesJson.success) {
         setEnquiries(quotesJson.enquiries || []);
         setStats(quotesJson.stats || null);
       }
+      setIsAuthenticated(true);
     } catch (err: any) {
       console.error('Error fetching admin data:', err);
       setActionMessage('Failed to load dashboard data. Check your network or API status.');
@@ -63,14 +72,63 @@ export default function ZohoAdminDashboard() {
   }, []);
 
   useEffect(() => {
-    const saved = sessionStorage.getItem('ananke_admin_key') || '';
-    if (saved) {
-      setAdminKey(saved);
-      fetchData(saved);
-    } else {
-      fetchData('');
+    async function checkExistingAuth() {
+      try {
+        const res = await fetch('/api/admin/auth');
+        const data = await res.json();
+        if (data.authenticated) {
+          setIsAuthenticated(true);
+          fetchData('');
+        } else {
+          setIsAuthenticated(false);
+        }
+      } catch {
+        setIsAuthenticated(false);
+      }
     }
+    checkExistingAuth();
   }, [fetchData]);
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setAuthError(null);
+    setIsLoading(true);
+
+    try {
+      const res = await fetch('/api/admin/auth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ key: passcodeInput.trim() }),
+      });
+
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.message || 'Access denied. Please check your credentials.');
+      }
+
+      setAdminKey(passcodeInput.trim());
+      setIsAuthenticated(true);
+      await fetchData(passcodeInput.trim());
+    } catch (err: any) {
+      setAuthError(err.message || 'Access denied.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      await fetch('/api/admin/auth', { method: 'DELETE' });
+    } catch {
+      // Best effort
+    }
+    setAdminKey('');
+    setPasscodeInput('');
+    setIsAuthenticated(false);
+    setStatusData(null);
+    setEnquiries([]);
+    setStats(null);
+  };
 
   const handleManualSync = async (id: string) => {
     setSyncingId(id);
@@ -133,6 +191,80 @@ export default function ZohoAdminDashboard() {
     return true;
   });
 
+  if (isAuthenticated === null) {
+    return (
+      <div className="min-h-screen bg-[#0d1610] flex items-center justify-center p-4">
+        <div className="w-8 h-8 border-2 border-olive border-t-accent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-[#0d1610] flex items-center justify-center p-4 font-body">
+        <div className="w-full max-w-md bg-[#132018] rounded-3xl p-8 border border-white/10 shadow-2xl text-center">
+          <div className="w-14 h-14 rounded-2xl bg-olive/10 border border-olive/20 flex items-center justify-center mx-auto mb-5 text-accent shadow-inner">
+            <Lock size={26} />
+          </div>
+          <h1 className="font-heading font-bold text-2xl text-white tracking-tight mb-2">
+            Staff Portal Access
+          </h1>
+          <p className="text-gray-400 text-xs sm:text-sm mb-6 leading-relaxed">
+            Restricted area. Please provide your authorization passcode to proceed.
+          </p>
+
+          {authError && (
+            <div className="mb-5 p-3 rounded-xl bg-rose-950/60 border border-rose-500/40 text-rose-200 text-xs flex items-center gap-2">
+              <AlertCircle size={15} className="shrink-0 text-rose-400" />
+              <span>{authError}</span>
+            </div>
+          )}
+
+          <form onSubmit={handleLogin} className="space-y-4 text-left">
+            <div>
+              <label className="block text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">
+                Authorization Key
+              </label>
+              <input
+                type="password"
+                value={passcodeInput}
+                onChange={(e) => setPasscodeInput(e.target.value)}
+                placeholder="Enter administration passcode"
+                className="w-full px-4 py-3.5 rounded-xl bg-black/40 border border-white/10 text-white placeholder-gray-500 text-sm focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-all"
+                autoFocus
+                required
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={isLoading || !passcodeInput.trim()}
+              className="w-full py-3.5 px-4 rounded-xl bg-olive hover:bg-accent text-white hover:text-dark font-semibold text-sm transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
+            >
+              {isLoading ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  <span>Verifying Credentials...</span>
+                </>
+              ) : (
+                <span>Authenticate &amp; Enter</span>
+              )}
+            </button>
+          </form>
+
+          <div className="mt-8 pt-5 border-t border-white/10 text-center">
+            <Link
+              href="/"
+              className="text-xs text-gray-400 hover:text-white transition-colors inline-flex items-center gap-1.5"
+            >
+              <ArrowLeft size={14} /> Back to Homepage
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-cream/40 text-dark pb-16 font-body">
       {/* Top Header */}
@@ -168,6 +300,14 @@ export default function ZohoAdminDashboard() {
             >
               <RefreshCw size={13} className={isLoading ? 'animate-spin' : ''} />
               Refresh
+            </button>
+            <button
+              onClick={handleLogout}
+              className="bg-red-950/60 hover:bg-red-900/80 text-red-200 border border-red-800/40 text-xs px-3.5 py-1.5 rounded-lg font-medium transition-colors flex items-center gap-1.5 cursor-pointer"
+              title="Sign Out"
+            >
+              <LogOut size={13} />
+              Sign Out
             </button>
           </div>
         </div>
