@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import {
   Phone,
   ShieldCheck,
@@ -15,11 +15,9 @@ import {
   Receipt,
   ArrowRight,
   Sparkles,
-  LogOut,
   Search,
   MessageSquare,
   HelpCircle,
-  User,
 } from 'lucide-react';
 import { ZohoInvoice, ZohoPayment } from '@/types/zoho';
 import DocumentPreviewModal from './DocumentPreviewModal';
@@ -47,11 +45,9 @@ const OFFICIAL_WHATSAPP_NUMBER = '94742697909';
 const OFFICIAL_PHONE_DISPLAY = '091 225 0777';
 
 export default function BillPortal() {
-  // View & Step State
+  // View State
   const [view, setView] = useState<PortalView>('lookup');
-  const [step, setStep] = useState<1 | 2>(1);
   const [invoiceInput, setInvoiceInput] = useState('');
-  const [customerNameInput, setCustomerNameInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
@@ -104,36 +100,15 @@ export default function BillPortal() {
     }
   };
 
-  // Step 1: Validate Customer Name and proceed to Step 2
-  const handleStep1Next = (e: React.FormEvent) => {
-    e.preventDefault();
-    setErrorMsg(null);
-
-    const cleanName = customerNameInput.trim();
-    if (!cleanName) {
-      setErrorMsg('Please enter your Customer Name as registered on your invoice or receipt.');
-      return;
-    }
-
-    setStep(2);
-  };
-
-  // Step 2: Handle Lookup Form Submission with Zoho
+  // Handle Lookup Form Submission with Zoho
   const handleLookup = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     setErrorMsg(null);
 
     const cleanInvoice = invoiceInput.trim();
-    const cleanName = customerNameInput.trim();
 
     if (!cleanInvoice) {
-      setErrorMsg('Please enter your Invoice Number (e.g., 002018 or INV-002018).');
-      return;
-    }
-
-    if (!cleanName) {
-      setErrorMsg('Please enter your Customer Name.');
-      setStep(1);
+      setErrorMsg('Please enter your 6-digit Invoice Number (e.g. 002018 or INV-002018).');
       return;
     }
 
@@ -145,7 +120,6 @@ export default function BillPortal() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           invoiceNumber: cleanInvoice,
-          customerName: cleanName,
         }),
       });
 
@@ -154,7 +128,7 @@ export default function BillPortal() {
       if (!res.ok || !data.success) {
         throw new Error(
           data.message ||
-            "We couldn't find a bill matching those details. Please check your Customer Name and Invoice Number."
+            "We couldn't find an invoice matching that number. Please check your invoice number."
         );
       }
 
@@ -174,7 +148,7 @@ export default function BillPortal() {
     } catch (err: any) {
       setErrorMsg(
         err.message ||
-          "We couldn't find a bill matching those details. Please check your Customer Name and Invoice Number."
+          "We couldn't find an invoice matching that number. Please check your invoice number."
       );
     } finally {
       setIsLoading(false);
@@ -194,8 +168,6 @@ export default function BillPortal() {
     setPayments([]);
     setSummary(null);
     setInvoiceInput('');
-    setCustomerNameInput('');
-    setStep(1);
     setView('lookup');
     setErrorMsg(null);
   };
@@ -246,7 +218,7 @@ export default function BillPortal() {
 
   return (
     <div className="w-full max-w-5xl mx-auto px-4 py-6 sm:py-8">
-      {/* View 1: 2-Step Invoice Lookup Flow */}
+      {/* View 1: Direct Invoice Lookup */}
       {view === 'lookup' && (
         <motion.div
           initial={{ opacity: 0, y: 16 }}
@@ -254,7 +226,7 @@ export default function BillPortal() {
           transition={{ duration: 0.35 }}
           className="max-w-lg mx-auto bg-white rounded-3xl p-6 sm:p-9 shadow-xl border border-gray-100"
         >
-          {/* Logo & Step Progress Indicator */}
+          {/* Logo & Header */}
           <div className="text-center mb-6">
             <div className="relative w-16 h-16 rounded-2xl overflow-hidden bg-primary/5 p-1.5 border border-primary/10 flex items-center justify-center mx-auto mb-4 shadow-xs">
               <Image
@@ -267,59 +239,17 @@ export default function BillPortal() {
               />
             </div>
 
-            {/* Minimal Ananke Progress Indicator */}
-            <div className="flex items-center justify-center gap-3 mb-2">
-              <button
-                type="button"
-                onClick={() => {
-                  if (step === 2) {
-                    setErrorMsg(null);
-                    setStep(1);
-                  }
-                }}
-                className={`flex items-center gap-1.5 text-xs font-semibold transition-colors ${
-                  step === 1
-                    ? 'text-[#163824] cursor-default'
-                    : 'text-gray-500 hover:text-[#163824] cursor-pointer'
-                }`}
-              >
-                <span
-                  className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold transition-all ${
-                    step === 1
-                      ? 'bg-[#163824] text-white shadow-2xs'
-                      : 'bg-emerald-100 text-emerald-800'
-                  }`}
-                >
-                  {step > 1 ? <CheckCircle2 size={12} className="text-emerald-700" /> : '01'}
-                </span>
-                <span>Name</span>
-              </button>
-
-              <div className="w-8 sm:w-12 h-0.5 bg-gray-200 rounded-full overflow-hidden">
-                <div
-                  className={`h-full bg-emerald-600 transition-all duration-300 ${
-                    step === 2 ? 'w-full' : 'w-0'
-                  }`}
-                />
-              </div>
-
-              <div
-                className={`flex items-center gap-1.5 text-xs font-semibold ${
-                  step === 2 ? 'text-[#163824]' : 'text-gray-400'
-                }`}
-              >
-                <span
-                  className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold transition-all ${
-                    step === 2
-                      ? 'bg-[#163824] text-white shadow-2xs'
-                      : 'bg-gray-100 text-gray-400'
-                  }`}
-                >
-                  02
-                </span>
-                <span>Invoice</span>
-              </div>
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-cream text-olive text-xs font-semibold mb-3 border border-olive/20">
+              <Sparkles size={13} className="text-olive" />
+              <span>Instant Zoho Books Access</span>
             </div>
+
+            <h2 className="font-heading font-bold text-2xl sm:text-3xl text-dark tracking-tight">
+              View My <span className="text-olive italic">Bill &amp; Receipts</span>
+            </h2>
+            <p className="text-gray-600 text-xs sm:text-sm font-body mt-2 leading-relaxed">
+              Enter your 6-digit invoice number shown on your Ananke Laundry invoice or receipt.
+            </p>
           </div>
 
           {errorMsg && (
@@ -329,144 +259,40 @@ export default function BillPortal() {
             </div>
           )}
 
-          {/* Animated 2-Step Transition */}
-          <AnimatePresence mode="wait">
-            {step === 1 ? (
-              <motion.div
-                key="step-1"
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                transition={{ duration: 0.3 }}
-              >
-                <div className="text-center mb-6">
-                  <h2 className="font-heading font-bold text-2xl sm:text-3xl text-dark tracking-tight">
-                    View My <span className="text-olive italic">Bill &amp; Receipts</span>
-                  </h2>
-                  <p className="text-gray-600 text-xs sm:text-sm font-body mt-2 leading-relaxed">
-                    Enter the Customer Name registered on your Ananke Laundry order or invoice.
-                  </p>
-                </div>
+          {/* Single-Step Invoice Input Form */}
+          <form onSubmit={handleLookup} className="space-y-4">
+            <div>
+              <InvoiceSegmentInput
+                value={invoiceInput}
+                onChange={(val) => setInvoiceInput(val)}
+                onEnter={() => handleLookup()}
+                disabled={isLoading}
+              />
+              <p className="text-[11px] text-gray-400 mt-2 text-center">
+                e.g. 002018, INV-002018 or ANK-1042 &bull; Case-insensitive
+              </p>
+            </div>
 
-                <form onSubmit={handleStep1Next} className="space-y-4">
-                  {/* Customer Name Input */}
-                  <div>
-                    <label
-                      htmlFor="customerName"
-                      className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1.5"
-                    >
-                      Customer Name *
-                    </label>
-                    <div className="relative flex items-center">
-                      <div className="absolute left-3.5 flex items-center gap-1.5 text-xs font-semibold text-gray-500 border-r border-gray-200 pr-2.5">
-                        <User size={16} className="text-olive" />
-                      </div>
-                      <input
-                        id="customerName"
-                        type="text"
-                        value={customerNameInput}
-                        onChange={(e) => setCustomerNameInput(e.target.value)}
-                        placeholder="e.g. Chinthaka or Hotel Amangalla"
-                        className="w-full pl-12 pr-4 py-3.5 rounded-2xl border border-gray-200 text-dark font-medium text-sm sm:text-base focus:outline-none focus:border-olive focus:ring-2 focus:ring-olive/20 transition-all bg-cream/30"
-                        autoFocus
-                        required
-                      />
-                    </div>
-                    <p className="text-[11px] text-gray-400 mt-1 pl-1">
-                      Enter the name as displayed on your laundry receipt or quotation.
-                    </p>
-                  </div>
-
-                  {/* Next Button */}
-                  <button
-                    type="submit"
-                    disabled={!customerNameInput.trim()}
-                    className="w-full mt-2 py-3.5 px-6 rounded-2xl bg-[#163824] hover:bg-olive text-white font-semibold text-sm transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 group cursor-pointer"
-                  >
-                    <span>Next</span>
-                    <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
-                  </button>
-                </form>
-              </motion.div>
-            ) : (
-              <motion.div
-                key="step-2"
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 20 }}
-                transition={{ duration: 0.3 }}
-              >
-                <div className="text-center mb-5">
-                  <div className="relative w-11 h-11 rounded-2xl bg-[#163824]/5 border border-[#163824]/10 flex items-center justify-center mx-auto mb-3 shadow-2xs">
-                    <Sparkles className="w-5 h-5 text-olive animate-pulse" />
-                  </div>
-                  <h2 className="font-heading font-bold text-2xl sm:text-3xl text-dark tracking-tight">
-                    Enter <span className="text-olive italic">Invoice Number</span>
-                  </h2>
-                  <p className="text-gray-600 text-xs sm:text-sm font-body mt-1.5 leading-relaxed">
-                    Enter the 6-digit invoice number shown on your Ananke Laundry invoice or receipt.
-                  </p>
-                </div>
-
-                {/* Registered Customer Name Display with Change Button */}
-                <div className="bg-cream/70 border border-gray-200/80 rounded-2xl px-4 py-2.5 mb-5 flex items-center justify-between">
-                  <div>
-                    <span className="text-[10px] uppercase font-bold tracking-wider text-gray-500 block">
-                      Customer Name
-                    </span>
-                    <span className="font-semibold text-xs sm:text-sm text-dark">
-                      {customerNameInput}
-                    </span>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setErrorMsg(null);
-                      setStep(1);
-                    }}
-                    className="text-xs font-semibold text-olive hover:text-dark hover:underline transition-colors cursor-pointer"
-                  >
-                    [ Change ]
-                  </button>
-                </div>
-
-                <form onSubmit={handleLookup} className="space-y-4">
-                  {/* Segmented Invoice Input */}
-                  <div>
-                    <InvoiceSegmentInput
-                      value={invoiceInput}
-                      onChange={(val) => setInvoiceInput(val)}
-                      onEnter={() => handleLookup()}
-                      disabled={isLoading}
-                    />
-                    <p className="text-[11px] text-gray-400 mt-2 text-center">
-                      e.g. 002018, INV-002018 or ANK-1042 &bull; Case-insensitive
-                    </p>
-                  </div>
-
-                  {/* Find My Bill Button */}
-                  <button
-                    type="submit"
-                    disabled={isLoading || !invoiceInput.trim() || !customerNameInput.trim()}
-                    className="w-full mt-3 py-3.5 px-6 rounded-2xl bg-[#163824] hover:bg-olive text-white font-semibold text-sm transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 group cursor-pointer"
-                  >
-                    {isLoading ? (
-                      <>
-                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                        <span>Searching Records in Zoho...</span>
-                      </>
-                    ) : (
-                      <>
-                        <Search size={16} />
-                        <span>Find My Bill</span>
-                        <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
-                      </>
-                    )}
-                  </button>
-                </form>
-              </motion.div>
-            )}
-          </AnimatePresence>
+            {/* Find My Bill Button */}
+            <button
+              type="submit"
+              disabled={isLoading || !invoiceInput.trim()}
+              className="w-full mt-3 py-3.5 px-6 rounded-2xl bg-[#163824] hover:bg-olive text-white font-semibold text-sm transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 group cursor-pointer"
+            >
+              {isLoading ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  <span>Searching Records in Zoho...</span>
+                </>
+              ) : (
+                <>
+                  <Search size={16} />
+                  <span>Find My Bill</span>
+                  <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+                </>
+              )}
+            </button>
+          </form>
 
           {/* Quick Help & Security Guarantee */}
           <div className="mt-6 pt-5 border-t border-gray-100 space-y-2.5 text-center">
@@ -512,9 +338,15 @@ export default function BillPortal() {
                 <h2 className="text-xl sm:text-2xl md:text-3xl font-bold font-heading text-dark">
                   {customer?.name || 'Valued Customer'}
                 </h2>
-                <p className="text-gray-500 text-xs sm:text-sm font-body mt-0.5">
-                  Verified Contact: <span className="font-mono text-dark font-medium">{customer?.phone || customer?.localPhone}</span>
-                </p>
+                {customer?.phone && customer.phone !== 'N/A' ? (
+                  <p className="text-gray-500 text-xs sm:text-sm font-body mt-0.5">
+                    Verified Contact: <span className="font-mono text-dark font-medium">{customer?.phone || customer?.localPhone}</span>
+                  </p>
+                ) : (
+                  <p className="text-gray-500 text-xs sm:text-sm font-body mt-0.5">
+                    Invoice: <span className="font-mono text-dark font-medium">{invoices[0]?.invoice_number || 'Direct Zoho Verification'}</span>
+                  </p>
+                )}
               </div>
             </div>
 

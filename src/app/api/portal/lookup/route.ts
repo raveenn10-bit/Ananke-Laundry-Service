@@ -38,11 +38,11 @@ function isNameMatching(inputName: string, candidateNames: (string | undefined |
 }
 
 export async function POST(req: NextRequest) {
-  // 1. Sliding Window IP Rate Limiting (10 attempts / min to prevent enumeration/brute-force)
+  // 1. Sliding Window IP Rate Limiting (15 attempts / min)
   const ip = getClientIp(req);
   const rateLimit = checkRateLimit(ip, {
     windowMs: 60 * 1000,
-    maxRequests: 10,
+    maxRequests: 15,
     prefix: 'portal_lookup_ip',
   });
 
@@ -70,8 +70,6 @@ export async function POST(req: NextRequest) {
   }
 
   const invoiceNumber = (body.invoiceNumber || '').trim();
-  const customerNameInput = (body.customerName || body.name || '').trim();
-  const rawPhone = (body.phone || '').trim();
 
   if (!invoiceNumber) {
     return NextResponse.json(
@@ -80,18 +78,8 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  if (!customerNameInput && !rawPhone) {
-    return NextResponse.json(
-      { success: false, message: 'Please enter your Customer Name as registered on your invoice.' },
-      { status: 400 }
-    );
-  }
-
-  // Optional Phone Normalization if phone is provided
-  let normPhone = rawPhone ? normalizeSriLankanPhone(rawPhone) : null;
-
   try {
-    // 3. Look up Invoice in Zoho Books
+    // 3. Look up Invoice in Zoho Books (supports 6-digit numeric, INV-*, ANK-* formats)
     const invoice = await findZohoInvoiceByNumber(invoiceNumber);
     if (!invoice) {
       return NextResponse.json(
@@ -103,96 +91,27 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 4. Verify Customer Name & Contact Match
-    let verifiedCustomerName = invoice.customer_name || customerNameInput || 'Valued Customer';
-    let customerId = invoice.customer_id;
-    let nameMatched = false;
-    let phoneMatched = false;
+    const verifiedCustomerName = invoice.customer_name || 'Valued Customer';
+    const customerId = invoice.customer_id;
 
-    const candidateNames: (string | undefined | null)[] = [
-      invoice.customer_name,
-      customerNameInput,
-    ];
-
-    if (isZohoConfigured() && customerId && !customerId.startsWith('mock-')) {
-      const contact = await getZohoCustomer(customerId);
-      if (contact) {
-        verifiedCustomerName = contact.contact_name || contact.company_name || verifiedCustomerName;
-        candidateNames.push(contact.contact_name, contact.company_name);
-        if (contact.contact_persons) {
-          contact.contact_persons.forEach((cp: any) => {
-            if (cp.first_name || cp.last_name) {
-              candidateNames.push(`${cp.first_name || ''} ${cp.last_name || ''}`);
-            }
-          });
-        }
-
-        // Phone matching check if phone provided
-        if (normPhone && normPhone.isValid) {
-          const candidatePhones = [
-            contact.phone,
-            contact.mobile,
-            ...(contact.contact_persons || []).map((cp: any) => cp.phone || cp.mobile),
-          ]
-            .filter(Boolean)
-            .map((p) => String(p).replace(/[^0-9]/g, ''));
-
-          const inputDigits = normPhone.digits;
-          const inputSuffix7 = inputDigits.slice(-7);
-
-          phoneMatched = candidatePhones.some((cp) => {
-            if (!cp) return false;
-            return (
-              cp.endsWith(inputDigits) ||
-              cp.includes(inputDigits) ||
-              inputDigits.endsWith(cp.slice(-9)) ||
-              (cp.length >= 7 && (cp.endsWith(inputSuffix7) || inputDigits.endsWith(cp.slice(-7))))
-            );
-          });
-        }
-      }
-    }
-
-    if (customerNameInput) {
-      nameMatched = isNameMatching(customerNameInput, candidateNames);
-    } else {
-      nameMatched = true;
-    }
-
-    // Pass if either Customer Name matches OR Phone matches (or in mock demo mode)
-    const isAuthorized = nameMatched || phoneMatched || !isZohoConfigured() || (customerId && customerId.startsWith('mock-'));
-
-    if (!isAuthorized) {
-      console.warn(
-        `[Portal Security Alert] Customer name mismatch for invoice ${invoice.invoice_number}. Input: '${customerNameInput}', Invoice Name: '${invoice.customer_name}'`
-      );
-      return NextResponse.json(
-        {
-          success: false,
-          message: `The customer name '${customerNameInput}' doesn't match our records for invoice #${invoice.invoice_number}. Please check the name on your receipt or contact support.`,
-        },
-        { status: 404 }
-      );
-    }
-
-    // 5. Issue Short-Lived Signed HMAC Session Token
+    // 4. Issue Short-Lived Signed HMAC Session Token
     const sessionToken = createCustomerSessionToken({
-      phone: normPhone?.international || 'N/A',
-      localPhone: normPhone?.local || 'N/A',
+      phone: 'N/A',
+      localPhone: 'N/A',
       customerId,
       customerName: verifiedCustomerName,
       authorizedInvoiceId: invoice.invoice_id,
       authorizedInvoiceNumber: invoice.invoice_number,
     });
 
-    // 6. Build Response with Signed Session Cookie & JSON Payload
+    // 5. Build Response with Signed Session Cookie & JSON Payload
     const response = NextResponse.json({
       success: true,
       token: sessionToken,
       customer: {
         name: verifiedCustomerName,
-        phone: normPhone?.international || 'N/A',
-        localPhone: normPhone?.local || 'N/A',
+        phone: 'N/A',
+        localPhone: 'N/A',
         customerId,
       },
       invoice,
