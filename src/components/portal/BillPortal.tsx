@@ -43,6 +43,7 @@ interface FinancialSummary {
 
 const OFFICIAL_WHATSAPP_NUMBER = '94742697909';
 const OFFICIAL_PHONE_DISPLAY = '091 225 0777';
+const SESSION_TIMEOUT_SECONDS = 60; // Auto-timeout after 1 minute
 
 export default function BillPortal() {
   // View State
@@ -50,6 +51,10 @@ export default function BillPortal() {
   const [invoiceInput, setInvoiceInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  // Auto-timeout State (1 minute security limit)
+  const [timeLeft, setTimeLeft] = useState(SESSION_TIMEOUT_SECONDS);
+  const [timeoutNotice, setTimeoutNotice] = useState<string | null>(null);
 
   // Verified Customer & Invoices
   const [customer, setCustomer] = useState<CustomerInfo | null>(null);
@@ -86,6 +91,46 @@ export default function BillPortal() {
     checkExistingSession();
   }, []);
 
+  // Auto-timeout countdown when viewing bill dashboard (1 minute limit)
+  useEffect(() => {
+    if (view !== 'dashboard') return;
+
+    setTimeLeft(SESSION_TIMEOUT_SECONDS);
+
+    const timer = setInterval(() => {
+      setTimeLeft((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          handleAutoTimeout();
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [view]);
+
+  const handleAutoTimeout = async () => {
+    setPreviewModalOpen(false);
+    try {
+      await fetch('/api/portal/logout', { method: 'POST' });
+    } catch {
+      // Best-effort logout call
+    }
+    document.cookie = 'ananke_portal_session=; Path=/; Max-Age=0;';
+    setCustomer(null);
+    setInvoices([]);
+    setPayments([]);
+    setSummary(null);
+    setInvoiceInput('');
+    setView('lookup');
+    setErrorMsg(null);
+    setTimeoutNotice(
+      'Your session expired after 1 minute for privacy & security. Please re-enter your invoice number to view again.'
+    );
+  };
+
   const loadPayments = async () => {
     try {
       const res = await fetch('/api/portal/payments');
@@ -104,6 +149,7 @@ export default function BillPortal() {
   const handleLookup = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     setErrorMsg(null);
+    setTimeoutNotice(null);
 
     const cleanInvoice = invoiceInput.trim();
 
@@ -170,6 +216,7 @@ export default function BillPortal() {
     setInvoiceInput('');
     setView('lookup');
     setErrorMsg(null);
+    setTimeoutNotice(null);
   };
 
   // Filter invoices
@@ -251,6 +298,16 @@ export default function BillPortal() {
               Enter your 6-digit invoice number shown on your Ananke Laundry invoice or receipt.
             </p>
           </div>
+
+          {timeoutNotice && (
+            <div className="mb-5 p-3.5 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 text-xs flex items-start gap-2.5">
+              <Clock size={16} className="shrink-0 mt-0.5 text-amber-600" />
+              <div className="leading-relaxed">
+                <p className="font-semibold text-amber-900">Session Automatically Closed</p>
+                <p className="text-amber-800/90 mt-0.5">{timeoutNotice}</p>
+              </div>
+            </div>
+          )}
 
           {errorMsg && (
             <div className="mb-5 p-3.5 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-start gap-2.5">
@@ -351,6 +408,21 @@ export default function BillPortal() {
             </div>
 
             <div className="flex items-center gap-2.5 flex-wrap">
+              {/* Privacy Countdown Indicator */}
+              <div
+                className={`px-3 py-1.5 rounded-full text-xs font-mono font-medium flex items-center gap-1.5 transition-colors ${
+                  timeLeft <= 15
+                    ? 'bg-rose-50 text-rose-700 border border-rose-200 animate-pulse'
+                    : 'bg-amber-50 text-amber-800 border border-amber-200'
+                }`}
+                title="For privacy protection, your bill session automatically closes after 1 minute"
+              >
+                <Clock size={13} className={timeLeft <= 15 ? 'text-rose-600' : 'text-amber-600'} />
+                <span>
+                  Closes in {Math.floor(timeLeft / 60)}:{String(timeLeft % 60).padStart(2, '0')}
+                </span>
+              </div>
+
               <a
                 href={`tel:+94912250777`}
                 className="px-3.5 py-2 rounded-full border border-gray-200 text-dark hover:border-olive text-xs font-medium transition-colors flex items-center gap-1.5"
@@ -360,7 +432,7 @@ export default function BillPortal() {
               </a>
               <button
                 onClick={handleLogout}
-                className="px-3.5 py-2 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-semibold transition-colors flex items-center gap-1.5"
+                className="px-3.5 py-2 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-semibold transition-colors flex items-center gap-1.5 cursor-pointer"
                 title="Search another bill"
               >
                 <Search size={13} />
@@ -619,6 +691,7 @@ export default function BillPortal() {
         type={previewType}
         invoice={selectedInvoice}
         payment={selectedPayment}
+        timeLeft={timeLeft}
       />
     </div>
   );

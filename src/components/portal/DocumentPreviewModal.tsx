@@ -12,6 +12,7 @@ interface DocumentPreviewModalProps {
   type: 'invoice' | 'receipt';
   invoice?: ZohoInvoice | null;
   payment?: ZohoPayment | null;
+  timeLeft?: number;
 }
 
 export default function DocumentPreviewModal({
@@ -20,6 +21,7 @@ export default function DocumentPreviewModal({
   type,
   invoice,
   payment,
+  timeLeft,
 }: DocumentPreviewModalProps) {
   // Prevent background scrolling when modal is open
   useEffect(() => {
@@ -93,6 +95,19 @@ export default function DocumentPreviewModal({
             </div>
 
             <div className="flex items-center gap-2">
+              {typeof timeLeft === 'number' && (
+                <div
+                  className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-mono font-medium transition-colors ${
+                    timeLeft <= 15
+                      ? 'bg-rose-500/25 text-rose-200 border border-rose-400/40 animate-pulse'
+                      : 'bg-white/10 text-white/90 border border-white/10'
+                  }`}
+                  title="Session will auto-close for privacy"
+                >
+                  <Clock size={13} className={timeLeft <= 15 ? 'text-rose-300' : 'text-accent'} />
+                  <span>{timeLeft}s</span>
+                </div>
+              )}
               <button
                 onClick={handlePrint}
                 className="p-2 rounded-xl bg-white/10 hover:bg-white/20 text-white transition-colors"
