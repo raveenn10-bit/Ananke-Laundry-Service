@@ -19,6 +19,7 @@ import {
   Search,
   MessageSquare,
   HelpCircle,
+  User,
 } from 'lucide-react';
 import { ZohoInvoice, ZohoPayment } from '@/types/zoho';
 import DocumentPreviewModal from './DocumentPreviewModal';
@@ -29,8 +30,8 @@ type FilterStatus = 'ALL' | 'PAID' | 'UNPAID' | 'PARTIALLY_PAID';
 
 interface CustomerInfo {
   name: string;
-  phone: string;
-  localPhone: string;
+  phone?: string;
+  localPhone?: string;
   formatted?: string;
   customerId?: string;
 }
@@ -45,35 +46,12 @@ interface FinancialSummary {
 const OFFICIAL_WHATSAPP_NUMBER = '94742697909';
 const OFFICIAL_PHONE_DISPLAY = '091 225 0777';
 
-function isValidPhone(input: string): boolean {
-  const cleaned = input.trim().replace(/[\s\-\.\(\)]/g, '');
-  let digits = cleaned;
-  if (digits.startsWith('+94')) digits = digits.slice(3);
-  else if (digits.startsWith('0094')) digits = digits.slice(4);
-  else if (digits.startsWith('94') && digits.length === 11) digits = digits.slice(2);
-  else if (digits.startsWith('0') && digits.length === 10) digits = digits.slice(1);
-  return /^\d{9}$/.test(digits);
-}
-
-function maskPhone(input: string): string {
-  const cleaned = input.trim().replace(/[\s\-\.\(\)]/g, '');
-  let digits = cleaned;
-  if (digits.startsWith('+94')) digits = digits.slice(3);
-  else if (digits.startsWith('0094')) digits = digits.slice(4);
-  else if (digits.startsWith('94') && digits.length === 11) digits = digits.slice(2);
-  else if (digits.startsWith('0') && digits.length === 10) digits = digits.slice(1);
-  if (digits.length === 9) {
-    return `0${digits.slice(0, 2)} *** ${digits.slice(-4)}`;
-  }
-  return input;
-}
-
 export default function BillPortal() {
   // View & Step State
   const [view, setView] = useState<PortalView>('lookup');
   const [step, setStep] = useState<1 | 2>(1);
   const [invoiceInput, setInvoiceInput] = useState('');
-  const [phoneInput, setPhoneInput] = useState('');
+  const [customerNameInput, setCustomerNameInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
@@ -126,19 +104,14 @@ export default function BillPortal() {
     }
   };
 
-  // Step 1: Validate phone and proceed to Step 2
+  // Step 1: Validate Customer Name and proceed to Step 2
   const handleStep1Next = (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg(null);
 
-    const cleanPhone = phoneInput.trim();
-    if (!cleanPhone) {
-      setErrorMsg('Please enter your Phone or WhatsApp Number.');
-      return;
-    }
-
-    if (!isValidPhone(cleanPhone)) {
-      setErrorMsg('Please enter a valid phone number (e.g. 077 123 4567 or +94 77 123 4567).');
+    const cleanName = customerNameInput.trim();
+    if (!cleanName) {
+      setErrorMsg('Please enter your Customer Name as registered on your invoice or receipt.');
       return;
     }
 
@@ -151,15 +124,15 @@ export default function BillPortal() {
     setErrorMsg(null);
 
     const cleanInvoice = invoiceInput.trim();
-    const cleanPhone = phoneInput.trim();
+    const cleanName = customerNameInput.trim();
 
     if (!cleanInvoice) {
-      setErrorMsg('Please enter your Invoice Number (e.g., INV-000123 or ANK-1042).');
+      setErrorMsg('Please enter your Invoice Number (e.g., 002018 or INV-002018).');
       return;
     }
 
-    if (!cleanPhone) {
-      setErrorMsg('Please enter your Phone or WhatsApp Number.');
+    if (!cleanName) {
+      setErrorMsg('Please enter your Customer Name.');
       setStep(1);
       return;
     }
@@ -172,7 +145,7 @@ export default function BillPortal() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           invoiceNumber: cleanInvoice,
-          phone: cleanPhone,
+          customerName: cleanName,
         }),
       });
 
@@ -180,7 +153,8 @@ export default function BillPortal() {
 
       if (!res.ok || !data.success) {
         throw new Error(
-          "We couldn't find a bill matching those details. Please check your phone number and invoice number."
+          data.message ||
+            "We couldn't find a bill matching those details. Please check your Customer Name and Invoice Number."
         );
       }
 
@@ -200,7 +174,7 @@ export default function BillPortal() {
     } catch (err: any) {
       setErrorMsg(
         err.message ||
-          "We couldn't find a bill matching those details. Please check your phone number and invoice number."
+          "We couldn't find a bill matching those details. Please check your Customer Name and Invoice Number."
       );
     } finally {
       setIsLoading(false);
@@ -220,7 +194,7 @@ export default function BillPortal() {
     setPayments([]);
     setSummary(null);
     setInvoiceInput('');
-    setPhoneInput('');
+    setCustomerNameInput('');
     setStep(1);
     setView('lookup');
     setErrorMsg(null);
@@ -318,7 +292,7 @@ export default function BillPortal() {
                 >
                   {step > 1 ? <CheckCircle2 size={12} className="text-emerald-700" /> : '01'}
                 </span>
-                <span>Phone</span>
+                <span>Name</span>
               </button>
 
               <div className="w-8 sm:w-12 h-0.5 bg-gray-200 rounded-full overflow-hidden">
@@ -370,46 +344,43 @@ export default function BillPortal() {
                     View My <span className="text-olive italic">Bill &amp; Receipts</span>
                   </h2>
                   <p className="text-gray-600 text-xs sm:text-sm font-body mt-2 leading-relaxed">
-                    Enter the phone or WhatsApp number registered with your laundry order.
+                    Enter the Customer Name registered on your Ananke Laundry order or invoice.
                   </p>
                 </div>
 
                 <form onSubmit={handleStep1Next} className="space-y-4">
-                  {/* Phone / WhatsApp Input */}
+                  {/* Customer Name Input */}
                   <div>
                     <label
-                      htmlFor="phone"
+                      htmlFor="customerName"
                       className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1.5"
                     >
-                      Phone / WhatsApp Number *
+                      Customer Name *
                     </label>
                     <div className="relative flex items-center">
                       <div className="absolute left-3.5 flex items-center gap-1.5 text-xs font-semibold text-gray-500 border-r border-gray-200 pr-2.5">
-                        <span className="text-base leading-none">🇱🇰</span>
-                        <span>+94</span>
+                        <User size={16} className="text-olive" />
                       </div>
                       <input
-                        id="phone"
-                        type="tel"
-                        inputMode="tel"
-                        autoComplete="tel"
-                        value={phoneInput}
-                        onChange={(e) => setPhoneInput(e.target.value)}
-                        placeholder="077 123 4567"
-                        className="w-full pl-24 pr-4 py-3.5 rounded-2xl border border-gray-200 text-dark font-medium text-sm sm:text-base focus:outline-none focus:border-olive focus:ring-2 focus:ring-olive/20 transition-all bg-cream/30"
+                        id="customerName"
+                        type="text"
+                        value={customerNameInput}
+                        onChange={(e) => setCustomerNameInput(e.target.value)}
+                        placeholder="e.g. Chinthaka or Hotel Amangalla"
+                        className="w-full pl-12 pr-4 py-3.5 rounded-2xl border border-gray-200 text-dark font-medium text-sm sm:text-base focus:outline-none focus:border-olive focus:ring-2 focus:ring-olive/20 transition-all bg-cream/30"
                         autoFocus
                         required
                       />
                     </div>
                     <p className="text-[11px] text-gray-400 mt-1 pl-1">
-                      Accepts 07XXXXXXXX, +947XXXXXXXX, or landlines (e.g. 091 225 0777).
+                      Enter the name as displayed on your laundry receipt or quotation.
                     </p>
                   </div>
 
                   {/* Next Button */}
                   <button
                     type="submit"
-                    disabled={!phoneInput.trim()}
+                    disabled={!customerNameInput.trim()}
                     className="w-full mt-2 py-3.5 px-6 rounded-2xl bg-[#163824] hover:bg-olive text-white font-semibold text-sm transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 group cursor-pointer"
                   >
                     <span>Next</span>
@@ -433,18 +404,18 @@ export default function BillPortal() {
                     Enter <span className="text-olive italic">Invoice Number</span>
                   </h2>
                   <p className="text-gray-600 text-xs sm:text-sm font-body mt-1.5 leading-relaxed">
-                    Enter the invoice number shown on your Ananke Laundry invoice or receipt.
+                    Enter the 6-digit invoice number shown on your Ananke Laundry invoice or receipt.
                   </p>
                 </div>
 
-                {/* Discreet Registered Number Display with Change Button */}
+                {/* Registered Customer Name Display with Change Button */}
                 <div className="bg-cream/70 border border-gray-200/80 rounded-2xl px-4 py-2.5 mb-5 flex items-center justify-between">
                   <div>
                     <span className="text-[10px] uppercase font-bold tracking-wider text-gray-500 block">
-                      Registered Number
+                      Customer Name
                     </span>
-                    <span className="font-mono font-semibold text-xs sm:text-sm text-dark">
-                      {maskPhone(phoneInput)}
+                    <span className="font-semibold text-xs sm:text-sm text-dark">
+                      {customerNameInput}
                     </span>
                   </div>
                   <button
@@ -476,7 +447,7 @@ export default function BillPortal() {
                   {/* Find My Bill Button */}
                   <button
                     type="submit"
-                    disabled={isLoading || !invoiceInput.trim() || !phoneInput.trim()}
+                    disabled={isLoading || !invoiceInput.trim() || !customerNameInput.trim()}
                     className="w-full mt-3 py-3.5 px-6 rounded-2xl bg-[#163824] hover:bg-olive text-white font-semibold text-sm transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 group cursor-pointer"
                   >
                     {isLoading ? (

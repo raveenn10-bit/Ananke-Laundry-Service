@@ -8,8 +8,34 @@ import {
 import { getClientIp, checkRateLimit } from '@/lib/security/rateLimiter';
 import { findZohoInvoiceByNumber, getZohoCustomer, isZohoConfigured } from '@/services/zoho';
 
-const GENERIC_ERROR_MESSAGE =
-  "We couldn't find a matching bill with those details. Please double-check your Invoice Number (e.g., INV-000123) and Phone Number, or contact our support team on WhatsApp.";
+function isNameMatching(inputName: string, candidateNames: (string | undefined | null)[]): boolean {
+  const cleanInput = inputName.trim().toLowerCase();
+  if (!cleanInput) return true;
+
+  const inputWords = cleanInput.split(/\s+/).filter((w) => w.length >= 2);
+
+  for (const rawCandidate of candidateNames) {
+    if (!rawCandidate) continue;
+    const cleanCand = String(rawCandidate).trim().toLowerCase();
+    if (!cleanCand) continue;
+
+    // Exact or substring match
+    if (cleanCand.includes(cleanInput) || cleanInput.includes(cleanCand)) {
+      return true;
+    }
+
+    // Word-by-word overlap match
+    const candWords = cleanCand.split(/\s+/).filter((w) => w.length >= 2);
+    const hasWordOverlap = inputWords.some((iw) =>
+      candWords.some((cw) => cw.includes(iw) || iw.includes(cw))
+    );
+    if (hasWordOverlap) {
+      return true;
+    }
+  }
+
+  return false;
+}
 
 export async function POST(req: NextRequest) {
   // 1. Sliding Window IP Rate Limiting (10 attempts / min to prevent enumeration/brute-force)
@@ -44,110 +70,129 @@ export async function POST(req: NextRequest) {
   }
 
   const invoiceNumber = (body.invoiceNumber || '').trim();
+  const customerNameInput = (body.customerName || body.name || '').trim();
   const rawPhone = (body.phone || '').trim();
 
   if (!invoiceNumber) {
     return NextResponse.json(
-      { success: false, message: 'Please enter your Invoice Number (e.g. INV-000123).' },
+      { success: false, message: 'Please enter your Invoice Number (e.g. 002018 or INV-002018).' },
       { status: 400 }
     );
   }
 
-  if (!rawPhone) {
+  if (!customerNameInput && !rawPhone) {
     return NextResponse.json(
-      { success: false, message: 'Please enter your Phone or WhatsApp number.' },
+      { success: false, message: 'Please enter your Customer Name as registered on your invoice.' },
       { status: 400 }
     );
   }
 
-  // 3. Strict Phone Normalization (+947XXXXXXXX and local 07XXXXXXXX)
-  const normPhone = normalizeSriLankanPhone(rawPhone);
-  if (!normPhone.isValid) {
-    return NextResponse.json(
-      {
-        success: false,
-        message: normPhone.error || 'Please enter a valid Sri Lankan phone number (e.g. 077 123 4567).',
-      },
-      { status: 400 }
-    );
-  }
+  // Optional Phone Normalization if phone is provided
+  let normPhone = rawPhone ? normalizeSriLankanPhone(rawPhone) : null;
 
   try {
-    // 4. Look up Invoice in Zoho Books
+    // 3. Look up Invoice in Zoho Books
     const invoice = await findZohoInvoiceByNumber(invoiceNumber);
     if (!invoice) {
-      return NextResponse.json({ success: false, message: GENERIC_ERROR_MESSAGE }, { status: 404 });
+      return NextResponse.json(
+        {
+          success: false,
+          message: `We couldn't find an invoice matching '${invoiceNumber}'. Please double-check your invoice number (e.g., 002018 or INV-002018).`,
+        },
+        { status: 404 }
+      );
     }
 
-    // 5. Verify Customer Phone Match
-    let phoneMatched = false;
-    let customerName = invoice.customer_name || 'Valued Customer';
+    // 4. Verify Customer Name & Contact Match
+    let verifiedCustomerName = invoice.customer_name || customerNameInput || 'Valued Customer';
     let customerId = invoice.customer_id;
+    let nameMatched = false;
+    let phoneMatched = false;
+
+    const candidateNames: (string | undefined | null)[] = [
+      invoice.customer_name,
+      customerNameInput,
+    ];
 
     if (isZohoConfigured() && customerId && !customerId.startsWith('mock-')) {
       const contact = await getZohoCustomer(customerId);
       if (contact) {
-        customerName = contact.contact_name || contact.company_name || customerName;
-        const candidatePhones = [
-          contact.phone,
-          contact.mobile,
-          ...(contact.contact_persons || []).map((cp: any) => cp.phone || cp.mobile),
-        ]
-          .filter(Boolean)
-          .map((p) => String(p).replace(/[^0-9]/g, ''));
-
-        const inputDigits = normPhone.digits; // e.g. 762697909 (9 digits)
-        const inputSuffix7 = inputDigits.slice(-7);
-
-        phoneMatched = candidatePhones.some((cp) => {
-          if (!cp) return false;
-          if (cp.endsWith(inputDigits) || cp.includes(inputDigits) || inputDigits.endsWith(cp.slice(-9))) {
-            return true;
-          }
-          if (cp.length >= 7 && (cp.endsWith(inputSuffix7) || inputDigits.endsWith(cp.slice(-7)))) {
-            return true;
-          }
-          return false;
-        });
-
-        // Fallback: If contact details are empty, trust authorized invoice match
-        if (candidatePhones.length === 0) {
-          phoneMatched = true;
+        verifiedCustomerName = contact.contact_name || contact.company_name || verifiedCustomerName;
+        candidateNames.push(contact.contact_name, contact.company_name);
+        if (contact.contact_persons) {
+          contact.contact_persons.forEach((cp: any) => {
+            if (cp.first_name || cp.last_name) {
+              candidateNames.push(`${cp.first_name || ''} ${cp.last_name || ''}`);
+            }
+          });
         }
-      } else {
-        // Fallback if contact endpoint is slow/unavailable
-        phoneMatched = true;
+
+        // Phone matching check if phone provided
+        if (normPhone && normPhone.isValid) {
+          const candidatePhones = [
+            contact.phone,
+            contact.mobile,
+            ...(contact.contact_persons || []).map((cp: any) => cp.phone || cp.mobile),
+          ]
+            .filter(Boolean)
+            .map((p) => String(p).replace(/[^0-9]/g, ''));
+
+          const inputDigits = normPhone.digits;
+          const inputSuffix7 = inputDigits.slice(-7);
+
+          phoneMatched = candidatePhones.some((cp) => {
+            if (!cp) return false;
+            return (
+              cp.endsWith(inputDigits) ||
+              cp.includes(inputDigits) ||
+              inputDigits.endsWith(cp.slice(-9)) ||
+              (cp.length >= 7 && (cp.endsWith(inputSuffix7) || inputDigits.endsWith(cp.slice(-7))))
+            );
+          });
+        }
       }
+    }
+
+    if (customerNameInput) {
+      nameMatched = isNameMatching(customerNameInput, candidateNames);
     } else {
-      // Demo / Mock Mode matching: match if mock invoice exists
-      phoneMatched = true;
+      nameMatched = true;
     }
 
-    if (!phoneMatched) {
+    // Pass if either Customer Name matches OR Phone matches (or in mock demo mode)
+    const isAuthorized = nameMatched || phoneMatched || !isZohoConfigured() || (customerId && customerId.startsWith('mock-'));
+
+    if (!isAuthorized) {
       console.warn(
-        `[Portal Security Alert] Phone number mismatch for invoice ${invoice.invoice_number}. Target ID: ${customerId}`
+        `[Portal Security Alert] Customer name mismatch for invoice ${invoice.invoice_number}. Input: '${customerNameInput}', Invoice Name: '${invoice.customer_name}'`
       );
-      return NextResponse.json({ success: false, message: GENERIC_ERROR_MESSAGE }, { status: 404 });
+      return NextResponse.json(
+        {
+          success: false,
+          message: `The customer name '${customerNameInput}' doesn't match our records for invoice #${invoice.invoice_number}. Please check the name on your receipt or contact support.`,
+        },
+        { status: 404 }
+      );
     }
 
-    // 6. Issue Short-Lived Signed HMAC Session Token
+    // 5. Issue Short-Lived Signed HMAC Session Token
     const sessionToken = createCustomerSessionToken({
-      phone: normPhone.international,
-      localPhone: normPhone.local,
+      phone: normPhone?.international || 'N/A',
+      localPhone: normPhone?.local || 'N/A',
       customerId,
-      customerName,
+      customerName: verifiedCustomerName,
       authorizedInvoiceId: invoice.invoice_id,
       authorizedInvoiceNumber: invoice.invoice_number,
     });
 
-    // 7. Build Response with Signed Session Cookie & JSON Payload
+    // 6. Build Response with Signed Session Cookie & JSON Payload
     const response = NextResponse.json({
       success: true,
       token: sessionToken,
       customer: {
-        name: customerName,
-        phone: normPhone.international,
-        localPhone: normPhone.local,
+        name: verifiedCustomerName,
+        phone: normPhone?.international || 'N/A',
+        localPhone: normPhone?.local || 'N/A',
         customerId,
       },
       invoice,
@@ -173,3 +218,4 @@ export async function POST(req: NextRequest) {
     );
   }
 }
+
