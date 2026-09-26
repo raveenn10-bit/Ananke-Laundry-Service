@@ -469,7 +469,7 @@ export default function BillPortal() {
                       disabled={isLoading}
                     />
                     <p className="text-[11px] text-gray-400 mt-2 text-center">
-                      e.g. INV-000123 or ANK-1042 &bull; Case-insensitive
+                      e.g. 002018, INV-002018 or ANK-1042 &bull; Case-insensitive
                     </p>
                   </div>
 

@@ -16,7 +16,7 @@ export default function InvoiceSegmentInput({
   onChange,
   onEnter,
   disabled = false,
-  minSlots = 8,
+  minSlots = 6,
 }: InvoiceSegmentInputProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);

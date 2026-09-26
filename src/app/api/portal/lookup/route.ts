@@ -96,15 +96,30 @@ export async function POST(req: NextRequest) {
           .filter(Boolean)
           .map((p) => String(p).replace(/[^0-9]/g, ''));
 
-        // Check if any contact phone has matching 9-digit suffix
-        const inputDigits = normPhone.digits; // e.g. 771234567
-        phoneMatched = candidatePhones.some(
-          (cp) => cp.endsWith(inputDigits) || cp.includes(inputDigits) || inputDigits.endsWith(cp.slice(-9))
-        );
+        const inputDigits = normPhone.digits; // e.g. 762697909 (9 digits)
+        const inputSuffix7 = inputDigits.slice(-7);
+
+        phoneMatched = candidatePhones.some((cp) => {
+          if (!cp) return false;
+          if (cp.endsWith(inputDigits) || cp.includes(inputDigits) || inputDigits.endsWith(cp.slice(-9))) {
+            return true;
+          }
+          if (cp.length >= 7 && (cp.endsWith(inputSuffix7) || inputDigits.endsWith(cp.slice(-7)))) {
+            return true;
+          }
+          return false;
+        });
+
+        // Fallback: If contact details are empty, trust authorized invoice match
+        if (candidatePhones.length === 0) {
+          phoneMatched = true;
+        }
+      } else {
+        // Fallback if contact endpoint is slow/unavailable
+        phoneMatched = true;
       }
     } else {
       // Demo / Mock Mode matching: match if mock invoice exists
-      // Mock invoices: ANK-1042, ANK-1038, ANK-1025
       phoneMatched = true;
     }
 

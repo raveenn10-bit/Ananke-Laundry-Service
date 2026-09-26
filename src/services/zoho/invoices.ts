@@ -117,46 +117,77 @@ export function mapZohoInvoiceDetail(inv: any): ZohoInvoice {
 
 /**
  * Searches for a Zoho Invoice by invoice number.
- * Supports exact match on invoice_number and fallback search.
+ * Supports exact match on invoice_number, 6-digit variations (e.g. 002018 <-> INV-002018), and fallback search.
  */
 export async function findZohoInvoiceByNumber(invoiceNumber: string): Promise<ZohoInvoice | null> {
-  const cleanNum = invoiceNumber.trim();
+  const cleanNum = invoiceNumber.trim().toUpperCase();
   if (!cleanNum) return null;
+
+  // Build candidate invoice numbers for multi-format searching (6-digit, prefixes, etc.)
+  const candidates = new Set<string>();
+  candidates.add(cleanNum);
+
+  const digitsOnly = cleanNum.replace(/[^0-9]/g, '');
+  if (digitsOnly) {
+    candidates.add(digitsOnly);
+    if (digitsOnly.length <= 6) {
+      const padded6 = digitsOnly.padStart(6, '0');
+      candidates.add(padded6);
+      candidates.add(`INV-${padded6}`);
+      candidates.add(`ANK-${padded6}`);
+      candidates.add(`INV-${digitsOnly}`);
+      candidates.add(`ANK-${digitsOnly}`);
+    } else {
+      candidates.add(`INV-${digitsOnly}`);
+      candidates.add(`ANK-${digitsOnly}`);
+    }
+  }
+
+  if (cleanNum.startsWith('INV-') || cleanNum.startsWith('ANK-')) {
+    const rawDigits = cleanNum.slice(4);
+    if (rawDigits) candidates.add(rawDigits);
+  }
 
   const { isZohoConfigured } = await import('./auth');
 
   if (isZohoConfigured()) {
     try {
-      // 1. Try exact invoice_number filter
-      const res = await zohoRequest<{ code: number; invoices: any[] }>('/invoices', {
-        params: { invoice_number: cleanNum },
-      }).catch(() => null);
+      // 1. Try exact invoice_number queries for all candidates
+      for (const candidate of Array.from(candidates)) {
+        const res = await zohoRequest<{ code: number; invoices: any[] }>('/invoices', {
+          params: { invoice_number: candidate },
+        }).catch(() => null);
 
-      if (res?.invoices && res.invoices.length > 0) {
-        const full = await zohoRequest<{ code: number; invoice: any }>(
-          `/invoices/${res.invoices[0].invoice_id}`
-        ).catch(() => null);
-        if (full?.invoice) {
-          return mapZohoInvoiceDetail(full.invoice);
+        if (res?.invoices && res.invoices.length > 0) {
+          const full = await zohoRequest<{ code: number; invoice: any }>(
+            `/invoices/${res.invoices[0].invoice_id}`
+          ).catch(() => null);
+          if (full?.invoice) {
+            return mapZohoInvoiceDetail(full.invoice);
+          }
         }
       }
 
-      // 2. Fallback to search_text
-      const searchRes = await zohoRequest<{ code: number; invoices: any[] }>('/invoices', {
-        params: { search_text: cleanNum },
-      }).catch(() => null);
+      // 2. Fallback to search_text queries
+      for (const candidate of Array.from(candidates)) {
+        const searchRes = await zohoRequest<{ code: number; invoices: any[] }>('/invoices', {
+          params: { search_text: candidate },
+        }).catch(() => null);
 
-      if (searchRes?.invoices && searchRes.invoices.length > 0) {
-        const exactMatch =
-          searchRes.invoices.find(
-            (i) => (i.invoice_number || '').trim().toLowerCase() === cleanNum.toLowerCase()
-          ) || searchRes.invoices[0];
+        if (searchRes?.invoices && searchRes.invoices.length > 0) {
+          const exactMatch =
+            searchRes.invoices.find((i) =>
+              Array.from(candidates).some(
+                (c) => (i.invoice_number || '').trim().toUpperCase() === c
+              )
+            ) || searchRes.invoices[0];
 
-        const full = await zohoRequest<{ code: number; invoice: any }>(
-          `/invoices/${exactMatch.invoice_id}`
-        ).catch(() => null);
-        if (full?.invoice) {
-          return mapZohoInvoiceDetail(full.invoice);
+          const full = await zohoRequest<{ code: number; invoice: any }>(
+            `/invoices/${exactMatch.invoice_id}`
+          ).catch(() => null);
+          if (full?.invoice) {
+            return mapZohoInvoiceDetail(full.invoice);
+          }
         }
       }
     } catch (err: any) {
@@ -166,11 +197,16 @@ export async function findZohoInvoiceByNumber(invoiceNumber: string): Promise<Zo
 
   // Demo fallback mode when Zoho is not configured or for mock demo numbers
   const mockInvoices = getMockCustomerInvoices('0771234567', 'Valued Customer');
-  const found = mockInvoices.find(
-    (i) =>
-      i.invoice_number.toLowerCase() === cleanNum.toLowerCase() ||
-      i.invoice_id.toLowerCase() === cleanNum.toLowerCase()
-  );
+  const candidateList = Array.from(candidates);
+
+  const found = mockInvoices.find((i) => {
+    const invNum = i.invoice_number.toUpperCase();
+    const invId = i.invoice_id.toUpperCase();
+    return candidateList.some(
+      (c) => invNum === c || invId === c || invNum.includes(c) || c.includes(invNum)
+    );
+  });
+
   return found || null;
 }
 
@@ -180,6 +216,29 @@ export async function findZohoInvoiceByNumber(invoiceNumber: string): Promise<Zo
  */
 export function getMockCustomerInvoices(phone: string, name = 'Valued Customer'): ZohoInvoice[] {
   return [
+    {
+      invoice_id: 'mock-inv-002018',
+      invoice_number: '002018',
+      customer_id: 'mock-cust-1',
+      customer_name: name,
+      status: 'paid',
+      payment_status: 'Paid',
+      date: '2026-09-20',
+      due_date: '2026-09-27',
+      total: 4800,
+      balance: 0,
+      amount_paid: 4800,
+      currency_code: 'LKR',
+      currency_symbol: 'Rs.',
+      created_time: '2026-09-20T10:00:00Z',
+      description: 'Professional Laundry & Express Garment Care',
+      payment_date: '2026-09-20',
+      payment_id: 'mock-pay-002018',
+      line_items: [
+        { name: 'Hotel Linen Batch Care & Pressing', quantity: 12, rate: 300, item_total: 3600 },
+        { name: 'Express Dry Cleaning & Sanitization', quantity: 1, rate: 1200, item_total: 1200 },
+      ],
+    },
     {
       invoice_id: 'mock-inv-1042',
       invoice_number: 'ANK-1042',
