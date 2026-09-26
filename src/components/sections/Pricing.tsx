@@ -111,17 +111,18 @@ export default function Pricing() {
           <span>&larr; Swipe packages left to right &rarr;</span>
         </div>
 
-        {/* Tier Cards */}
-        <div
-          ref={scrollRef}
-          className={`flex overflow-x-auto snap-x snap-mandatory gap-6 pb-6 -mx-4 px-4 sm:mx-0 sm:px-0 sm:grid sm:gap-6 no-scrollbar scrollbar-none mx-auto justify-center ${
-            filteredTiers.length === 2
-              ? 'sm:grid-cols-2 max-w-3xl'
-              : 'sm:grid-cols-2 lg:grid-cols-3 max-w-5xl'
-          }`}
-          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-        >
-          <AnimatePresence mode="popLayout">
+        {/* Tier Cards Container (Centered) */}
+        <div className="w-full flex justify-center">
+          <div
+            ref={scrollRef}
+            className={`flex overflow-x-auto snap-x snap-mandatory gap-6 pb-6 -mx-4 px-4 sm:mx-auto sm:px-0 sm:grid sm:gap-6 no-scrollbar scrollbar-none w-full justify-center ${
+              filteredTiers.length === 2
+                ? 'sm:grid-cols-2 max-w-3xl'
+                : 'sm:grid-cols-2 lg:grid-cols-3 max-w-6xl'
+            }`}
+            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+          >
+            <AnimatePresence mode="popLayout">
             {filteredTiers.map((tier, idx) => (
               <motion.div
                 key={tier.name}
@@ -172,7 +173,8 @@ export default function Pricing() {
           </AnimatePresence>
         </div>
       </div>
-    </section>
-  );
+    </div>
+  </section>
+);
 }
 

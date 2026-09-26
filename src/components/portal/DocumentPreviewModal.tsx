@@ -205,40 +205,22 @@ export default function DocumentPreviewModal({
                   </div>
                 </div>
 
-                {/* Line Items Table */}
-                <div>
+                {/* Service Details (Consolidated - No Item Table) */}
+                <div className="bg-gray-50/80 rounded-2xl p-4 sm:p-5 border border-gray-100">
                   <div className="flex items-center justify-between mb-2">
-                    <h3 className="font-heading font-semibold text-sm text-dark">Service &amp; Linen Details</h3>
-                    <span className="text-[10px] text-gray-400 sm:hidden">&larr; scroll table &rarr;</span>
+                    <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">
+                      Service Description
+                    </span>
+                    <span className="text-[11px] font-medium text-olive bg-olive/10 px-2.5 py-0.5 rounded-full">
+                      Commercial Service
+                    </span>
                   </div>
-                  <div className="border border-gray-100 rounded-2xl overflow-x-auto">
-                    <table className="w-full min-w-[420px] text-left text-xs">
-                      <thead className="bg-gray-50 border-b border-gray-100 text-gray-500 uppercase tracking-wider">
-                        <tr>
-                          <th className="py-2.5 px-4 font-semibold">Description</th>
-                          <th className="py-2.5 px-3 font-semibold text-center">Qty</th>
-                          <th className="py-2.5 px-3 font-semibold text-right">Rate</th>
-                          <th className="py-2.5 px-4 font-semibold text-right">Total (LKR)</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-gray-100">
-                        <tr className="hover:bg-gray-50/50">
-                          <td className="py-3 px-4">
-                            <p className="font-medium text-dark">
-                              {invoice.description || 'Professional Commercial Laundry & Garment Care'}
-                            </p>
-                          </td>
-                          <td className="py-3 px-3 text-center text-gray-600">1</td>
-                          <td className="py-3 px-3 text-right text-gray-600">
-                            {invoice.total.toLocaleString()}
-                          </td>
-                          <td className="py-3 px-4 text-right font-semibold text-dark">
-                            {invoice.total.toLocaleString()}
-                          </td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
+                  <p className="font-medium text-dark text-sm sm:text-base">
+                    {invoice.description || 'Professional Commercial Laundry & Garment Care'}
+                  </p>
+                  <p className="text-gray-500 text-xs mt-1.5 leading-relaxed">
+                    Consolidated Commercial Service Invoice &bull; Direct Zoho Integration Verified
+                  </p>
                 </div>
 
                 {/* Totals Summary */}
