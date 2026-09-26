@@ -52,7 +52,7 @@ const FACILITY_LINKS = [
   { name: 'No. 195/2, Matara Road, Unawatuna', href: 'https://maps.app.goo.gl/HLJGzPCVZwySjSTK6?g_st=ic', external: true, icon: MapPin },
   { name: '091 225 0777 (Landline)', href: 'tel:+94912250777', icon: Phone },
   { name: '074 269 7909 (WhatsApp)', href: 'https://wa.me/94742697909', external: true, icon: WhatsAppIcon },
-  { name: 'Opening Hours: 9 AM – 6 PM', href: '/contact', icon: Clock },
+  { name: 'Open Daily from 8:00 AM', href: '/contact', icon: Clock },
   { name: 'Cleanline Linen Network', href: '/about', icon: ShieldCheck },
 ];
 

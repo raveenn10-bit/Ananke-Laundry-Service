@@ -90,7 +90,7 @@ const SERVICE_OPTIONS = [
 ];
 
 const TIME_SLOTS = [
-  '09:00 AM – 12:00 PM (Morning)',
+  '08:00 AM – 12:00 PM (Morning)',
   '12:00 PM – 03:00 PM (Afternoon)',
   '03:00 PM – 06:00 PM (Evening)',
   'Flexible / Any time',

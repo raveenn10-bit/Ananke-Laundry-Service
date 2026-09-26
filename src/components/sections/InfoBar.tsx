@@ -29,19 +29,18 @@ export default function InfoBar() {
       const currentMinutes = parseInt(hStr, 10) * 60 + parseInt(mStr, 10);
 
       // Schedule:
-      // Mon: 9:00 AM (540m) – 5:00 PM (1020m)
-      // Tue-Fri: 9:00 AM (540m) – 6:00 PM (1080m)
-      // Sat-Sun: 9:00 AM (540m) – 5:00 PM (1020m)
-      const openMinutes = 9 * 60; // 540
-      let closeMinutes = 17 * 60; // 1020
-      if (['Tue', 'Wed', 'Thu', 'Fri'].includes(day)) {
-        closeMinutes = 18 * 60; // 1080
+      // Tue-Fri: 8:00 AM (480m) – 5:00 PM (1020m)
+      // Sat-Mon: 8:00 AM (480m) – 6:00 PM (1080m)
+      const openMinutes = 8 * 60; // 480
+      let closeMinutes = 17 * 60; // 1020 (Tue–Fri)
+      if (['Sat', 'Sun', 'Mon'].includes(day)) {
+        closeMinutes = 18 * 60; // 1080 (Sat, Sun, Mon)
       }
 
       if (currentMinutes >= openMinutes && currentMinutes < closeMinutes) {
         setSlStatus('Open Now (Sri Lanka Time)');
       } else {
-        setSlStatus('Opens at 9:00 AM');
+        setSlStatus('Opens at 8:00 AM');
       }
     } catch {
       // Fallback gracefully without throwing
@@ -74,8 +73,8 @@ export default function InfoBar() {
     {
       icon: Clock,
       label: 'Operating Hours',
-      value: 'Mon–Sun from 9:00 AM',
-      subtitle: slStatus || 'Mon, Sat-Sun: 5PM | Tue-Fri: 6PM',
+      value: 'Mon–Sun from 8:00 AM',
+      subtitle: slStatus || 'Tue–Fri: 8AM–5PM | Sat–Mon: 8AM–6PM',
       link: '#contact',
     },
   ];

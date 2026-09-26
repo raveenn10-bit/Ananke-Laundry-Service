@@ -160,7 +160,7 @@ Pickup & Facility Details:
 Ananke Laundry (Pvt) Ltd
 No. 195/2, Matara Road, Unawatuna, Galle, Sri Lanka
 Telephone Hotline: 091 225 0777
-Opening Hours: Mon 9-5 PM | Tue-Fri 9-6 PM | Sat-Sun 9-5 PM
+Opening Hours: Tue-Fri 8:00 AM - 5:00 PM | Sat-Mon 8:00 AM - 6:00 PM
 
 Please contact us if you need any assistance.
 
@@ -236,7 +236,7 @@ Member of Cleanline Linen Management Network`;
                 <p style="margin: 0; font-size: 12px; color: #5B4813; line-height: 1.6;">
                   <strong>Address:</strong> No. 195/2, Matara Road, Unawatuna, Galle, Sri Lanka<br>
                   <strong>Hotline:</strong> <a href="tel:+94912250777" style="color: #785A10; font-weight: bold;">091 225 0777</a><br>
-                  <strong>Hours:</strong> Mon 9-5 PM | Tue-Fri 9-6 PM | Sat-Sun 9-5 PM
+                  <strong>Hours:</strong> Tue-Fri 8:00 AM - 5:00 PM | Sat-Mon 8:00 AM - 6:00 PM
                 </p>
               </div>
 

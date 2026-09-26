@@ -19,7 +19,7 @@ const faqs = [
   },
   {
     q: 'What are your operating hours?',
-    a: 'We are open Monday: 9:00 AM – 5:00 PM, Tuesday through Friday: 9:00 AM – 6:00 PM, and Saturday & Sunday: 9:00 AM – 5:00 PM. Please note that opening hours may vary on public holidays, so feel free to call ahead before visiting.',
+    a: 'We are open Tuesday through Friday: 8:00 AM – 5:00 PM, and Saturday, Sunday & Monday: 8:00 AM – 6:00 PM. Please note that opening hours may vary on public holidays, so feel free to call ahead before visiting.',
   },
   {
     q: 'How is Ananke Laundry connected with Cleanline Linen Management?',

@@ -224,16 +224,12 @@ export default function Contact() {
                     <h4 className="font-semibold text-dark text-sm mb-2">Opening Hours</h4>
                     <div className="space-y-1.5 text-xs sm:text-sm text-gray-700 border-t border-gray-200/60 pt-2">
                       <div className="flex justify-between">
-                        <span>Monday:</span>
-                        <span className="font-medium">9:00 AM – 5:00 PM</span>
-                      </div>
-                      <div className="flex justify-between">
                         <span>Tuesday – Friday:</span>
-                        <span className="font-medium">9:00 AM – 6:00 PM</span>
+                        <span className="font-medium">8:00 AM – 5:00 PM</span>
                       </div>
                       <div className="flex justify-between">
-                        <span>Saturday – Sunday:</span>
-                        <span className="font-medium">9:00 AM – 5:00 PM</span>
+                        <span>Saturday, Sunday &amp; Monday:</span>
+                        <span className="font-medium">8:00 AM – 6:00 PM</span>
                       </div>
                     </div>
                     <p className="text-[11px] text-gray-500 mt-2 italic leading-normal">
