@@ -207,19 +207,20 @@ export default function DocumentPreviewModal({
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-gray-100">
-                        {(invoice.line_items || [
-                          { name: invoice.description || 'Professional Commercial Laundry Service', quantity: 1, rate: invoice.total, item_total: invoice.total }
-                        ]).map((item, idx) => (
-                          <tr key={idx} className="hover:bg-gray-50/50">
-                            <td className="py-3 px-4">
-                              <p className="font-medium text-dark">{item.name}</p>
-                              {item.description && <p className="text-[11px] text-gray-500">{item.description}</p>}
-                            </td>
-                            <td className="py-3 px-3 text-center text-gray-600">{item.quantity || 1}</td>
-                            <td className="py-3 px-3 text-right text-gray-600">{(item.rate || item.item_total || 0).toLocaleString()}</td>
-                            <td className="py-3 px-4 text-right font-semibold text-dark">{(item.item_total || item.rate || 0).toLocaleString()}</td>
-                          </tr>
-                        ))}
+                        <tr className="hover:bg-gray-50/50">
+                          <td className="py-3 px-4">
+                            <p className="font-medium text-dark">
+                              {invoice.description || 'Professional Commercial Laundry & Garment Care'}
+                            </p>
+                          </td>
+                          <td className="py-3 px-3 text-center text-gray-600">1</td>
+                          <td className="py-3 px-3 text-right text-gray-600">
+                            {invoice.total.toLocaleString()}
+                          </td>
+                          <td className="py-3 px-4 text-right font-semibold text-dark">
+                            {invoice.total.toLocaleString()}
+                          </td>
+                        </tr>
                       </tbody>
                     </table>
                   </div>

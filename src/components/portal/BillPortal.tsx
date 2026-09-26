@@ -548,37 +548,6 @@ export default function BillPortal() {
                         </div>
                       </div>
 
-                      {/* Real Zoho Line Items (if present) */}
-                      {inv.line_items && inv.line_items.length > 0 && (
-                        <div className="space-y-2">
-                          <h5 className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">
-                            Service Line Items
-                          </h5>
-                          <div className="border border-gray-100 rounded-2xl overflow-hidden divide-y divide-gray-100 text-xs">
-                            {inv.line_items.map((item, idx) => (
-                              <div
-                                key={item.item_id || idx}
-                                className="p-3 flex items-center justify-between gap-3 bg-white"
-                              >
-                                <div>
-                                  <span className="font-semibold text-dark block">{item.name}</span>
-                                  {item.description && (
-                                    <span className="text-[11px] text-gray-500 block">
-                                      {item.description}
-                                    </span>
-                                  )}
-                                  <span className="text-[11px] text-gray-400">
-                                    Qty: {item.quantity ?? 1} &times; LKR {(item.rate || 0).toLocaleString()}
-                                  </span>
-                                </div>
-                                <span className="font-heading font-semibold text-dark shrink-0">
-                                  LKR {(item.item_total || ((item.quantity || 1) * (item.rate || 0))).toLocaleString()}
-                                </span>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
 
                       {/* Action Center Buttons */}
                       <div className="pt-2">
