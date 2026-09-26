@@ -133,116 +133,115 @@ export default function DocumentPreviewModal({
           </div>
 
           {/* Printable Document Body */}
-          <div className="p-4 sm:p-8 overflow-y-auto space-y-6 print:p-0 font-body text-dark">
-            {/* Top Brand Banner with Logo */}
-            <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 pb-6 border-b border-gray-100">
-              <div className="flex items-center sm:items-start gap-3.5">
-                <div className="relative w-14 h-14 sm:w-16 sm:h-16 shrink-0 rounded-2xl overflow-hidden bg-primary/5 p-1 border border-primary/10 flex items-center justify-center shadow-sm">
-                  <Image
-                    src="/logo.png"
-                    alt="Ananke Laundry Logo"
-                    width={64}
-                    height={64}
-                    className="object-contain w-full h-full"
-                    priority
-                  />
-                </div>
-                <div>
-                  <h2 className="font-heading font-bold text-lg sm:text-2xl text-dark tracking-tight leading-tight">
-                    ANANKE LAUNDRY <span className="text-olive text-xs sm:text-sm font-normal">(PVT) LTD</span>
-                  </h2>
-                  <p className="text-[11px] sm:text-xs text-gray-500 mt-0.5">Part of Cleanline Linen Management Network</p>
-                  <p className="text-[11px] sm:text-xs text-gray-600 mt-0.5">No. 195/2, Matara Road, Unawatuna, Galle</p>
-                  <p className="text-[11px] sm:text-xs text-gray-600">Telephone: 091 225 0777 &bull; anankelaundry.com</p>
-                </div>
-              </div>
-
-              <div className="text-left sm:text-right shrink-0">
-                <span className="inline-block bg-cream-dark/60 text-primary text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full mb-2">
-                  {isInvoice ? 'Commercial Tax Invoice' : 'Official Payment Receipt'}
-                </span>
-                <p className="font-mono text-sm sm:text-base font-bold text-dark">
-                  #{isInvoice && invoice ? invoice.invoice_number : payment?.payment_number || ''}
-                </p>
-                <p className="text-xs text-gray-500 mt-0.5">
-                  Date: {isInvoice && invoice ? invoice.date : payment?.date || ''}
-                </p>
-              </div>
-            </div>
-
-            {/* Invoice Specific Details */}
-            {isInvoice && (
-              <>
-                {/* Meta details grid */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-cream/60 p-4 rounded-2xl border border-cream-dark">
-                  <div>
-                    <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider block">Billed To</span>
-                    <p className="font-heading font-semibold text-dark text-base mt-0.5">{invoice.customer_name}</p>
-                    <p className="text-xs text-gray-600 mt-0.5">Location: Unawatuna / Galle District</p>
+          <div className="p-4 sm:p-6 overflow-y-auto space-y-6 print:p-0 font-body text-dark flex justify-center bg-gray-50/60">
+            {/* Invoice Specific Details: Exact Thermal Receipt Format */}
+            {isInvoice && invoice && (
+              <div className="w-full max-w-sm bg-white p-5 sm:p-7 rounded-2xl shadow-sm border border-gray-200 text-dark space-y-3 font-sans print:border-none print:shadow-none print:p-0 print:max-w-none">
+                {/* Center Brand Header */}
+                <div className="text-center space-y-1">
+                  <div className="relative w-16 h-16 mx-auto mb-2.5 rounded-xl overflow-hidden bg-[#436e2f] p-1.5 flex items-center justify-center shadow-xs">
+                    <Image
+                      src="/logo.png"
+                      alt="Ananke Laundry Logo"
+                      width={64}
+                      height={64}
+                      className="object-contain"
+                      priority
+                    />
                   </div>
-                  <div className="sm:text-right">
-                    <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider block">Payment Status</span>
-                    <div className="mt-1 inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold">
-                      {invoice.payment_status === 'Paid' && (
-                        <span className="bg-emerald-100 text-emerald-800 px-3 py-1 rounded-full flex items-center gap-1">
-                          <CheckCircle2 size={13} /> Paid in Full
-                        </span>
-                      )}
-                      {invoice.payment_status === 'Partially Paid' && (
-                        <span className="bg-amber-100 text-amber-800 px-3 py-1 rounded-full flex items-center gap-1">
-                          <Clock size={13} /> Partially Paid
-                        </span>
-                      )}
-                      {invoice.payment_status === 'Unpaid' && (
-                        <span className="bg-rose-100 text-rose-800 px-3 py-1 rounded-full flex items-center gap-1">
-                          <AlertCircle size={13} /> Payment Due
-                        </span>
-                      )}
-                    </div>
-                    {invoice.due_date && (
-                      <p className="text-[11px] text-gray-500 mt-1">Due Date: {invoice.due_date}</p>
-                    )}
+                  <h3 className="font-bold text-base sm:text-lg text-dark leading-tight">
+                    Ananke Laundry (Pvt) Ltd
+                  </h3>
+                  <p className="text-xs text-gray-700 font-medium">Southern Province</p>
+                  <p className="text-xs text-gray-700 font-medium">SriLanka</p>
+                </div>
+
+                {/* Dashed Separator */}
+                <div className="border-t border-dashed border-gray-400 my-2" />
+
+                {/* INVOICE Title */}
+                <div className="text-center">
+                  <h4 className="font-bold text-sm tracking-widest uppercase text-dark">
+                    INVOICE
+                  </h4>
+                </div>
+
+                {/* Dashed Separator */}
+                <div className="border-t border-dashed border-gray-400 my-2" />
+
+                {/* Invoice Meta */}
+                <div className="space-y-1 text-xs">
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-700">Invoice#</span>
+                    <span className="font-mono font-semibold text-dark">{invoice.invoice_number}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-700">Date</span>
+                    <span className="font-mono text-dark">{invoice.date}</span>
                   </div>
                 </div>
 
-                {/* Service Details (Consolidated - No Item Table) */}
-                <div className="bg-gray-50/80 rounded-2xl p-4 sm:p-5 border border-gray-100">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">
-                      Service Description
-                    </span>
-                    <span className="text-[11px] font-medium text-olive bg-olive/10 px-2.5 py-0.5 rounded-full">
-                      Commercial Service
-                    </span>
-                  </div>
-                  <p className="font-medium text-dark text-sm sm:text-base">
-                    {invoice.description || 'Professional Commercial Laundry & Garment Care'}
-                  </p>
-                  <p className="text-gray-500 text-xs mt-1.5 leading-relaxed">
-                    Consolidated Commercial Service Invoice &bull; Direct Zoho Integration Verified
+                {/* Dashed Separator */}
+                <div className="border-t border-dashed border-gray-400 my-2" />
+
+                {/* Bill To */}
+                <div className="space-y-0.5 text-xs">
+                  <span className="text-gray-700 block">Bill To:</span>
+                  <p className="font-bold text-dark text-sm sm:text-base">
+                    {invoice.customer_name}
                   </p>
                 </div>
 
-                {/* Totals Summary */}
-                <div className="flex justify-end pt-2">
-                  <div className="w-full sm:w-64 space-y-2 bg-gray-50 p-4 rounded-2xl border border-gray-100 text-xs">
-                    <div className="flex justify-between text-gray-600">
-                      <span>Total Amount:</span>
-                      <span className="font-semibold text-dark">LKR {invoice.total.toLocaleString()}</span>
-                    </div>
-                    <div className="flex justify-between text-emerald-700 font-medium">
-                      <span>Amount Paid:</span>
-                      <span>LKR {invoice.amount_paid.toLocaleString()}</span>
-                    </div>
-                    <div className="flex justify-between pt-2 border-t border-gray-200 text-sm font-bold text-dark">
-                      <span>Balance Due:</span>
-                      <span className={invoice.balance > 0 ? 'text-rose-600' : 'text-emerald-600'}>
-                        LKR {invoice.balance.toLocaleString()}
+                {/* Dashed Separator */}
+                <div className="border-t border-dashed border-gray-400 my-2" />
+
+                {/* Total Section (Items Omitted as requested) */}
+                <div className="py-2.5 border-b-2 border-dark space-y-1.5">
+                  <div className="flex justify-between items-center text-sm sm:text-base font-bold">
+                    <span className="tracking-wide">TOTAL</span>
+                    <span className="font-mono text-dark">
+                      LKR {invoice.total.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </span>
+                  </div>
+                  {invoice.amount_paid > 0 && invoice.balance > 0 && (
+                    <div className="flex justify-between items-center text-xs text-emerald-700 font-semibold pt-1">
+                      <span>Amount Paid</span>
+                      <span className="font-mono">
+                        LKR {invoice.amount_paid.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </span>
                     </div>
-                  </div>
+                  )}
+                  {invoice.balance > 0 && invoice.amount_paid > 0 && (
+                    <div className="flex justify-between items-center text-xs text-rose-700 font-bold pt-0.5">
+                      <span>Balance Due</span>
+                      <span className="font-mono">
+                        LKR {invoice.balance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </span>
+                    </div>
+                  )}
                 </div>
-              </>
+
+                {/* Terms & Conditions */}
+                <div className="pt-2 space-y-1.5 text-[10.5px] leading-relaxed text-gray-800">
+                  <p className="font-semibold text-dark">Terms &amp; Conditions: All Laundry is accepted</p>
+                  <p>owner&apos;s risk while the utmost care will be exercised.</p>
+                  <p>Person handling over and collecting the items takes ownership to validate against receipt.</p>
+                  <p>Any claims of loss ,damage or any other complaint of an other to be reported at the time of accepting the items.</p>
+                  <p>A 100% Additional charge will be added for the all orders delivered on the same day.</p>
+                  <p>The delay in settling the payment will be charged 10% late Payment fees.</p>
+                </div>
+
+                {/* Signature Line */}
+                <div className="pt-3 text-[10px] text-gray-700 flex justify-between items-center flex-wrap gap-2">
+                  <span>Date: ................................</span>
+                  <span>Sign: ......................................</span>
+                </div>
+
+                {/* Footer Greeting */}
+                <div className="pt-3 text-center text-xs font-medium text-gray-800">
+                  Thanks for your business.
+                </div>
+              </div>
             )}
 
             {/* Receipt Specific Details */}
