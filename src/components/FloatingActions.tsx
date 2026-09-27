@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { Phone, MapPin, Receipt, Sparkles, X, FileText, ArrowUp } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useOrderModal } from '@/context/OrderModalContext';
+import { useLanguage } from '@/context/LanguageContext';
 import Link from 'next/link';
 
 function WhatsAppIcon({ className = 'w-5 h-5' }: { className?: string }) {
@@ -26,6 +27,7 @@ const MAPS_URL = 'https://maps.app.goo.gl/HLJGzPCVZwySjSTK6?g_st=ic';
 
 export default function FloatingActions() {
   const { openOrderModal } = useOrderModal();
+  const { t } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
 
   // Close when pressing Escape key
@@ -41,7 +43,7 @@ export default function FloatingActions() {
   const actionItems = [
     {
       id: 'order',
-      label: 'Place an Order',
+      label: t('fab.order', 'Place an Order'),
       icon: Sparkles,
       bgGradient: 'from-emerald-600 via-emerald-500 to-green-500',
       type: 'button' as const,
@@ -49,7 +51,7 @@ export default function FloatingActions() {
     },
     {
       id: 'call',
-      label: 'Call 091 225 0777',
+      label: t('fab.call', 'Call 091 225 0777'),
       icon: Phone,
       bgGradient: 'from-emerald-600 via-green-500 to-emerald-400',
       type: 'link' as const,
@@ -57,7 +59,7 @@ export default function FloatingActions() {
     },
     {
       id: 'whatsapp',
-      label: 'Chat on WhatsApp',
+      label: t('fab.whatsapp', 'Chat on WhatsApp'),
       icon: WhatsAppIcon,
       bgGradient: 'from-[#128C7E] via-[#25D366] to-[#4ade80]',
       type: 'external' as const,
@@ -65,7 +67,7 @@ export default function FloatingActions() {
     },
     {
       id: 'directions',
-      label: 'Get Directions',
+      label: t('fab.directions', 'Get Directions'),
       icon: MapPin,
       bgGradient: 'from-red-600 via-rose-500 to-red-400',
       type: 'external' as const,
@@ -73,7 +75,7 @@ export default function FloatingActions() {
     },
     {
       id: 'bill',
-      label: 'View My Bill',
+      label: t('fab.bill', 'View My Bill'),
       icon: Receipt,
       bgGradient: 'from-blue-600 via-indigo-500 to-sky-400',
       type: 'route' as const,
@@ -81,7 +83,7 @@ export default function FloatingActions() {
     },
     {
       id: 'quote',
-      label: 'Request a Quote',
+      label: t('fab.quote', 'Request a Quote'),
       icon: FileText,
       bgGradient: 'from-amber-600 via-amber-500 to-yellow-400',
       type: 'route' as const,

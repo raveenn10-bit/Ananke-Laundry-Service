@@ -1,10 +1,13 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Playfair_Display, Inter } from 'next/font/google';
 import './globals.css';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import FloatingActions from '@/components/FloatingActions';
+import PwaInstallPrompt from '@/components/pwa/PwaInstallPrompt';
 import { OrderModalProvider } from '@/context/OrderModalContext';
+import { LanguageProvider } from '@/context/LanguageContext';
+import { PwaProvider } from '@/context/PwaContext';
 
 const playfair = Playfair_Display({
   subsets: ['latin'],
@@ -19,10 +22,27 @@ const inter = Inter({
   variable: '--font-body',
 });
 
+export const viewport: Viewport = {
+  themeColor: '#163824',
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 5,
+};
+
 export const metadata: Metadata = {
   metadataBase: new URL('https://anankelaundry.com'),
   title: 'Ananke Laundry | Professional Laundry Services in Unawatuna, Galle',
   description: 'Professional laundry and linen-care solutions in Unawatuna, Galle. Contact Ananke Laundry for individual and commercial laundry enquiries.',
+  manifest: '/manifest.json',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'Ananke Laundry',
+  },
+  icons: {
+    icon: '/icons/favicon-32x32.png',
+    apple: '/icons/apple-touch-icon.png',
+  },
   keywords: [
     'Ananke Laundry',
     'Ananke Laundry Unawatuna',
@@ -120,20 +140,30 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${playfair.variable} ${inter.variable} scroll-smooth`}>
       <head>
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta name="apple-mobile-web-app-title" content="Ananke Laundry" />
+        <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
       </head>
       <body className="antialiased bg-cream min-h-screen flex flex-col font-body text-dark selection:bg-accent/30 selection:text-dark">
-        <OrderModalProvider>
-          <Header />
-          <main className="flex-1">
-            {children}
-          </main>
-          <FloatingActions />
-          <Footer />
-        </OrderModalProvider>
+        <LanguageProvider>
+          <PwaProvider>
+            <OrderModalProvider>
+              <Header />
+              <main className="flex-1">
+                {children}
+              </main>
+              <FloatingActions />
+              <PwaInstallPrompt />
+              <Footer />
+            </OrderModalProvider>
+          </PwaProvider>
+        </LanguageProvider>
       </body>
     </html>
   );

@@ -22,6 +22,7 @@ import {
 import { ZohoInvoice, ZohoPayment } from '@/types/zoho';
 import DocumentPreviewModal from './DocumentPreviewModal';
 import InvoiceSegmentInput from './InvoiceSegmentInput';
+import { useLanguage } from '@/context/LanguageContext';
 
 type PortalView = 'lookup' | 'dashboard';
 type FilterStatus = 'ALL' | 'PAID' | 'UNPAID' | 'PARTIALLY_PAID';
@@ -46,6 +47,7 @@ const OFFICIAL_PHONE_DISPLAY = '091 225 0777';
 const SESSION_TIMEOUT_SECONDS = 60; // Auto-timeout after 1 minute
 
 export default function BillPortal() {
+  const { t } = useLanguage();
   // View State
   const [view, setView] = useState<PortalView>('lookup');
   const [invoiceInput, setInvoiceInput] = useState('');
@@ -292,10 +294,10 @@ export default function BillPortal() {
             </div>
 
             <h2 className="font-heading font-bold text-2xl sm:text-3xl text-dark tracking-tight">
-              View My <span className="text-olive italic">Bill &amp; Receipts</span>
+              {t('bill.pageTitle', 'View My Bill & Receipts')}
             </h2>
             <p className="text-gray-600 text-xs sm:text-sm font-body mt-2 leading-relaxed">
-              Enter your 6-digit invoice number shown on your Ananke Laundry invoice or receipt.
+              {t('bill.step2Desc', 'Enter your 6-digit invoice number shown on your Ananke Laundry invoice or receipt.')}
             </p>
           </div>
 
@@ -339,12 +341,12 @@ export default function BillPortal() {
               {isLoading ? (
                 <>
                   <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  <span>Searching Records in Zoho...</span>
+                  <span>{t('bill.searching', 'Searching Records in Zoho...')}</span>
                 </>
               ) : (
                 <>
                   <Search size={16} />
-                  <span>Find My Bill</span>
+                  <span>{t('bill.btnFind', 'Find My Bill')}</span>
                   <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
                 </>
               )}

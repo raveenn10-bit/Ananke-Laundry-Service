@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { motion, AnimatePresence, useInView } from 'framer-motion';
 import { FileText, Phone, MapPin, Building, ShieldCheck, Sparkles, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useOrderModal } from '@/context/OrderModalContext';
+import { useLanguage } from '@/context/LanguageContext';
 
 const HERO_SLIDES = [
   {
@@ -33,6 +34,7 @@ const SLIDE_INTERVAL = 5000; // 5 seconds per slide
 
 export default function Hero() {
   const { openOrderModal } = useOrderModal();
+  const { t } = useLanguage();
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: '-100px' });
   const [current, setCurrent] = useState(0);
@@ -151,16 +153,19 @@ export default function Hero() {
           <motion.div variants={itemVariants}>
             <span className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md border border-white/15 text-accent text-xs uppercase tracking-[0.25em] font-semibold px-4 py-1.5 rounded-full mb-6">
               <Sparkles size={13} className="text-accent" />
-              Unawatuna &bull; Galle &bull; Southern Sri Lanka
+              {t('hero.badge', 'Unawatuna • Galle • Southern Sri Lanka')}
             </span>
           </motion.div>
 
           <motion.h1 variants={itemVariants} className="text-2xl xs:text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-white leading-[1.15] sm:leading-[1.1] mb-5 sm:mb-6 font-heading break-words">
-            Professional Laundry &amp; <span className="italic text-accent font-normal block sm:inline">Linen Care</span> in Unawatuna
+            {t('hero.titleLine1', 'Impeccable Care for')}{' '}
+            <span className="italic text-accent font-normal block sm:inline">
+              {t('hero.titleLine2', 'Every Garment & Linen')}
+            </span>
           </motion.h1>
 
           <motion.p variants={itemVariants} className="text-white/85 text-sm sm:text-lg md:text-xl mb-7 sm:mb-8 max-w-2xl mx-auto md:mx-0 leading-relaxed font-body">
-            Professional laundry and linen-care solutions for individuals, travellers and hospitality businesses in Sri Lanka&apos;s Southern region.
+            {t('hero.description', 'Professional laundry and linen-care solutions for individuals, travellers and hospitality businesses in Sri Lanka’s Southern region.')}
           </motion.p>
 
           <motion.div variants={itemVariants} className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center justify-center md:justify-start gap-3 sm:gap-3.5 mb-8 sm:mb-10">
@@ -170,14 +175,14 @@ export default function Hero() {
               className="bg-gradient-to-r from-emerald-600 via-emerald-500 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white font-bold px-6 sm:px-7 py-3.5 sm:py-4 rounded-full transition-all duration-300 flex items-center justify-center gap-2 text-sm sm:text-base shadow-[0_8px_25px_rgba(16,185,129,0.45)] hover:scale-[1.02] active:scale-95 min-h-[44px] cursor-pointer"
             >
               <Sparkles className="w-5 h-5 text-accent" />
-              <span>Place an Order</span>
+              <span>{t('hero.ctaOrder', 'Place an Order')}</span>
             </button>
             <a
               href="/contact"
               className="bg-accent hover:bg-olive text-dark hover:text-white font-bold px-5 sm:px-6 py-3.5 sm:py-4 rounded-full transition-all duration-300 flex items-center justify-center gap-2 text-sm sm:text-base shadow-lg hover:shadow-accent/25 hover:scale-[1.02] active:scale-95 min-h-[44px]"
             >
               <FileText className="w-4 h-4" />
-              Request a Quote
+              {t('nav.requestQuote', 'Request a Quote')}
             </a>
             <a
               href="tel:+94912250777"
@@ -193,15 +198,15 @@ export default function Hero() {
               className="text-white/80 hover:text-accent rounded-full px-3.5 sm:px-4 py-3 sm:py-3.5 transition-all duration-300 flex items-center justify-center gap-2 text-xs sm:text-base font-medium hover:bg-white/5 min-h-[44px]"
             >
               <MapPin className="w-4 h-4 text-accent" />
-              Get Directions
+              {t('fab.directions', 'Get Directions')}
             </a>
           </motion.div>
 
           <motion.div variants={itemVariants} className="flex flex-wrap items-center justify-center md:justify-start gap-2.5 sm:gap-3 md:gap-4 pt-1 sm:pt-2">
             {[
-              { icon: Building, text: 'Hospitality & Commercial Linen' },
-              { icon: ShieldCheck, text: 'Professional Quality Standards' },
-              { icon: MapPin, text: 'Unawatuna Facility & Collection' },
+              { icon: Building, text: t('hero.hotelGrade', 'Hotel & Villa Certified') },
+              { icon: ShieldCheck, text: t('hero.ecoFriendly', 'Eco-Friendly Detergents') },
+              { icon: MapPin, text: t('hero.fastTurnaround', 'Same-Day Express Available') },
             ].map((badge, idx) => (
               <div key={idx} className="flex items-center gap-2 bg-white/10 backdrop-blur-md border border-white/15 rounded-full px-3 sm:px-4 py-1.5 sm:py-2">
                 <badge.icon className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-accent shrink-0" />

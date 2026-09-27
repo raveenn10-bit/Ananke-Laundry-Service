@@ -21,6 +21,7 @@ import {
   ShieldCheck,
   ArrowUpRight,
 } from 'lucide-react';
+import { useLanguage } from '@/context/LanguageContext';
 
 function WhatsAppIcon({ className = 'w-3.5 h-3.5' }: { className?: string }) {
   return (
@@ -57,6 +58,8 @@ const FACILITY_LINKS = [
 ];
 
 export default function Footer() {
+  const { t } = useLanguage();
+
   return (
     <footer className="relative w-full overflow-hidden">
       {/* Organic Curved Wave Divider Header */}
@@ -84,7 +87,7 @@ export default function Footer() {
             <div>
               <h4 className="font-heading font-bold text-sm sm:text-base text-[#163824] mb-4 flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-[#163824]/60 animate-pulse" />
-                Services
+                {t('footer.services', 'Services')}
               </h4>
               <ul className="space-y-2">
                 {SERVICES_LINKS.map((item) => (
@@ -109,7 +112,7 @@ export default function Footer() {
             <div>
               <h4 className="font-heading font-bold text-sm sm:text-base text-[#163824] mb-4 flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-[#163824]/60 animate-pulse" />
-                Learn More
+                {t('footer.quickLinks', 'Learn More')}
               </h4>
               <ul className="space-y-2">
                 {COMPANY_LINKS.map((item) => (
@@ -134,7 +137,7 @@ export default function Footer() {
             <div>
               <h4 className="font-heading font-bold text-sm sm:text-base text-[#163824] mb-4 flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-[#163824]/60 animate-pulse" />
-                Ananke Facility
+                {t('footer.operatingHours', 'Operating Hours')}
               </h4>
               <ul className="space-y-2">
                 {FACILITY_LINKS.map((item) => (
@@ -233,7 +236,7 @@ export default function Footer() {
 
               {/* Brand Tagline */}
               <p className="text-xs text-[#163824]/75 leading-relaxed font-body">
-                Premium commercial laundry and fine garment care in Unawatuna, Galle.
+                {t('footer.tagline', 'Premium commercial laundry and fine garment care in Unawatuna, Galle.')}
               </p>
             </div>
           </div>
