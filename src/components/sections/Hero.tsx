@@ -158,10 +158,11 @@ export default function Hero() {
           </motion.div>
 
           <motion.h1 variants={itemVariants} className="text-2xl xs:text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-white leading-[1.15] sm:leading-[1.1] mb-5 sm:mb-6 font-heading break-words">
-            {t('hero.titleLine1', 'Impeccable Care for')}{' '}
+            {t('hero.titleLine1', 'Professional Laundry &')}{' '}
             <span className="italic text-accent font-normal block sm:inline">
-              {t('hero.titleLine2', 'Every Garment & Linen')}
-            </span>
+              {t('hero.titleLine2', 'Linen Care')}
+            </span>{' '}
+            {t('hero.titleSuffix', 'in Unawatuna')}
           </motion.h1>
 
           <motion.p variants={itemVariants} className="text-white/85 text-sm sm:text-lg md:text-xl mb-7 sm:mb-8 max-w-2xl mx-auto md:mx-0 leading-relaxed font-body">

@@ -53,15 +53,16 @@ export const translations: Record<Language, Record<string, string>> = {
     'pwa.gotIt': 'Got It',
 
     // Hero
-    'hero.badge': 'Unawatuna & Galle’s Premier Laundry Care',
-    'hero.titleLine1': 'Impeccable Care for',
-    'hero.titleLine2': 'Every Garment & Linen',
-    'hero.description': 'Serving tourists, luxury villas, boutique hotels, and residents across Unawatuna and Galle. Professional washing, dry cleaning, pressing, and express free door-to-door delivery.',
-    'hero.ctaOrder': 'Place Order on WhatsApp',
-    'hero.ctaQuote': 'Get Instant Quote',
-    'hero.fastTurnaround': 'Same-Day Express Available',
-    'hero.ecoFriendly': 'Eco-Friendly Detergents',
-    'hero.hotelGrade': 'Hotel & Villa Certified',
+    'hero.badge': 'Unawatuna • Galle • Southern Sri Lanka',
+    'hero.titleLine1': 'Professional Laundry &',
+    'hero.titleLine2': 'Linen Care',
+    'hero.titleSuffix': 'in Unawatuna',
+    'hero.description': 'Professional laundry and linen-care solutions for individuals, travellers and hospitality businesses in Sri Lanka\'s Southern region.',
+    'hero.ctaOrder': 'Place an Order',
+    'hero.ctaQuote': 'Request a Quote',
+    'hero.hotelGrade': 'Hospitality & Commercial Linen',
+    'hero.ecoFriendly': 'Professional Quality Standards',
+    'hero.fastTurnaround': 'Unawatuna Facility & Collection',
 
     // Services summary
     'services.badge': 'Our Expertise',
@@ -141,8 +142,9 @@ export const translations: Record<Language, Record<string, string>> = {
 
     // Hero
     'hero.badge': 'Лучшая прачечная в Унаватуне и Галле',
-    'hero.titleLine1': 'Безупречный уход за',
-    'hero.titleLine2': 'каждой вещью и бельём',
+    'hero.titleLine1': 'Профессиональная прачечная и',
+    'hero.titleLine2': 'уход за бельём',
+    'hero.titleSuffix': 'в Унаватуне',
     'hero.description': 'Обслуживаем туристов, виллы, бутик-отели и жителей Унаватуны и Галле. Профессиональная стирка, химчистка, глажка и бесплатная экспресс-доставка прямо к вашей двери.',
     'hero.ctaOrder': 'Заказать через WhatsApp',
     'hero.ctaQuote': 'Узнать стоимость',
@@ -228,8 +230,9 @@ export const translations: Record<Language, Record<string, string>> = {
 
     // Hero
     'hero.badge': 'Erstklassige Wäscherei in Unawatuna & Galle',
-    'hero.titleLine1': 'Makellose Pflege für',
-    'hero.titleLine2': 'jede Faser & Bettwäsche',
+    'hero.titleLine1': 'Professionelle Wäscherei &',
+    'hero.titleLine2': 'Wäschepflege',
+    'hero.titleSuffix': 'in Unawatuna',
     'hero.description': 'Für Reisende, Luxusvillen, Boutique-Hotels und Einheimische in Unawatuna und Galle. Professionelles Waschen, chemische Reinigung, Bügeln und bequeme Abholung & Lieferung.',
     'hero.ctaOrder': 'Per WhatsApp bestellen',
     'hero.ctaQuote': 'Kostenfreies Angebot',
@@ -315,8 +318,9 @@ export const translations: Record<Language, Record<string, string>> = {
 
     // Hero
     'hero.badge': 'Blanchisserie d’Excellence à Unawatuna & Galle',
-    'hero.titleLine1': 'Un soin irréprochable pour',
-    'hero.titleLine2': 'chaque vêtement & textile',
+    'hero.titleLine1': 'Blanchisserie Professionnelle &',
+    'hero.titleLine2': 'Soin du Linge',
+    'hero.titleSuffix': 'à Unawatuna',
     'hero.description': 'Au service des voyageurs, villas de luxe, boutiques-hôtels et résidents d’Unawatuna et Galle. Lavage professionnel, nettoyage à sec, repassage et collecte/livraison express.',
     'hero.ctaOrder': 'Commander sur WhatsApp',
     'hero.ctaQuote': 'Obtenir un devis',
@@ -402,8 +406,9 @@ export const translations: Record<Language, Record<string, string>> = {
 
     // Hero
     'hero.badge': 'උණවටුන සහ ගාල්ලේ ප්‍රමුඛතම රෙදි සේදීමේ සේවාව',
-    'hero.titleLine1': 'ඔබේ වටිනා ඇඳුම් සඳහා',
-    'hero.titleLine2': 'විශිෂ්ටතම රැකවරණය',
+    'hero.titleLine1': 'ප්‍රමුඛතම රෙදි සේදීමේ සහ',
+    'hero.titleLine2': 'ලිනන් සත්කාරය',
+    'hero.titleSuffix': 'උණවටුනේදී',
     'hero.description': 'සංචාරකයින්, සුඛෝපභෝගී විලා, හෝටල් සහ ප්‍රදේශවාසීන් සඳහා උසස් තත්ත්වයේ රෙදි සේදීම, ඩ්‍රයි ක්ලීනින්, අයන් කිරීම සහ නොමිලේ නිවසටම ප්‍රවාහන සේවාව.',
     'hero.ctaOrder': 'WhatsApp මගින් ඇණවුම් කරන්න',
     'hero.ctaQuote': 'මිල විස්තර ලබාගන්න',
