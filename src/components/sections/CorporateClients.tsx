@@ -22,6 +22,22 @@ export const CORPORATE_CLIENTS: CorporateClient[] = [
     alt: 'Amangalla - Aman Resorts Galle Fort',
   },
   {
+    id: 'galle-fort-hotel',
+    name: 'Galle Fort Hotel',
+    category: 'Heritage Boutique Hotel',
+    location: 'Galle Fort',
+    logo: '/images/clients/galle-fort-hotel.png',
+    alt: 'Galle Fort Hotel - Heritage Boutique Hotel Galle Fort',
+  },
+  {
+    id: 'angel-beach',
+    name: 'Angel Beach',
+    category: 'Luxury Beach Resort',
+    location: 'Unawatuna',
+    logo: '/images/clients/angel-beach.png',
+    alt: 'Angel Beach Unawatuna - Luxury Beach Resort & Club',
+  },
+  {
     id: 'radisson',
     name: 'Radisson Collection',
     category: '5-Star Resort & Spa',
@@ -112,7 +128,7 @@ export default function CorporateClients() {
                 isPaused ? '[animation-play-state:paused]' : ''
               }`}
               style={{
-                animation: 'corporateMarquee 35s linear infinite',
+                animation: 'corporateMarquee 42s linear infinite',
               }}
             >
               {MARQUEE_CLIENTS.map((client, idx) => (
@@ -126,7 +142,7 @@ export default function CorporateClients() {
                       alt={client.alt}
                       fill
                       unoptimized
-                      priority={idx < 7}
+                      priority={idx < 9}
                       className="object-contain filter drop-shadow-none"
                       sizes="(max-width: 640px) 176px, (max-width: 1024px) 208px, 240px"
                     />
