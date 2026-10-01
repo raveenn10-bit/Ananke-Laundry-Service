@@ -221,17 +221,60 @@ export function extractPhoneFromZohoRecord(record: any): string | undefined {
  *  3. tags array — joined as a comma-separated string
  * Returns undefined if nothing found.
  */
-export function extractCategoryFromZohoRecord(record: any): string | undefined {
-  if (!record || typeof record !== 'object') return undefined;
+export function extractCategoryFromZohoRecord(
+  record: any,
+  fallbackCustomer?: any
+): 'Retail' | 'Outside Hotel' {
+  if (!record || typeof record !== 'object') {
+    return 'Retail';
+  }
 
-  const CATEGORY_KEYWORDS = ['category', 'order type', 'service type', 'type', 'segment', 'channel'];
+  const normalizeToCategory = (val: any): 'Retail' | 'Outside Hotel' | undefined => {
+    if (!val) return undefined;
+    const s = String(val).toLowerCase().trim();
+    if (!s) return undefined;
+    if (
+      s.includes('outside') ||
+      s.includes('out side') ||
+      s.includes('hotel') ||
+      s.includes('osh') ||
+      s.includes('resort') ||
+      s.includes('villa')
+    ) {
+      return 'Outside Hotel';
+    }
+    if (
+      s.includes('retail') ||
+      s.includes('individual') ||
+      s.includes('walk-in') ||
+      s.includes('walkin') ||
+      s.includes('direct') ||
+      s.includes('customer')
+    ) {
+      return 'Retail';
+    }
+    return undefined;
+  };
+
+  const CATEGORY_KEYWORDS = [
+    'category',
+    'order type',
+    'service type',
+    'customer type',
+    'laundry type',
+    'order category',
+    'type',
+    'segment',
+    'channel',
+    'sector',
+  ];
 
   const labelMatches = (label: string): boolean => {
     const l = label.toLowerCase();
     return CATEGORY_KEYWORDS.some((kw) => l.includes(kw));
   };
 
-  // 1. custom_fields array
+  // 1. Check custom_fields array on the record
   const cfList: any[] = Array.isArray(record.custom_fields)
     ? record.custom_fields
     : Array.isArray(record.customfields)
@@ -240,6 +283,7 @@ export function extractCategoryFromZohoRecord(record: any): string | undefined {
     ? Object.values(record.custom_fields)
     : [];
 
+  // 1.1 Match specific category field labels
   for (const cf of cfList) {
     if (!cf || typeof cf !== 'object') continue;
     const label = String(
@@ -253,38 +297,118 @@ export function extractCategoryFromZohoRecord(record: any): string | undefined {
       ''
     );
     if (labelMatches(label)) {
-      const val =
-        cf.value ??
-        cf.value_formatted ??
-        cf.unformatted_value ??
-        cf.field_value;
-      if (val !== undefined && val !== null) {
-        const str = String(val).trim();
-        if (str) return str;
-      }
+      const val = cf.value ?? cf.value_formatted ?? cf.unformatted_value ?? cf.field_value;
+      const cat = normalizeToCategory(val);
+      if (cat) return cat;
     }
   }
 
-  // 2. custom_field_hash
+  // 1.2 Check ANY custom field value containing 'retail' or 'outside' or 'hotel'
+  for (const cf of cfList) {
+    if (!cf || typeof cf !== 'object') continue;
+    const val = cf.value ?? cf.value_formatted ?? cf.unformatted_value ?? cf.field_value;
+    const cat = normalizeToCategory(val);
+    if (cat) return cat;
+  }
+
+  // 2. Check custom_field_hash on the record
   if (record.custom_field_hash && typeof record.custom_field_hash === 'object') {
     for (const [key, val] of Object.entries(record.custom_field_hash)) {
       if (labelMatches(key)) {
-        const str = String(val ?? '').trim();
-        if (str) return str;
+        const cat = normalizeToCategory(val);
+        if (cat) return cat;
       }
+    }
+    for (const val of Object.values(record.custom_field_hash)) {
+      const cat = normalizeToCategory(val);
+      if (cat) return cat;
     }
   }
 
-  // 3. tags array — join all tag names
-  if (Array.isArray(record.tags) && record.tags.length > 0) {
-    const tagNames = record.tags
-      .map((t: any) => (typeof t === 'string' ? t : t?.name ?? t?.tag_name ?? ''))
-      .filter(Boolean)
-      .join(', ');
-    if (tagNames) return tagNames;
+  // 3. Check direct properties on the record
+  const directProps = [
+    record.category,
+    record.cf_category,
+    record.order_type,
+    record.cf_order_type,
+    record.service_type,
+    record.segment,
+  ];
+  for (const p of directProps) {
+    const cat = normalizeToCategory(p);
+    if (cat) return cat;
   }
 
-  return undefined;
+  // 4. Check tags array
+  if (Array.isArray(record.tags) && record.tags.length > 0) {
+    for (const t of record.tags) {
+      const tName = typeof t === 'string' ? t : t?.name ?? t?.tag_name ?? '';
+      const cat = normalizeToCategory(tName);
+      if (cat) return cat;
+    }
+  }
+
+  // 5. Check customer / contact object if provided
+  const cust = fallbackCustomer || record.contact || record.customer;
+  if (cust && typeof cust === 'object') {
+    const custCfList: any[] = Array.isArray(cust.custom_fields)
+      ? cust.custom_fields
+      : Array.isArray(cust.customfields)
+      ? cust.customfields
+      : [];
+    for (const cf of custCfList) {
+      if (!cf) continue;
+      const cat = normalizeToCategory(cf.value ?? cf.value_formatted);
+      if (cat) return cat;
+    }
+    const custCat = normalizeToCategory(cust.category || cust.contact_type || cust.customer_type);
+    if (custCat) return custCat;
+  }
+
+  // 6. Check Reference Number and Notes
+  const textBlob = `${record.reference_number || ''} ${record.notes || ''} ${record.customer_notes || ''}`;
+  const textCat = normalizeToCategory(textBlob);
+  if (textCat) return textCat;
+
+  // 7. Check Line Items
+  if (Array.isArray(record.line_items)) {
+    for (const item of record.line_items) {
+      const itemText = `${item.name || ''} ${item.description || ''}`;
+      const itemCat = normalizeToCategory(itemText);
+      if (itemCat) return itemCat;
+    }
+  }
+
+  // 8. Heuristic detection from customer name or company name
+  const nameToCheck = `${record.company_name || ''} ${record.customer_name || ''} ${cust?.company_name || ''} ${cust?.contact_name || ''}`.toLowerCase();
+  
+  const hotelKeywords = [
+    'hotel',
+    'resort',
+    'villa',
+    'villas',
+    'suites',
+    'inn',
+    'sand',
+    'sands',
+    'beach',
+    'retreat',
+    'guest house',
+    'guesthouse',
+    'lodge',
+    'residence',
+    'apartments',
+    'bungalow',
+    'cottage',
+    'palace',
+  ];
+
+  if (hotelKeywords.some((kw) => nameToCheck.includes(kw))) {
+    return 'Outside Hotel';
+  }
+
+  // Default to Retail for individual/walk-in customer orders
+  return 'Retail';
 }
 
 /**
@@ -512,14 +636,15 @@ export async function getZohoOrderCenterData(options: {
       const ordersList: ZohoOrderRecord[] = [];
       const twoDaysAgo = Date.now() - 48 * 60 * 60 * 1000;
 
-      // In Zoho Books, list endpoint /invoices does not include custom_fields ("WhatsApp Number").
-      // For invoices where phone is not in the list summary, fetch /invoices/{id} to extract custom_fields!
+      // In Zoho Books, list endpoint /invoices does not include custom_fields ("WhatsApp Number", "Category").
+      // For invoices where phone or category is not in the list summary, fetch /invoices/{id} to extract custom_fields!
       const invoicesNeedingDetail = (invRes.invoices || []).filter((inv) => {
-        if (invoicePhoneCache.has(inv.invoice_id)) return false;
-        const p1 = extractPhoneFromZohoRecord(inv);
-        const contact = contactMap.get(inv.customer_id);
-        const p2 = extractPhoneFromZohoRecord(contact);
-        return !p1 && !p2;
+        const needsPhone =
+          !invoicePhoneCache.has(inv.invoice_id) &&
+          !extractPhoneFromZohoRecord(inv) &&
+          !extractPhoneFromZohoRecord(contactMap.get(inv.customer_id));
+        const needsCategory = !invoiceCategoryCache.has(inv.invoice_id);
+        return needsPhone || needsCategory;
       });
 
       if (invoicesNeedingDetail.length > 0) {
@@ -557,9 +682,10 @@ export async function getZohoOrderCenterData(options: {
                 invoicePhoneCache.set(inv.invoice_id, phoneFound);
               }
 
-              // Also extract category from the full invoice detail
+              // Extract and cache category from full invoice detail or contact
               if (full?.invoice) {
-                const categoryFound = extractCategoryFromZohoRecord(full.invoice);
+                const contact = contactMap.get(inv.customer_id);
+                const categoryFound = extractCategoryFromZohoRecord(full.invoice, contact);
                 if (categoryFound) {
                   invoiceCategoryCache.set(inv.invoice_id, categoryFound);
                 }
@@ -640,7 +766,7 @@ export async function getZohoOrderCenterData(options: {
                 phone: contact.billing_address.phone,
               }
             : undefined,
-          category: invoiceCategoryCache.get(inv.invoice_id) || extractCategoryFromZohoRecord(inv),
+          category: invoiceCategoryCache.get(inv.invoice_id) || extractCategoryFromZohoRecord(inv, contact),
         });
       }
 
@@ -686,7 +812,7 @@ export async function getZohoOrderCenterData(options: {
             updatedTime: so.last_modified_time,
             isNew,
             referenceNumber: so.reference_number,
-            category: extractCategoryFromZohoRecord(so),
+            category: extractCategoryFromZohoRecord(so, contact),
           });
         }
       }
@@ -702,6 +828,8 @@ export async function getZohoOrderCenterData(options: {
         unpaidOrders: ordersList.filter((o) => o.financialStatus === 'Unpaid').length,
         partiallyPaidOrders: ordersList.filter((o) => o.financialStatus === 'Partially Paid').length,
         overdueOrders: ordersList.filter((o) => o.financialStatus === 'Overdue').length,
+        retailOrders: ordersList.filter((o) => o.category === 'Retail').length,
+        outsideHotelOrders: ordersList.filter((o) => o.category === 'Outside Hotel').length,
       };
 
       return {
@@ -823,7 +951,7 @@ export async function getZohoInvoiceFullDetails(invoiceId: string): Promise<Zoho
           notes: inv.notes,
           lineItems,
           billingAddress: inv.billing_address,
-          category: invoiceCategoryCache.get(inv.invoice_id) || extractCategoryFromZohoRecord(inv),
+          category: invoiceCategoryCache.get(inv.invoice_id) || extractCategoryFromZohoRecord(inv, inv.contact || inv.customer),
         };
       }
     } catch (err: any) {

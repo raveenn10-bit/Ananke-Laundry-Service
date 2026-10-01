@@ -63,7 +63,7 @@ interface ZohoOrderCenterProps {
   onLogout?: () => void;
 }
 
-type FilterOption = 'All' | 'Retail' | 'Outside Orders' | 'Today' | 'New' | 'Paid' | 'Unpaid' | 'Partially Paid' | 'Overdue';
+type FilterOption = 'All' | 'Retail' | 'Outside Hotel' | 'Today' | 'New' | 'Paid' | 'Unpaid' | 'Partially Paid' | 'Overdue';
 
 export default function ZohoOrderCenter({ adminKey = '', onLogout }: ZohoOrderCenterProps) {
   // Main Data States
@@ -289,8 +289,9 @@ export default function ZohoOrderCenter({ adminKey = '', onLogout }: ZohoOrderCe
         const soMatch = order.salesOrderNumber?.toLowerCase().includes(q);
         const phoneMatch = order.phone?.toLowerCase().includes(q) || order.whatsappPhone?.includes(q);
         const companyMatch = order.companyName?.toLowerCase().includes(q);
+        const catMatch = order.category?.toLowerCase().includes(q);
 
-        if (!nameMatch && !invMatch && !soMatch && !phoneMatch && !companyMatch) {
+        if (!nameMatch && !invMatch && !soMatch && !phoneMatch && !companyMatch && !catMatch) {
           return false;
         }
       }
@@ -324,15 +325,12 @@ export default function ZohoOrderCenter({ adminKey = '', onLogout }: ZohoOrderCe
 
       if (activeFilter === 'Retail') {
         const cat = (order.category || '').toLowerCase();
-        return cat.includes('retail') ||
-          (order.referenceNumber || '').toLowerCase().includes('retail') ||
-          (order.companyName || '').toLowerCase().includes('retail');
+        return cat.includes('retail');
       }
 
-      if (activeFilter === 'Outside Orders') {
+      if (activeFilter === 'Outside Hotel') {
         const cat = (order.category || '').toLowerCase();
-        return cat.includes('outside') ||
-          (order.referenceNumber || '').toLowerCase().includes('outside');
+        return cat.includes('outside') || cat.includes('hotel');
       }
 
       return true;
@@ -527,30 +525,49 @@ export default function ZohoOrderCenter({ adminKey = '', onLogout }: ZohoOrderCe
           </div>
         </div>
 
-        {/* Retail */}
-        {
-          (() => {
-            const cnt = orders.filter(o => (o.category || '').toLowerCase().includes('retail')).length;
-            return cnt > 0 ? (
-              <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 text-center min-w-[90px]">
-                <div className="text-2xl font-extrabold text-emerald-700">{cnt}</div>
-                <div className="text-[10px] font-semibold text-emerald-600 uppercase tracking-wide mt-0.5">Retail</div>
-              </div>
-            ) : null;
-          })()
-        }
-        {/* Outside Orders */}
-        {
-          (() => {
-            const cnt = orders.filter(o => (o.category || '').toLowerCase().includes('outside')).length;
-            return cnt > 0 ? (
-              <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4 text-center min-w-[90px]">
-                <div className="text-2xl font-extrabold text-blue-700">{cnt}</div>
-                <div className="text-[10px] font-semibold text-blue-600 uppercase tracking-wide mt-0.5">Outside</div>
-              </div>
-            ) : null;
-          })()
-        }
+        {/* Retail Orders Card */}
+        <div
+          onClick={() => setActiveFilter(activeFilter === 'Retail' ? 'All' : 'Retail')}
+          className={`rounded-2xl p-4 sm:p-5 border cursor-pointer transition-all flex flex-col justify-between ${
+            activeFilter === 'Retail'
+              ? 'bg-emerald-100 border-emerald-500 shadow-sm ring-2 ring-emerald-500/20'
+              : 'bg-emerald-50/60 hover:bg-emerald-50 border-emerald-200'
+          }`}
+          title="Click to view only Retail laundry orders"
+        >
+          <div className="flex items-center justify-between text-emerald-800 mb-2">
+            <span className="text-[11px] font-bold uppercase tracking-wider">Retail Orders</span>
+            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
+          </div>
+          <div>
+            <span className="text-2xl sm:text-3xl font-extrabold text-emerald-700 font-heading block">
+              {orders.filter((o) => (o.category || '').toLowerCase().includes('retail')).length}
+            </span>
+            <span className="text-[10px] text-emerald-600 font-medium">Walk-in & Residential</span>
+          </div>
+        </div>
+
+        {/* Outside Hotel Orders Card */}
+        <div
+          onClick={() => setActiveFilter(activeFilter === 'Outside Hotel' ? 'All' : 'Outside Hotel')}
+          className={`rounded-2xl p-4 sm:p-5 border cursor-pointer transition-all flex flex-col justify-between ${
+            activeFilter === 'Outside Hotel'
+              ? 'bg-blue-100 border-blue-500 shadow-sm ring-2 ring-blue-500/20'
+              : 'bg-blue-50/60 hover:bg-blue-50 border-blue-200'
+          }`}
+          title="Click to view only Outside Hotel orders"
+        >
+          <div className="flex items-center justify-between text-blue-800 mb-2">
+            <span className="text-[11px] font-bold uppercase tracking-wider">Outside Hotel</span>
+            <span className="w-2.5 h-2.5 rounded-full bg-blue-500 animate-pulse" />
+          </div>
+          <div>
+            <span className="text-2xl sm:text-3xl font-extrabold text-blue-700 font-heading block">
+              {orders.filter((o) => (o.category || '').toLowerCase().includes('outside') || (o.category || '').toLowerCase().includes('hotel')).length}
+            </span>
+            <span className="text-[10px] text-blue-600 font-medium">Hotels, Resorts & Villas</span>
+          </div>
+        </div>
       </div>
 
       {/* ================================================== */}
@@ -592,7 +609,7 @@ export default function ZohoOrderCenter({ adminKey = '', onLogout }: ZohoOrderCe
             [
               'All',
               'Retail',
-              'Outside Orders',
+              'Outside Hotel',
               'Today',
               'New',
               'Paid',
@@ -602,30 +619,53 @@ export default function ZohoOrderCenter({ adminKey = '', onLogout }: ZohoOrderCe
             ] as FilterOption[]
           ).map((filter) => {
             const isActive = activeFilter === filter;
+            const retailCount = orders.filter((o) => (o.category || '').toLowerCase().includes('retail')).length;
+            const outsideHotelCount = orders.filter(
+              (o) => (o.category || '').toLowerCase().includes('outside') || (o.category || '').toLowerCase().includes('hotel')
+            ).length;
+
             return (
               <button
                 key={filter}
                 onClick={() => setActiveFilter(filter)}
-                className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all whitespace-nowrap cursor-pointer ${
+                className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all whitespace-nowrap cursor-pointer flex items-center gap-1.5 ${
                   isActive
-                    ? 'bg-dark text-white shadow-xs'
+                    ? filter === 'Retail'
+                      ? 'bg-emerald-600 text-white shadow-xs'
+                      : filter === 'Outside Hotel'
+                      ? 'bg-blue-600 text-white shadow-xs'
+                      : 'bg-dark text-white shadow-xs'
+                    : filter === 'Retail'
+                    ? 'bg-emerald-50 border border-emerald-200 text-emerald-800 hover:bg-emerald-100'
+                    : filter === 'Outside Hotel'
+                    ? 'bg-blue-50 border border-blue-200 text-blue-800 hover:bg-blue-100'
                     : 'bg-cream/40 border border-gray-200 text-gray-600 hover:bg-gray-100 hover:text-dark'
                 }`}
               >
-                {filter}
+                <span>{filter === 'All' ? 'All Orders' : filter}</span>
+                {filter === 'Retail' && (
+                  <span
+                    className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
+                      isActive ? 'bg-white/25 text-white' : 'bg-emerald-200 text-emerald-900'
+                    }`}
+                  >
+                    {retailCount}
+                  </span>
+                )}
+                {filter === 'Outside Hotel' && (
+                  <span
+                    className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
+                      isActive ? 'bg-white/25 text-white' : 'bg-blue-200 text-blue-900'
+                    }`}
+                  >
+                    {outsideHotelCount}
+                  </span>
+                )}
                 {filter === 'New' && (stats?.newOrders || 0) > 0 && (
                   <span className="ml-1 px-1.5 py-0.2 rounded-full bg-emerald-500 text-white text-[10px]">
                     {stats?.newOrders}
                   </span>
                 )}
-                {filter === 'Retail' && (() => {
-                  const cnt = orders.filter(o => (o.category || '').toLowerCase().includes('retail')).length;
-                  return cnt > 0 ? <span className="ml-1 px-1.5 py-0.5 rounded-full bg-emerald-500 text-white text-[10px]">{cnt}</span> : null;
-                })()}
-                {filter === 'Outside Orders' && (() => {
-                  const cnt = orders.filter(o => (o.category || '').toLowerCase().includes('outside')).length;
-                  return cnt > 0 ? <span className="ml-1 px-1.5 py-0.5 rounded-full bg-blue-500 text-white text-[10px]">{cnt}</span> : null;
-                })()}
               </button>
             );
           })}
@@ -724,15 +764,24 @@ export default function ZohoOrderCenter({ adminKey = '', onLogout }: ZohoOrderCe
                             </div>
                           )}
                           {order.category && (
-                            <span className={`inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-bold mt-0.5 ${
-                              order.category.toLowerCase().includes('retail')
-                                ? 'bg-emerald-100 text-emerald-800'
-                                : order.category.toLowerCase().includes('outside')
-                                ? 'bg-blue-100 text-blue-800'
-                                : 'bg-gray-100 text-gray-600'
-                            }`}>
-                              {order.category}
-                            </span>
+                            <div className="mt-1">
+                              <span
+                                className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold border ${
+                                  order.category.toLowerCase().includes('retail')
+                                    ? 'bg-emerald-50 text-emerald-800 border-emerald-300'
+                                    : 'bg-blue-50 text-blue-800 border-blue-300'
+                                }`}
+                              >
+                                <span
+                                  className={`w-1.5 h-1.5 rounded-full ${
+                                    order.category.toLowerCase().includes('retail')
+                                      ? 'bg-emerald-500'
+                                      : 'bg-blue-500'
+                                  }`}
+                                />
+                                {order.category}
+                              </span>
+                            </div>
                           )}
                         </td>
 
@@ -858,15 +907,24 @@ export default function ZohoOrderCenter({ adminKey = '', onLogout }: ZohoOrderCe
                       <p className="text-xs text-gray-500">{order.companyName}</p>
                     )}
                     {order.category && (
-                      <span className={`inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-bold mt-0.5 ${
-                        order.category.toLowerCase().includes('retail')
-                          ? 'bg-emerald-100 text-emerald-800'
-                          : order.category.toLowerCase().includes('outside')
-                          ? 'bg-blue-100 text-blue-800'
-                          : 'bg-gray-100 text-gray-600'
-                      }`}>
-                        {order.category}
-                      </span>
+                      <div className="mt-1">
+                        <span
+                          className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold border ${
+                            order.category.toLowerCase().includes('retail')
+                              ? 'bg-emerald-50 text-emerald-800 border-emerald-300'
+                              : 'bg-blue-50 text-blue-800 border-blue-300'
+                          }`}
+                        >
+                          <span
+                            className={`w-1.5 h-1.5 rounded-full ${
+                              order.category.toLowerCase().includes('retail')
+                                ? 'bg-emerald-500'
+                                : 'bg-blue-500'
+                            }`}
+                          />
+                          {order.category}
+                        </span>
+                      </div>
                     )}
                     <p className="text-xs font-mono text-gray-600 mt-0.5">
                       {order.hasUsablePhone ? order.phone : 'No phone number'}
@@ -975,7 +1033,27 @@ export default function ZohoOrderCenter({ adminKey = '', onLogout }: ZohoOrderCe
                 <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 block mb-1">
                   Customer &amp; Contact
                 </span>
-                <p className="font-bold text-dark text-sm">{selectedOrderForDetails.customerName}</p>
+                <div className="flex items-center justify-between">
+                  <p className="font-bold text-dark text-sm">{selectedOrderForDetails.customerName}</p>
+                  {selectedOrderForDetails.category && (
+                    <span
+                      className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold border ${
+                        selectedOrderForDetails.category.toLowerCase().includes('retail')
+                          ? 'bg-emerald-50 text-emerald-800 border-emerald-300'
+                          : 'bg-blue-50 text-blue-800 border-blue-300'
+                      }`}
+                    >
+                      <span
+                        className={`w-1.5 h-1.5 rounded-full ${
+                          selectedOrderForDetails.category.toLowerCase().includes('retail')
+                            ? 'bg-emerald-500'
+                            : 'bg-blue-500'
+                        }`}
+                      />
+                      {selectedOrderForDetails.category}
+                    </span>
+                  )}
+                </div>
                 {selectedOrderForDetails.companyName && (
                   <p className="text-gray-600">{selectedOrderForDetails.companyName}</p>
                 )}
@@ -1166,6 +1244,27 @@ export default function ZohoOrderCenter({ adminKey = '', onLogout }: ZohoOrderCe
                   #{selectedOrderForWhatsApp.invoiceNumber}
                 </span>
               </div>
+              {selectedOrderForWhatsApp.category && (
+                <div className="flex justify-between items-center pt-1.5 border-t border-cream-dark/60">
+                  <span className="text-gray-500">Order Category:</span>
+                  <span
+                    className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold border ${
+                      selectedOrderForWhatsApp.category.toLowerCase().includes('retail')
+                        ? 'bg-emerald-50 text-emerald-800 border-emerald-300'
+                        : 'bg-blue-50 text-blue-800 border-blue-300'
+                    }`}
+                  >
+                    <span
+                      className={`w-1.5 h-1.5 rounded-full ${
+                        selectedOrderForWhatsApp.category.toLowerCase().includes('retail')
+                          ? 'bg-emerald-500'
+                          : 'bg-blue-500'
+                      }`}
+                    />
+                    {selectedOrderForWhatsApp.category}
+                  </span>
+                </div>
+              )}
             </div>
 
             {/* Live WhatsApp Bubble Preview */}

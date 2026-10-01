@@ -56,7 +56,7 @@ export interface ZohoOrderRecord {
   notes?: string;
   lineItems?: ZohoOrderLineItem[];
   billingAddress?: ZohoOrderAddress;
-  category?: string; // e.g. 'Retail', 'Outside Orders' — extracted from Zoho custom fields / tags
+  category?: 'Retail' | 'Outside Hotel' | string; // 'Retail' or 'Outside Hotel'
 }
 
 export interface ZohoOrderStats {
@@ -66,6 +66,8 @@ export interface ZohoOrderStats {
   unpaidOrders: number;
   partiallyPaidOrders: number;
   overdueOrders: number;
+  retailOrders?: number;
+  outsideHotelOrders?: number;
 }
 
 export interface ZohoOrdersResponse {
