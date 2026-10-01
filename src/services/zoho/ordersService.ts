@@ -27,6 +27,191 @@ function cleanWhatsAppText(text: string): string {
 
 const SECURE_MY_BILL_URL = 'https://ananke-laundry-service.vercel.app/my-bill';
 
+// In-memory cache for resolved invoice & contact phones to minimize Zoho API round-trips
+const invoicePhoneCache = new Map<string, string>();
+const contactPhoneCache = new Map<string, string>();
+
+/**
+ * Extracts a phone or WhatsApp number from any Zoho Books entity:
+ * - Custom Fields array (e.g. label: "WhatsApp Number", "whatsapp number", "WhatsApp", etc.)
+ * - Custom field hash (e.g. cf_whatsapp_number)
+ * - Direct object properties (whatsapp_number, mobile, phone, etc.)
+ * - Contact persons and addresses
+ * - Notes or terms fallback
+ */
+export function extractPhoneFromZohoRecord(record: any): string | undefined {
+  if (!record || typeof record !== 'object') return undefined;
+
+  const checkValue = (val: any): string | undefined => {
+    if (val === undefined || val === null) return undefined;
+    if (typeof val === 'object') {
+      for (const subKey of ['phone_number', 'mobile', 'value', 'number', 'phone', 'text', 'formatted']) {
+        if (val[subKey]) {
+          const res = checkValue(val[subKey]);
+          if (res) return res;
+        }
+      }
+      return undefined;
+    }
+    const str = String(val).trim();
+    if (!str) return undefined;
+    const digits = str.replace(/\D/g, '');
+    if (digits.length >= 7) {
+      return str;
+    }
+    return undefined;
+  };
+
+  // 1. Check custom_fields array (or customfields)
+  const cfList: any[] = Array.isArray(record.custom_fields)
+    ? record.custom_fields
+    : Array.isArray(record.customfields)
+    ? record.customfields
+    : record.custom_fields && typeof record.custom_fields === 'object'
+    ? Object.values(record.custom_fields)
+    : [];
+
+  if (cfList.length > 0) {
+    // Priority 1: Label specifically contains "whatsapp" or "whats app" or "wa"
+    for (const cf of cfList) {
+      if (!cf || typeof cf !== 'object') continue;
+      const label = String(
+        cf.label ||
+        cf.placeholder ||
+        cf.api_name ||
+        cf.field_name ||
+        cf.data_name ||
+        cf.name ||
+        cf.column_name ||
+        ''
+      ).toLowerCase();
+      if (label.includes('whatsapp') || label.includes('whats app') || label.includes('wa')) {
+        const p =
+          checkValue(cf.value) ||
+          checkValue(cf.value_formatted) ||
+          checkValue(cf.unformatted_value) ||
+          checkValue(cf.field_value);
+        if (p) return p;
+      }
+    }
+
+    // Priority 2: Label contains "phone", "mobile", "contact", or "tel"
+    for (const cf of cfList) {
+      if (!cf || typeof cf !== 'object') continue;
+      const label = String(
+        cf.label ||
+        cf.placeholder ||
+        cf.api_name ||
+        cf.field_name ||
+        cf.data_name ||
+        cf.name ||
+        cf.column_name ||
+        ''
+      ).toLowerCase();
+      if (
+        label.includes('phone') ||
+        label.includes('mobile') ||
+        label.includes('contact') ||
+        label.includes('tel') ||
+        label.includes('number')
+      ) {
+        const p =
+          checkValue(cf.value) ||
+          checkValue(cf.value_formatted) ||
+          checkValue(cf.unformatted_value) ||
+          checkValue(cf.field_value);
+        if (p) return p;
+      }
+    }
+  }
+
+  // 2. Check custom_field_hash (e.g. cf_whatsapp_number)
+  if (record.custom_field_hash && typeof record.custom_field_hash === 'object') {
+    for (const [key, val] of Object.entries(record.custom_field_hash)) {
+      const k = key.toLowerCase();
+      if (k.includes('whatsapp') || k.includes('whats_app') || k.includes('wa')) {
+        const p = checkValue(val);
+        if (p) return p;
+      }
+    }
+    for (const [key, val] of Object.entries(record.custom_field_hash)) {
+      const k = key.toLowerCase();
+      if (k.includes('phone') || k.includes('mobile') || k.includes('contact') || k.includes('tel')) {
+        const p = checkValue(val);
+        if (p) return p;
+      }
+    }
+  }
+
+  // 3. Direct properties on the record
+  const directKeys = [
+    'whatsapp_number',
+    'whatsapp',
+    'cf_whatsapp_number',
+    'cf_whatsapp',
+    'cf_whatsapp_no',
+    'whatsapp number',
+    'WhatsApp Number',
+    'Whatsapp Number',
+    'WhatsApp number',
+    'whatsapp_no',
+    'WhatsApp No',
+    'WhatsApp',
+    'mobile',
+    'phone',
+    'customer_phone',
+    'contact_phone',
+    'phone_number',
+    'mobile_number',
+    'telephone',
+  ];
+
+  for (const k of directKeys) {
+    if (k in record) {
+      const p = checkValue(record[k]);
+      if (p) return p;
+    }
+  }
+
+  // 4. Any top-level object key containing whatsapp, phone, or mobile
+  for (const [key, val] of Object.entries(record)) {
+    const k = key.toLowerCase();
+    if (k.includes('whatsapp') || k.includes('phone') || k.includes('mobile')) {
+      const p = checkValue(val);
+      if (p) return p;
+    }
+  }
+
+  // 5. Contact persons array
+  if (Array.isArray(record.contact_persons)) {
+    for (const cp of record.contact_persons) {
+      const p = extractPhoneFromZohoRecord(cp);
+      if (p) return p;
+    }
+  }
+
+  // 6. Billing / shipping address phone
+  if (record.billing_address) {
+    const p = checkValue(record.billing_address.phone) || checkValue(record.billing_address.mobile);
+    if (p) return p;
+  }
+  if (record.shipping_address) {
+    const p = checkValue(record.shipping_address.phone) || checkValue(record.shipping_address.mobile);
+    if (p) return p;
+  }
+
+  // 7. Check notes or customer_notes for embedded phone numbers (e.g. "WhatsApp: 077 123 4567")
+  if (record.notes || record.customer_notes) {
+    const text = `${record.notes || ''} ${record.customer_notes || ''}`;
+    const slSubMatch = text.replace(/[\s\-\.\(\)]/g, '').match(/(?:0|94)?(7[01245678]\d{7})/);
+    if (slSubMatch && slSubMatch[1]) {
+      return slSubMatch[1];
+    }
+  }
+
+  return undefined;
+}
+
 /**
  * Normalizes any raw phone number into:
  * 1. WhatsApp click-to-chat compatible international digits (e.g. '94771234567' - no +, spaces, -)
@@ -46,7 +231,41 @@ export function normalizePhoneForOrder(rawPhone?: string): {
     return { displayPhone: 'No phone number', hasUsablePhone: false };
   }
 
-  // Attempt Sri Lankan phone normalization first
+  // Extract all numeric digits
+  const allDigits = cleaned.replace(/\D/g, '');
+
+  // Sri Lankan Mobile pattern:
+  // 9 digits: 7XXXXXXXX
+  // 10 digits: 07XXXXXXXX
+  // 11 digits: 947XXXXXXXX
+  // 12 digits: 00947XXXXXXXX
+  let sl9: string | null = null;
+
+  if (allDigits.length === 9 && /^7[01245678]\d{7}$/.test(allDigits)) {
+    sl9 = allDigits;
+  } else if (allDigits.length === 10 && /^07[01245678]\d{7}$/.test(allDigits)) {
+    sl9 = allDigits.slice(1);
+  } else if (allDigits.length === 11 && /^947[01245678]\d{7}$/.test(allDigits)) {
+    sl9 = allDigits.slice(2);
+  } else if (allDigits.length === 12 && /^00947[01245678]\d{7}$/.test(allDigits)) {
+    sl9 = allDigits.slice(4);
+  } else {
+    // Check if a Sri Lankan 9-digit mobile is contained within larger text or digits
+    const slSubMatch = allDigits.match(/(?:0|94)?(7[01245678]\d{7})/);
+    if (slSubMatch && slSubMatch[1]) {
+      sl9 = slSubMatch[1];
+    }
+  }
+
+  if (sl9) {
+    return {
+      whatsappPhone: `94${sl9}`,
+      displayPhone: `+94 ${sl9.slice(0, 2)} ${sl9.slice(2, 5)} ${sl9.slice(5)}`,
+      hasUsablePhone: true,
+    };
+  }
+
+  // Also try normalizeSriLankanPhone from phoneAuth
   const slNorm = normalizeSriLankanPhone(cleaned);
   if (slNorm.isValid && slNorm.digits) {
     return {
@@ -56,12 +275,11 @@ export function normalizePhoneForOrder(rawPhone?: string): {
     };
   }
 
-  // Fallback for foreign/international numbers
-  const digitsOnly = cleaned.replace(/\D/g, '');
-  if (digitsOnly.length >= 9) {
+  // International phone fallback (e.g. UK, UAE, US tourists)
+  if (allDigits.length >= 9 && allDigits.length <= 15) {
     return {
-      whatsappPhone: digitsOnly,
-      displayPhone: cleaned.startsWith('+') ? cleaned : `+${digitsOnly}`,
+      whatsappPhone: allDigits,
+      displayPhone: cleaned.startsWith('+') ? cleaned : `+${allDigits}`,
       hasUsablePhone: true,
     };
   }
@@ -219,6 +437,57 @@ export async function getZohoOrderCenterData(options: {
       const ordersList: ZohoOrderRecord[] = [];
       const twoDaysAgo = Date.now() - 48 * 60 * 60 * 1000;
 
+      // In Zoho Books, list endpoint /invoices does not include custom_fields ("WhatsApp Number").
+      // For invoices where phone is not in the list summary, fetch /invoices/{id} to extract custom_fields!
+      const invoicesNeedingDetail = (invRes.invoices || []).filter((inv) => {
+        if (invoicePhoneCache.has(inv.invoice_id)) return false;
+        const p1 = extractPhoneFromZohoRecord(inv);
+        const contact = contactMap.get(inv.customer_id);
+        const p2 = extractPhoneFromZohoRecord(contact);
+        return !p1 && !p2;
+      });
+
+      if (invoicesNeedingDetail.length > 0) {
+        await Promise.allSettled(
+          invoicesNeedingDetail.slice(0, 50).map(async (inv) => {
+            try {
+              const full = await zohoRequest<{ code: number; invoice: any }>(
+                `/invoices/${inv.invoice_id}`
+              );
+              let phoneFound = full?.invoice ? extractPhoneFromZohoRecord(full.invoice) : undefined;
+
+              // Fallback: If not found on invoice, check customer contact details
+              if (!phoneFound && inv.customer_id) {
+                if (contactPhoneCache.has(inv.customer_id)) {
+                  phoneFound = contactPhoneCache.get(inv.customer_id);
+                } else {
+                  try {
+                    const cFull = await zohoRequest<{ code: number; contact: any }>(
+                      `/contacts/${inv.customer_id}`
+                    );
+                    if (cFull?.contact) {
+                      const cPhone = extractPhoneFromZohoRecord(cFull.contact);
+                      if (cPhone) {
+                        contactPhoneCache.set(inv.customer_id, cPhone);
+                        phoneFound = cPhone;
+                      }
+                    }
+                  } catch {
+                    // Contact detail error ignored
+                  }
+                }
+              }
+
+              if (phoneFound) {
+                invoicePhoneCache.set(inv.invoice_id, phoneFound);
+              }
+            } catch {
+              // Ignore single invoice detail error
+            }
+          })
+        );
+      }
+
       // Map Invoices
       for (const inv of invRes.invoices || []) {
         const total = Number(inv.total) || 0;
@@ -227,11 +496,10 @@ export async function getZohoOrderCenterData(options: {
         const contact = contactMap.get(inv.customer_id);
 
         const rawPhone =
-          inv.phone ||
-          inv.mobile ||
-          contact?.mobile ||
-          contact?.phone ||
-          contact?.billing_address?.phone;
+          invoicePhoneCache.get(inv.invoice_id) ||
+          extractPhoneFromZohoRecord(inv) ||
+          contactPhoneCache.get(inv.customer_id) ||
+          extractPhoneFromZohoRecord(contact);
 
         const phoneInfo = normalizePhoneForOrder(rawPhone);
 
@@ -401,7 +669,38 @@ export async function getZohoInvoiceFullDetails(invoiceId: string): Promise<Zoho
         const total = Number(inv.total) || 0;
         const balance = Number(inv.balance) ?? total;
         const amountPaid = Math.max(0, total - balance);
-        const phoneInfo = normalizePhoneForOrder(inv.phone || inv.mobile);
+        let rawPhone =
+          invoicePhoneCache.get(inv.invoice_id) ||
+          extractPhoneFromZohoRecord(inv);
+
+        if (!rawPhone && inv.customer_id) {
+          rawPhone =
+            contactPhoneCache.get(inv.customer_id) ||
+            extractPhoneFromZohoRecord(inv.contact) ||
+            extractPhoneFromZohoRecord(inv.customer);
+          if (!rawPhone) {
+            try {
+              const cFull = await zohoRequest<{ code: number; contact: any }>(
+                `/contacts/${inv.customer_id}`
+              );
+              if (cFull?.contact) {
+                const cPhone = extractPhoneFromZohoRecord(cFull.contact);
+                if (cPhone) {
+                  contactPhoneCache.set(inv.customer_id, cPhone);
+                  rawPhone = cPhone;
+                }
+              }
+            } catch {
+              // Ignore contact detail error
+            }
+          }
+        }
+
+        if (rawPhone) {
+          invoicePhoneCache.set(inv.invoice_id, rawPhone);
+        }
+
+        const phoneInfo = normalizePhoneForOrder(rawPhone);
 
         const lineItems: ZohoOrderLineItem[] = (inv.line_items || []).map((li: any) => ({
           itemId: li.item_id,
