@@ -63,7 +63,7 @@ interface ZohoOrderCenterProps {
   onLogout?: () => void;
 }
 
-type FilterOption = 'All' | 'Today' | 'New' | 'Paid' | 'Unpaid' | 'Partially Paid' | 'Overdue';
+type FilterOption = 'All' | 'Retail' | 'Outside Orders' | 'Today' | 'New' | 'Paid' | 'Unpaid' | 'Partially Paid' | 'Overdue';
 
 export default function ZohoOrderCenter({ adminKey = '', onLogout }: ZohoOrderCenterProps) {
   // Main Data States
@@ -322,6 +322,19 @@ export default function ZohoOrderCenter({ adminKey = '', onLogout }: ZohoOrderCe
         return order.financialStatus === 'Overdue';
       }
 
+      if (activeFilter === 'Retail') {
+        const cat = (order.category || '').toLowerCase();
+        return cat.includes('retail') ||
+          (order.referenceNumber || '').toLowerCase().includes('retail') ||
+          (order.companyName || '').toLowerCase().includes('retail');
+      }
+
+      if (activeFilter === 'Outside Orders') {
+        const cat = (order.category || '').toLowerCase();
+        return cat.includes('outside') ||
+          (order.referenceNumber || '').toLowerCase().includes('outside');
+      }
+
       return true;
     });
   }, [orders, searchQuery, activeFilter, todayStr, newlyAddedIds]);
@@ -513,6 +526,31 @@ export default function ZohoOrderCenter({ adminKey = '', onLogout }: ZohoOrderCe
             <span className="text-[10px] text-gray-400">Partial deposits</span>
           </div>
         </div>
+
+        {/* Retail */}
+        {
+          (() => {
+            const cnt = orders.filter(o => (o.category || '').toLowerCase().includes('retail')).length;
+            return cnt > 0 ? (
+              <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 text-center min-w-[90px]">
+                <div className="text-2xl font-extrabold text-emerald-700">{cnt}</div>
+                <div className="text-[10px] font-semibold text-emerald-600 uppercase tracking-wide mt-0.5">Retail</div>
+              </div>
+            ) : null;
+          })()
+        }
+        {/* Outside Orders */}
+        {
+          (() => {
+            const cnt = orders.filter(o => (o.category || '').toLowerCase().includes('outside')).length;
+            return cnt > 0 ? (
+              <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4 text-center min-w-[90px]">
+                <div className="text-2xl font-extrabold text-blue-700">{cnt}</div>
+                <div className="text-[10px] font-semibold text-blue-600 uppercase tracking-wide mt-0.5">Outside</div>
+              </div>
+            ) : null;
+          })()
+        }
       </div>
 
       {/* ================================================== */}
@@ -553,6 +591,8 @@ export default function ZohoOrderCenter({ adminKey = '', onLogout }: ZohoOrderCe
           {(
             [
               'All',
+              'Retail',
+              'Outside Orders',
               'Today',
               'New',
               'Paid',
@@ -578,6 +618,14 @@ export default function ZohoOrderCenter({ adminKey = '', onLogout }: ZohoOrderCe
                     {stats?.newOrders}
                   </span>
                 )}
+                {filter === 'Retail' && (() => {
+                  const cnt = orders.filter(o => (o.category || '').toLowerCase().includes('retail')).length;
+                  return cnt > 0 ? <span className="ml-1 px-1.5 py-0.5 rounded-full bg-emerald-500 text-white text-[10px]">{cnt}</span> : null;
+                })()}
+                {filter === 'Outside Orders' && (() => {
+                  const cnt = orders.filter(o => (o.category || '').toLowerCase().includes('outside')).length;
+                  return cnt > 0 ? <span className="ml-1 px-1.5 py-0.5 rounded-full bg-blue-500 text-white text-[10px]">{cnt}</span> : null;
+                })()}
               </button>
             );
           })}
@@ -674,6 +722,17 @@ export default function ZohoOrderCenter({ adminKey = '', onLogout }: ZohoOrderCe
                             <div className="text-gray-500 text-[11px] truncate max-w-[180px]">
                               {order.companyName}
                             </div>
+                          )}
+                          {order.category && (
+                            <span className={`inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-bold mt-0.5 ${
+                              order.category.toLowerCase().includes('retail')
+                                ? 'bg-emerald-100 text-emerald-800'
+                                : order.category.toLowerCase().includes('outside')
+                                ? 'bg-blue-100 text-blue-800'
+                                : 'bg-gray-100 text-gray-600'
+                            }`}>
+                              {order.category}
+                            </span>
                           )}
                         </td>
 
@@ -797,6 +856,17 @@ export default function ZohoOrderCenter({ adminKey = '', onLogout }: ZohoOrderCe
                     <h3 className="font-bold text-dark text-base">{order.customerName}</h3>
                     {order.companyName && (
                       <p className="text-xs text-gray-500">{order.companyName}</p>
+                    )}
+                    {order.category && (
+                      <span className={`inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-bold mt-0.5 ${
+                        order.category.toLowerCase().includes('retail')
+                          ? 'bg-emerald-100 text-emerald-800'
+                          : order.category.toLowerCase().includes('outside')
+                          ? 'bg-blue-100 text-blue-800'
+                          : 'bg-gray-100 text-gray-600'
+                      }`}>
+                        {order.category}
+                      </span>
                     )}
                     <p className="text-xs font-mono text-gray-600 mt-0.5">
                       {order.hasUsablePhone ? order.phone : 'No phone number'}

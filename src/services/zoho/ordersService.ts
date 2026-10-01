@@ -30,6 +30,7 @@ const SECURE_MY_BILL_URL = 'https://ananke-laundry-service.vercel.app/my-bill';
 // In-memory cache for resolved invoice & contact phones to minimize Zoho API round-trips
 const invoicePhoneCache = new Map<string, string>();
 const contactPhoneCache = new Map<string, string>();
+const invoiceCategoryCache = new Map<string, string>();
 
 /**
  * Extracts a phone or WhatsApp number from any Zoho Books entity:
@@ -207,6 +208,80 @@ export function extractPhoneFromZohoRecord(record: any): string | undefined {
     if (slSubMatch && slSubMatch[1]) {
       return slSubMatch[1];
     }
+  }
+
+  return undefined;
+}
+
+/**
+ * Extracts an order category from any Zoho Books entity.
+ * Checks (in priority order):
+ *  1. custom_fields array — labels containing: category, order type, service type, type, segment, channel
+ *  2. custom_field_hash — keys containing those same words
+ *  3. tags array — joined as a comma-separated string
+ * Returns undefined if nothing found.
+ */
+export function extractCategoryFromZohoRecord(record: any): string | undefined {
+  if (!record || typeof record !== 'object') return undefined;
+
+  const CATEGORY_KEYWORDS = ['category', 'order type', 'service type', 'type', 'segment', 'channel'];
+
+  const labelMatches = (label: string): boolean => {
+    const l = label.toLowerCase();
+    return CATEGORY_KEYWORDS.some((kw) => l.includes(kw));
+  };
+
+  // 1. custom_fields array
+  const cfList: any[] = Array.isArray(record.custom_fields)
+    ? record.custom_fields
+    : Array.isArray(record.customfields)
+    ? record.customfields
+    : record.custom_fields && typeof record.custom_fields === 'object'
+    ? Object.values(record.custom_fields)
+    : [];
+
+  for (const cf of cfList) {
+    if (!cf || typeof cf !== 'object') continue;
+    const label = String(
+      cf.label ||
+      cf.placeholder ||
+      cf.api_name ||
+      cf.field_name ||
+      cf.data_name ||
+      cf.name ||
+      cf.column_name ||
+      ''
+    );
+    if (labelMatches(label)) {
+      const val =
+        cf.value ??
+        cf.value_formatted ??
+        cf.unformatted_value ??
+        cf.field_value;
+      if (val !== undefined && val !== null) {
+        const str = String(val).trim();
+        if (str) return str;
+      }
+    }
+  }
+
+  // 2. custom_field_hash
+  if (record.custom_field_hash && typeof record.custom_field_hash === 'object') {
+    for (const [key, val] of Object.entries(record.custom_field_hash)) {
+      if (labelMatches(key)) {
+        const str = String(val ?? '').trim();
+        if (str) return str;
+      }
+    }
+  }
+
+  // 3. tags array — join all tag names
+  if (Array.isArray(record.tags) && record.tags.length > 0) {
+    const tagNames = record.tags
+      .map((t: any) => (typeof t === 'string' ? t : t?.name ?? t?.tag_name ?? ''))
+      .filter(Boolean)
+      .join(', ');
+    if (tagNames) return tagNames;
   }
 
   return undefined;
@@ -481,6 +556,14 @@ export async function getZohoOrderCenterData(options: {
               if (phoneFound) {
                 invoicePhoneCache.set(inv.invoice_id, phoneFound);
               }
+
+              // Also extract category from the full invoice detail
+              if (full?.invoice) {
+                const categoryFound = extractCategoryFromZohoRecord(full.invoice);
+                if (categoryFound) {
+                  invoiceCategoryCache.set(inv.invoice_id, categoryFound);
+                }
+              }
             } catch {
               // Ignore single invoice detail error
             }
@@ -557,6 +640,7 @@ export async function getZohoOrderCenterData(options: {
                 phone: contact.billing_address.phone,
               }
             : undefined,
+          category: invoiceCategoryCache.get(inv.invoice_id) || extractCategoryFromZohoRecord(inv),
         });
       }
 
@@ -602,6 +686,7 @@ export async function getZohoOrderCenterData(options: {
             updatedTime: so.last_modified_time,
             isNew,
             referenceNumber: so.reference_number,
+            category: extractCategoryFromZohoRecord(so),
           });
         }
       }
@@ -738,6 +823,7 @@ export async function getZohoInvoiceFullDetails(invoiceId: string): Promise<Zoho
           notes: inv.notes,
           lineItems,
           billingAddress: inv.billing_address,
+          category: invoiceCategoryCache.get(inv.invoice_id) || extractCategoryFromZohoRecord(inv),
         };
       }
     } catch (err: any) {

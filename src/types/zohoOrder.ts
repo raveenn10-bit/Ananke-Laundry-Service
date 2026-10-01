@@ -56,6 +56,7 @@ export interface ZohoOrderRecord {
   notes?: string;
   lineItems?: ZohoOrderLineItem[];
   billingAddress?: ZohoOrderAddress;
+  category?: string; // e.g. 'Retail', 'Outside Orders' — extracted from Zoho custom fields / tags
 }
 
 export interface ZohoOrderStats {
