@@ -71,9 +71,49 @@ export default function BillPortal() {
   const [selectedInvoice, setSelectedInvoice] = useState<ZohoInvoice | null>(null);
   const [selectedPayment, setSelectedPayment] = useState<ZohoPayment | null>(null);
 
-  // Check existing session on mount
+  // Check existing session or URL query parameter on mount
   useEffect(() => {
-    async function checkExistingSession() {
+    async function checkExistingSessionOrUrlParam() {
+      // 1. Check if invoice parameter is in the URL (e.g. from WhatsApp bill link)
+      let urlInvoice: string | null = null;
+      if (typeof window !== 'undefined') {
+        const searchParams = new URLSearchParams(window.location.search);
+        urlInvoice = searchParams.get('invoice');
+      }
+
+      if (urlInvoice && urlInvoice.trim()) {
+        const cleanInv = urlInvoice.trim();
+        setInvoiceInput(cleanInv);
+        setIsLoading(true);
+        setErrorMsg(null);
+        try {
+          const res = await fetch('/api/portal/lookup', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ invoiceNumber: cleanInv }),
+          });
+          const data = await res.json();
+          if (res.ok && data.success && data.invoice) {
+            setCustomer(data.customer);
+            setInvoices([data.invoice]);
+            setSummary({
+              totalInvoices: 1,
+              totalAmount: data.invoice.total,
+              totalPaid: data.invoice.amount_paid,
+              totalBalance: data.invoice.balance,
+            });
+            setView('dashboard');
+            await loadPayments();
+            return;
+          }
+        } catch {
+          // If auto lookup fails, fall through to session check
+        } finally {
+          setIsLoading(false);
+        }
+      }
+
+      // 2. Check existing session cookie
       try {
         const res = await fetch('/api/portal/invoices');
         if (res.ok) {
@@ -90,7 +130,7 @@ export default function BillPortal() {
         // No active session, stay on lookup
       }
     }
-    checkExistingSession();
+    checkExistingSessionOrUrlParam();
   }, []);
 
   // Auto-timeout countdown when viewing bill dashboard (1 minute limit)

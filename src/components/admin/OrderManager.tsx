@@ -222,9 +222,29 @@ export default function OrderManager({ adminKey }: OrderManagerProps) {
 
   // Open WhatsApp Link
   const handleSendWhatsApp = (order: OrderRecord) => {
-    const text = `🧺 *ANANKE LAUNDRY (PVT) LTD — ORDER UPDATE*
+    let text = '';
+    const cleanCustomerName = order.customerName.replace(/<[^>]*>/g, '').trim();
+    const cleanInvoice = (order.zohoInvoiceNumber || '').replace(/<[^>]*>/g, '').trim();
+    const isMock = cleanCustomerName.toLowerCase().includes('mock') || cleanInvoice.toLowerCase().includes('mock');
+
+    if (cleanInvoice && !isMock) {
+      const myBillLink = `https://anankelaundry.com/my-bill?invoice=${encodeURIComponent(cleanInvoice)}`;
+      text = `🧺 Ananke Laundry
+
+Hi ${cleanCustomerName} 👋,
+
+Your laundry order has been received successfully.
+
+🧾 Invoice: ${cleanInvoice}
+
+🔗 View your bill & track your order:
+${myBillLink}
+
+Thank you for choosing Ananke Laundry 💚`;
+    } else {
+      text = `🧺 *ANANKE LAUNDRY (PVT) LTD — ORDER UPDATE*
 ----------------------------------------
-Hello *${order.customerName}*,
+Hello *${cleanCustomerName}*,
 
 Good news! Your laundry order *#${order.orderId}* is now *${order.currentStatus.toUpperCase()}* ✨
 
@@ -232,13 +252,14 @@ Good news! Your laundry order *#${order.orderId}* is now *${order.currentStatus.
 🔢 *Quantity:* ${order.quantity} units
 📌 *Status:* ${order.currentStatus}
 💳 *Payment Status:* ${order.paymentStatus}
-${order.zohoInvoiceNumber ? `🧾 *Invoice Ref:* #${order.zohoInvoiceNumber}\n` : ''}
+${cleanInvoice ? `🧾 *Invoice Ref:* #${cleanInvoice}\n` : ''}
 📍 *Facility Pickup Address:*
 No. 195/2, Matara Road, Unawatuna, Galle
 📞 *Hotline:* 091 225 0777
 🌐 *Website:* anankelaundry.com
 
 Thank you for choosing Ananke Laundry!`;
+    }
 
     const cleanPhone = order.customerPhone.replace(/\D/g, '');
     const phoneDigits = cleanPhone.startsWith('94')
