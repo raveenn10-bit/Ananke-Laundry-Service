@@ -43,20 +43,29 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json().catch(() => ({}));
-    const key = (body.key || '').trim();
+    const username = (body.username || '').trim();
+    const password = (body.password || body.key || '').trim();
 
-    if (!key) {
+    if (!password) {
       return NextResponse.json(
-        { success: false, message: 'Passcode is required.' },
+        { success: false, message: 'Username and password are required.' },
         { status: 400 }
       );
     }
 
-    const isValid = validateAdminPasscode(key);
+    // If username is provided, enforce username === 'admin'
+    if (username && username.toLowerCase() !== 'admin') {
+      return NextResponse.json(
+        { success: false, message: 'Invalid username or password.' },
+        { status: 401 }
+      );
+    }
+
+    const isValid = validateAdminPasscode(password);
 
     if (!isValid) {
       return NextResponse.json(
-        { success: false, message: 'Invalid administration key.' },
+        { success: false, message: 'Invalid username or password.' },
         { status: 401 }
       );
     }

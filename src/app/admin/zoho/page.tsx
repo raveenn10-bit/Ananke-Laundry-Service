@@ -22,7 +22,8 @@ import ZohoOrderCenter from '@/components/admin/ZohoOrderCenter';
 
 export default function ZohoAdminDashboard() {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
-  const [passcodeInput, setPasscodeInput] = useState('');
+  const [usernameInput, setUsernameInput] = useState('');
+  const [passwordInput, setPasswordInput] = useState('');
   const [authError, setAuthError] = useState<string | null>(null);
 
   const [activeTab, setActiveTab] = useState<'orders' | 'sync'>('orders');
@@ -98,7 +99,11 @@ export default function ZohoAdminDashboard() {
       const res = await fetch('/api/admin/auth', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ key: passcodeInput.trim() }),
+        body: JSON.stringify({
+          username: usernameInput.trim(),
+          password: passwordInput.trim(),
+          key: passwordInput.trim(),
+        }),
       });
 
       const data = await res.json();
@@ -106,9 +111,9 @@ export default function ZohoAdminDashboard() {
         throw new Error(data.message || 'Access denied. Please check your credentials.');
       }
 
-      setAdminKey(passcodeInput.trim());
+      setAdminKey(passwordInput.trim());
       setIsAuthenticated(true);
-      await fetchData(passcodeInput.trim());
+      await fetchData(passwordInput.trim());
     } catch (err: any) {
       setAuthError(err.message || 'Access denied.');
     } finally {
@@ -128,7 +133,8 @@ export default function ZohoAdminDashboard() {
       console.error('Logout error:', err);
     }
     setAdminKey('');
-    setPasscodeInput('');
+    setUsernameInput('');
+    setPasswordInput('');
     setIsAuthenticated(false);
     setStatusData(null);
     setEnquiries([]);
@@ -229,35 +235,39 @@ export default function ZohoAdminDashboard() {
           <form onSubmit={handleLogin} className="space-y-4 text-left">
             <div>
               <label className="block text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">
-                Authorization Key
+                Username
+              </label>
+              <input
+                type="text"
+                value={usernameInput}
+                onChange={(e) => setUsernameInput(e.target.value)}
+                placeholder="Enter username"
+                className="w-full px-4 py-3 rounded-xl bg-black/40 border border-white/10 text-white placeholder-gray-500 text-sm focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-all"
+                autoFocus
+                autoComplete="username"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">
+                Password
               </label>
               <input
                 type="password"
-                value={passcodeInput}
-                onChange={(e) => setPasscodeInput(e.target.value)}
-                placeholder="Enter administration passcode"
-                className="w-full px-4 py-3.5 rounded-xl bg-black/40 border border-white/10 text-white placeholder-gray-500 text-sm focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-all"
-                autoFocus
+                value={passwordInput}
+                onChange={(e) => setPasswordInput(e.target.value)}
+                placeholder="Enter password"
+                className="w-full px-4 py-3 rounded-xl bg-black/40 border border-white/10 text-white placeholder-gray-500 text-sm focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-all"
+                autoComplete="current-password"
                 required
               />
-              <div className="flex items-center justify-between mt-2">
-                <span className="text-[11px] text-gray-400">
-                  Dev Passcode:{' '}
-                  <button
-                    type="button"
-                    onClick={() => setPasscodeInput('ananke2026')}
-                    className="text-accent hover:underline font-mono font-bold cursor-pointer"
-                  >
-                    ananke2026
-                  </button>
-                </span>
-              </div>
             </div>
 
             <button
               type="submit"
-              disabled={isLoading || !passcodeInput.trim()}
-              className="w-full py-3.5 px-4 rounded-xl bg-olive hover:bg-accent text-white hover:text-dark font-semibold text-sm transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
+              disabled={isLoading || !usernameInput.trim() || !passwordInput.trim()}
+              className="w-full py-3.5 px-4 rounded-xl bg-olive hover:bg-accent text-white hover:text-dark font-semibold text-sm transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer mt-2"
             >
               {isLoading ? (
                 <>
