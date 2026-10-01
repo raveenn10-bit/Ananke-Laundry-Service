@@ -4,6 +4,7 @@ import {
   getZohoOrderCenterData,
   getZohoInvoiceFullDetails,
 } from '@/services/zoho/ordersService';
+import { syncZohoOrders } from '@/services/zoho/syncService';
 
 export const dynamic = 'force-dynamic';
 
@@ -27,6 +28,7 @@ export async function GET(req: NextRequest) {
   const perPage = parseInt(searchParams.get('perPage') || '100', 10);
   const search = searchParams.get('search') || undefined;
   const status = searchParams.get('status') || undefined;
+  const category = searchParams.get('category') || undefined;
   const refresh = searchParams.get('refresh') === 'true';
 
   try {
@@ -54,13 +56,22 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    // Fetch orders & invoices from Zoho Books
+    // If explicit refresh requested via GET query parameter, run controlled sync
+    if (refresh) {
+      try {
+        await syncZohoOrders();
+      } catch (syncErr: any) {
+        console.warn('[API /api/admin/zoho/orders] GET sync warning:', syncErr.message || syncErr);
+      }
+    }
+
+    // Load orders cache-first directly from local SQLite persistent storage (0 Zoho API requests)
     const data = await getZohoOrderCenterData({
       page,
       perPage,
       search,
       status,
-      forceRefresh: refresh,
+      category,
     });
 
     return NextResponse.json(data, {
@@ -70,11 +81,73 @@ export async function GET(req: NextRequest) {
       },
     });
   } catch (error: any) {
-    console.error('[API /api/admin/zoho/orders] Error:', error);
+    console.error('[API /api/admin/zoho/orders GET] Error:', error);
     return NextResponse.json(
       {
         success: false,
         message: error.message || 'Failed to fetch Zoho Books order center records.',
+      },
+      {
+        status: 500,
+        headers: {
+          'Cache-Control': 'private, no-cache, no-store, must-revalidate',
+        },
+      }
+    );
+  }
+}
+
+export async function POST(req: NextRequest) {
+  // 1. Verify Admin Authentication
+  if (!isAuthorizedAdmin(req)) {
+    return NextResponse.json(
+      { success: false, message: 'Unauthorized. Admin credentials required.' },
+      {
+        status: 401,
+        headers: {
+          'Cache-Control': 'private, no-cache, no-store, must-revalidate',
+        },
+      }
+    );
+  }
+
+  try {
+    let body: any = {};
+    try {
+      body = await req.json();
+    } catch {
+      // Empty body is accepted
+    }
+
+    const forceFull = Boolean(body.forceFull);
+
+    // Run controlled, deduplicated Zoho synchronization
+    const syncResult = await syncZohoOrders({ forceFull });
+
+    // Retrieve fresh cached orders and stats
+    const orderData = await getZohoOrderCenterData();
+
+    return NextResponse.json(
+      {
+        ...orderData,
+        success: syncResult.success,
+        message: syncResult.message,
+        rateLimited: Boolean(syncResult.rateLimited),
+        syncResult,
+      },
+      {
+        status: 200,
+        headers: {
+          'Cache-Control': 'private, no-cache, no-store, must-revalidate',
+        },
+      }
+    );
+  } catch (error: any) {
+    console.error('[API /api/admin/zoho/orders POST] Sync error:', error);
+    return NextResponse.json(
+      {
+        success: false,
+        message: error.message || 'Synchronization failed.',
       },
       {
         status: 500,

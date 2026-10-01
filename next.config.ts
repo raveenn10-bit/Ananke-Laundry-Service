@@ -47,6 +47,7 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   poweredByHeader: false, // Disables the 'X-Powered-By: Next.js' fingerprinting header
+  serverExternalPackages: ['better-sqlite3'],
   async headers() {
     return [
       {

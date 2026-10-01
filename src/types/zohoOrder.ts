@@ -79,4 +79,12 @@ export interface ZohoOrdersResponse {
   perPage: number;
   hasMorePage: boolean;
   message?: string;
+  syncMeta?: {
+    lastSuccessfulSync: string | null;
+    lastSyncStatus: string;
+    lastSyncMessage: string;
+    lastModifiedTime: string | null;
+    totalSynced: number;
+    isSyncing: boolean;
+  };
 }

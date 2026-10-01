@@ -72,7 +72,16 @@ export default function ZohoOrderCenter({ adminKey = '', onLogout }: ZohoOrderCe
   const [isLiveZoho, setIsLiveZoho] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isSyncingWithZoho, setIsSyncingWithZoho] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [syncMeta, setSyncMeta] = useState<{
+    lastSuccessfulSync: string | null;
+    lastSyncStatus: string;
+    lastSyncMessage: string;
+    lastModifiedTime: string | null;
+    totalSynced: number;
+    isSyncing: boolean;
+  } | null>(null);
 
   // Search & Filter States
   const [searchQuery, setSearchQuery] = useState('');
@@ -91,7 +100,7 @@ export default function ZohoOrderCenter({ adminKey = '', onLogout }: ZohoOrderCe
   const [selectedOrderForWhatsApp, setSelectedOrderForWhatsApp] = useState<ZohoOrderRecord | null>(null);
   const [isCopied, setIsCopied] = useState(false);
 
-  // Fetch Orders Function
+  // Fetch Orders Function (Loads exclusively from local persistent cache - zero API requests)
   const fetchOrders = useCallback(
     async (isManualRefresh = false) => {
       if (isManualRefresh) {
@@ -105,9 +114,7 @@ export default function ZohoOrderCenter({ adminKey = '', onLogout }: ZohoOrderCe
           headers['x-admin-key'] = adminKey;
         }
 
-        const url = isManualRefresh
-          ? '/api/admin/zoho/orders?refresh=true'
-          : '/api/admin/zoho/orders';
+        const url = '/api/admin/zoho/orders';
 
         const res = await fetch(url, {
           headers,
@@ -123,6 +130,10 @@ export default function ZohoOrderCenter({ adminKey = '', onLogout }: ZohoOrderCe
         }
 
         const data = await res.json();
+        if (data.syncMeta) {
+          setSyncMeta(data.syncMeta);
+        }
+
         if (data.success && Array.isArray(data.orders)) {
           // Detect brand new orders since last fetch
           if (knownInvoiceIdsRef.current.size > 0) {
@@ -145,14 +156,24 @@ export default function ZohoOrderCenter({ adminKey = '', onLogout }: ZohoOrderCe
           setOrders(data.orders);
           setStats(data.stats || null);
           setIsLiveZoho(Boolean(data.isLiveZoho));
-          if (data.message && data.message.includes('limit')) {
+
+          if (data.syncMeta?.lastSyncStatus === 'rate_limited') {
+            setErrorMessage(
+              'Zoho synchronization is temporarily unavailable due to API limits. Showing the latest saved orders.'
+            );
+          } else if (data.message && data.message.includes('limit')) {
             setErrorMessage(data.message);
           }
         } else {
-          setOrders(data.orders || []);
-          setStats(data.stats || null);
+          // Protect cached orders: never overwrite valid cached orders with empty on transient failure
+          if (data.orders && data.orders.length > 0) {
+            setOrders(data.orders);
+          }
+          if (data.stats) setStats(data.stats);
           setIsLiveZoho(Boolean(data.isLiveZoho));
-          setErrorMessage(data.message || 'Unable to retrieve orders from Zoho Books.');
+          if (data.message) {
+            setErrorMessage(data.message);
+          }
         }
       } catch (err: any) {
         console.error('Error fetching Zoho orders:', err);
@@ -164,6 +185,60 @@ export default function ZohoOrderCenter({ adminKey = '', onLogout }: ZohoOrderCe
     },
     [adminKey]
   );
+
+  // Controlled Sync With Zoho (POST request triggers sequential deduplicated sync)
+  const handleSyncWithZoho = async () => {
+    if (isSyncingWithZoho) return;
+    setIsSyncingWithZoho(true);
+    setErrorMessage(null);
+
+    try {
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+      };
+      if (adminKey) {
+        headers['x-admin-key'] = adminKey;
+      }
+
+      const res = await fetch('/api/admin/zoho/orders', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ forceFull: false }),
+      });
+
+      if (!res.ok) {
+        if (res.status === 401) {
+          setErrorMessage('Unauthorized access. Please log in again.');
+          return;
+        }
+        throw new Error(`Sync request failed (HTTP ${res.status})`);
+      }
+
+      const data = await res.json();
+      if (data.orders && Array.isArray(data.orders)) {
+        setOrders(data.orders);
+      }
+      if (data.stats) {
+        setStats(data.stats);
+      }
+      if (data.syncMeta) {
+        setSyncMeta(data.syncMeta);
+      }
+
+      if (data.rateLimited || data.syncMeta?.lastSyncStatus === 'rate_limited') {
+        setErrorMessage(
+          'Zoho synchronization is temporarily unavailable due to API limits. Showing the latest saved orders.'
+        );
+      } else if (!data.success && data.message) {
+        setErrorMessage(data.message);
+      }
+    } catch (err: any) {
+      console.error('Error syncing with Zoho:', err);
+      setErrorMessage(err.message || 'Error occurred while syncing with Zoho Books.');
+    } finally {
+      setIsSyncingWithZoho(false);
+    }
+  };
 
   // Initial load
   useEffect(() => {
@@ -393,22 +468,33 @@ export default function ZohoOrderCenter({ adminKey = '', onLogout }: ZohoOrderCe
           </p>
         </div>
 
-        {/* Refresh & Logout Actions */}
-        <div className="flex items-center gap-2.5 self-start md:self-center shrink-0">
-          <button
-            onClick={() => fetchOrders(true)}
-            disabled={isRefreshing || isLoading}
-            className="px-4 py-2.5 rounded-2xl bg-olive hover:bg-olive/90 active:scale-95 text-white font-semibold text-xs sm:text-sm transition-all shadow-sm flex items-center gap-2 cursor-pointer disabled:opacity-50"
-            title="Refresh latest customer invoices from Zoho Books"
-          >
-            <RefreshCw size={14} className={isRefreshing ? 'animate-spin' : ''} />
-            <span>{isRefreshing ? 'Fetching Zoho...' : 'Refresh from Zoho'}</span>
-          </button>
+        {/* Sync with Zoho & Logout Actions */}
+        <div className="flex flex-col sm:flex-row items-end sm:items-center gap-2.5 self-start md:self-center shrink-0">
+          <div className="flex flex-col items-end gap-1">
+            <button
+              onClick={handleSyncWithZoho}
+              disabled={isSyncingWithZoho || isLoading}
+              className="px-4 py-2.5 rounded-2xl bg-olive hover:bg-olive/90 active:scale-95 text-white font-semibold text-xs sm:text-sm transition-all shadow-sm flex items-center gap-2 cursor-pointer disabled:opacity-50"
+              title="Incrementally synchronize invoices from Zoho Books to local SQLite cache"
+            >
+              <RefreshCw size={14} className={isSyncingWithZoho ? 'animate-spin' : ''} />
+              <span>{isSyncingWithZoho ? 'Syncing...' : 'Sync with Zoho'}</span>
+            </button>
+            {syncMeta?.lastSuccessfulSync ? (
+              <span className="text-[10px] text-gray-500 font-medium">
+                Last synced: {new Date(syncMeta.lastSuccessfulSync).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', month: 'short', day: 'numeric' })}
+              </span>
+            ) : (
+              <span className="text-[10px] text-gray-400 font-medium">
+                Local cache ready ({orders.length} orders)
+              </span>
+            )}
+          </div>
 
           {onLogout && (
             <button
               onClick={onLogout}
-              className="px-4 py-2.5 rounded-2xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 font-semibold text-xs sm:text-sm transition-all flex items-center gap-1.5 cursor-pointer shadow-xs active:scale-95"
+              className="px-4 py-2.5 rounded-2xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 font-semibold text-xs sm:text-sm transition-all flex items-center gap-1.5 cursor-pointer shadow-xs active:scale-95 self-stretch sm:self-auto justify-center"
               title="Log Out of Admin Portal"
             >
               <LogOut size={14} className="text-rose-600" />
@@ -418,8 +504,25 @@ export default function ZohoOrderCenter({ adminKey = '', onLogout }: ZohoOrderCe
         </div>
       </div>
 
+      {/* Rate Limit Warning Banner (Non-destructive, displays saved orders) */}
+      {syncMeta?.lastSyncStatus === 'rate_limited' && (
+        <div className="p-4 rounded-2xl bg-amber-50 border border-amber-300 text-amber-900 text-xs sm:text-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-xs">
+          <div className="flex items-center gap-2">
+            <AlertCircle size={16} className="text-amber-600 shrink-0" />
+            <span className="font-medium">
+              Zoho synchronization is temporarily unavailable due to API limits. Showing the latest saved orders.
+            </span>
+          </div>
+          {syncMeta.lastSuccessfulSync && (
+            <span className="text-[11px] font-semibold text-amber-800 shrink-0 bg-amber-100/90 px-3 py-1 rounded-xl">
+              Last successful sync: {new Date(syncMeta.lastSuccessfulSync).toLocaleString()}
+            </span>
+          )}
+        </div>
+      )}
+
       {/* Error / Status Alert Banner */}
-      {errorMessage && (
+      {errorMessage && syncMeta?.lastSyncStatus !== 'rate_limited' && (
         <div className="p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-900 text-xs sm:text-sm flex items-center justify-between gap-3 animate-fade-in shadow-xs">
           <div className="flex items-center gap-2">
             <AlertCircle size={16} className="text-rose-600 shrink-0" />

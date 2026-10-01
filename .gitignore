@@ -36,6 +36,10 @@ yarn-error.log*
 
 # local data storage
 /.data/
+/data/
+*.db
+*.db-wal
+*.db-shm
 
 # vercel
 .vercel

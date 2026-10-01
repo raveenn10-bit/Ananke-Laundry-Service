@@ -8,6 +8,13 @@ import {
 import { isZohoConfigured } from './auth';
 import { zohoRequest } from './client';
 import { normalizeSriLankanPhone } from '@/lib/auth/phoneAuth';
+import {
+  getAllCachedZohoOrders,
+  getCachedOrderById,
+  getCachedOrderStats,
+  getZohoSyncMetadata,
+  upsertZohoOrders,
+} from '@/lib/storage/zohoOrderStore';
 
 function cleanWhatsAppText(text: string): string {
   if (!text) return '';
@@ -546,250 +553,66 @@ export function generateCustomerWhatsAppMessage(
   return `🧺 Ananke Laundry\n\nHi ${cleanName} 👋,\n\nYour laundry order has been received successfully.\n\n🧾 Invoice: ${cleanInv}\n\n🔗 View your bill & track your order:\n${SECURE_MY_BILL_URL}\n\nThank you for choosing Ananke Laundry 💚`;
 }
 
-interface LiveOrdersCache {
-  orders: ZohoOrderRecord[];
-  stats: ZohoOrderStats;
-  timestamp: number;
-}
-let lastLiveOrdersCache: LiveOrdersCache | null = null;
-const ORDERS_CACHE_TTL_MS = 60 * 1000; // 60 seconds memory cache to prevent exceeding Zoho API rate limits
-
 /**
- * Fetches all orders & invoices from Zoho Books with pagination support,
- * customer phone resolution, and sales-order linking.
- * CONNECTED TO LIVE ZOHO BOOKS API ONLY - NEVER USES DEMO DATA.
+ * Fetches all orders & invoices exclusively from the local persistent SQLite cache.
+ * Normal page loads, browser refreshes, and filter switches make ZERO Zoho API calls.
+ * CONNECTED TO LIVE ZOHO BOOKS DATA IN LOCAL PERSISTENT STORAGE - NEVER USES DEMO DATA.
  */
 export async function getZohoOrderCenterData(options: {
   page?: number;
   perPage?: number;
   search?: string;
   status?: string;
+  category?: string;
   forceRefresh?: boolean;
 } = {}): Promise<ZohoOrdersResponse> {
-  const page = options.page || 1;
-  const perPage = options.perPage || 100;
+  const isConfigured = isZohoConfigured();
 
-  if (!isZohoConfigured()) {
-    return {
-      success: false,
-      orders: [],
-      stats: {
-        totalOrders: 0,
-        newOrders: 0,
-        paidOrders: 0,
-        unpaidOrders: 0,
-        partiallyPaidOrders: 0,
-        overdueOrders: 0,
-        retailOrders: 0,
-        outsideHotelOrders: 0,
-      },
-      isLiveZoho: false,
-      page: 1,
-      perPage: 100,
-      hasMorePage: false,
-      message: 'Zoho Books credentials not configured in environment variables.',
-    };
+  // Load orders directly from local persistent SQLite database
+  const orders = getAllCachedZohoOrders({
+    category: options.category,
+    status: options.status,
+    search: options.search,
+  });
+
+  const stats = getCachedOrderStats();
+  const syncMeta = getZohoSyncMetadata();
+
+  let message: string | undefined = undefined;
+  if (syncMeta.lastSyncStatus === 'rate_limited') {
+    message = 'Zoho synchronization is temporarily unavailable due to API limits. Showing the latest saved orders.';
+  } else if (orders.length === 0 && !syncMeta.lastSuccessfulSync) {
+    message = 'Local order cache is empty. Click "Sync with Zoho" to load your orders.';
+  } else if (syncMeta.lastSyncMessage && syncMeta.lastSyncStatus !== 'success') {
+    message = syncMeta.lastSyncMessage;
   }
 
-  // Return server-side cache if recent and not forced to refresh (protects 10,000 call limit)
-  if (!options.forceRefresh && lastLiveOrdersCache && (Date.now() - lastLiveOrdersCache.timestamp < ORDERS_CACHE_TTL_MS)) {
-    return {
-      success: true,
-      orders: lastLiveOrdersCache.orders,
-      stats: lastLiveOrdersCache.stats,
-      isLiveZoho: true,
-      page,
-      perPage,
-      hasMorePage: false,
-    };
-  }
-
-  try {
-    // 1. Fetch Invoices from Zoho Books (1 efficient single call)
-    const invoicesPromise = zohoRequest<{
-      code: number;
-      invoices: any[];
-      page_context?: { has_more_page: boolean };
-    }>('/invoices', {
-      params: {
-        sort_column: 'date',
-        sort_order: 'D',
-        page,
-        per_page: perPage,
-      },
-    });
-
-    // 2. Fetch Contacts Batch to resolve phones and company names (1 efficient single call)
-    const contactsPromise = zohoRequest<{
-      code: number;
-      contacts: any[];
-    }>('/contacts', {
-      params: {
-        per_page: 200,
-      },
-    }).catch((err) => {
-      console.warn('[Zoho Order Center] Contacts batch fetch warning:', err.message || err);
-      return { code: 0, contacts: [] };
-    });
-
-    const [invRes, contactsRes] = await Promise.all([
-      invoicesPromise,
-      contactsPromise,
-    ]);
-
-    const invoicesList = Array.isArray(invRes?.invoices) ? invRes.invoices : [];
-
-    // Build customer contacts map (contact_id -> { phone, mobile, contact_name, company_name })
-    const contactMap = new Map<string, any>();
-    for (const c of contactsRes.contacts || []) {
-      if (c.contact_id) {
-        contactMap.set(c.contact_id, c);
-      }
-    }
-
-    const ordersList: ZohoOrderRecord[] = [];
-    const twoDaysAgo = Date.now() - 48 * 60 * 60 * 1000;
-
-    // Map Invoices directly (no individual detail requests to protect rate limit)
-    for (const inv of invoicesList) {
-      const total = Number(inv.total) || 0;
-      const balance = Number(inv.balance) ?? total;
-      const amountPaid = Math.max(0, total - balance);
-      const contact = contactMap.get(inv.customer_id);
-
-      const rawPhone =
-        invoicePhoneCache.get(inv.invoice_id) ||
-        extractPhoneFromZohoRecord(inv) ||
-        contactPhoneCache.get(inv.customer_id) ||
-        extractPhoneFromZohoRecord(contact);
-
-      const phoneInfo = normalizePhoneForOrder(rawPhone);
-
-      const createdMs = inv.created_time ? new Date(inv.created_time).getTime() : 0;
-      const isNew = createdMs > twoDaysAgo;
-
-      const financialStatus = calculateFinancialStatus(
-        inv.status,
-        total,
-        balance,
-        inv.due_date
-      );
-
-      ordersList.push({
-        id: inv.invoice_id,
-        recordType: 'invoice',
-        invoiceId: inv.invoice_id,
-        invoiceNumber: inv.invoice_number,
-        salesOrderId: inv.salesorder_id,
-        salesOrderNumber: inv.salesorder_number,
-        customerId: inv.customer_id,
-        customerName: inv.customer_name || contact?.contact_name || 'Valued Customer',
-        companyName: contact?.company_name,
-        email: inv.email || contact?.email,
-        phone: phoneInfo.displayPhone,
-        whatsappPhone: phoneInfo.whatsappPhone,
-        hasUsablePhone: phoneInfo.hasUsablePhone,
-        date: inv.date,
-        dueDate: inv.due_date,
-        total,
-        amountPaid,
-        balance,
-        currencyCode: inv.currency_code || 'LKR',
-        currencySymbol: inv.currency_symbol || 'Rs.',
-        status: inv.status || 'Sent',
-        financialStatus,
-        createdTime: inv.created_time,
-        updatedTime: inv.last_modified_time,
-        isNew,
-        referenceNumber: inv.reference_number,
-        billingAddress: contact?.billing_address
-          ? {
-              address: contact.billing_address.address,
-              city: contact.billing_address.city,
-              state: contact.billing_address.state,
-              country: contact.billing_address.country,
-              phone: contact.billing_address.phone,
-            }
-          : undefined,
-        category: invoiceCategoryCache.get(inv.invoice_id) || extractCategoryFromZohoRecord(inv, contact),
-      });
-    }
-
-    // Sort newest first
-    ordersList.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-
-    // Compute statistics
-    const stats: ZohoOrderStats = {
-      totalOrders: ordersList.length,
-      newOrders: ordersList.filter((o) => o.isNew).length,
-      paidOrders: ordersList.filter((o) => o.financialStatus === 'Paid').length,
-      unpaidOrders: ordersList.filter((o) => o.financialStatus === 'Unpaid').length,
-      partiallyPaidOrders: ordersList.filter((o) => o.financialStatus === 'Partially Paid').length,
-      overdueOrders: ordersList.filter((o) => o.financialStatus === 'Overdue').length,
-      retailOrders: ordersList.filter((o) => o.category === 'Retail').length,
-      outsideHotelOrders: ordersList.filter((o) => o.category === 'Outside Hotel').length,
-    };
-
-    // Update server live cache
-    lastLiveOrdersCache = {
-      orders: ordersList,
-      stats,
-      timestamp: Date.now(),
-    };
-
-    return {
-      success: true,
-      orders: ordersList,
-      stats,
-      isLiveZoho: true,
-      page,
-      perPage,
-      hasMorePage: invRes?.page_context?.has_more_page || false,
-    };
-  } catch (err: any) {
-    console.error('[Zoho Order Center] Live Zoho fetch error:', err.message || err);
-
-    // If we have cached live orders from a previous successful call, return them!
-    if (lastLiveOrdersCache && lastLiveOrdersCache.orders.length > 0) {
-      return {
-        success: true,
-        orders: lastLiveOrdersCache.orders,
-        stats: lastLiveOrdersCache.stats,
-        isLiveZoho: true,
-        page,
-        perPage,
-        hasMorePage: false,
-        message: `Notice: Zoho Books limit reached. Displaying latest live cached orders. (${err.message || '429 Rate Limit'})`,
-      };
-    }
-
-    // NEVER return demo data! Return actual status
-    return {
-      success: false,
-      orders: [],
-      stats: {
-        totalOrders: 0,
-        newOrders: 0,
-        paidOrders: 0,
-        unpaidOrders: 0,
-        partiallyPaidOrders: 0,
-        overdueOrders: 0,
-        retailOrders: 0,
-        outsideHotelOrders: 0,
-      },
-      isLiveZoho: true,
-      page,
-      perPage,
-      hasMorePage: false,
-      message: err.message || 'Failed to fetch live orders from Zoho Books.',
-    };
-  }
+  return {
+    success: true,
+    orders,
+    stats,
+    isLiveZoho: isConfigured,
+    syncMeta,
+    page: options.page || 1,
+    perPage: options.perPage || orders.length || 100,
+    hasMorePage: false,
+    message,
+  };
 }
 
 /**
  * Fetches full details including line items for a specific invoice.
+ * First checks local SQLite persistent cache.
+ * Only calls Zoho Books if line items are missing, and saves the updated record.
  */
 export async function getZohoInvoiceFullDetails(invoiceId: string): Promise<ZohoOrderRecord | null> {
+  // 1. Check local persistent SQLite cache first (Zero API calls if present with line items)
+  const cached = getCachedOrderById(invoiceId);
+  if (cached && cached.lineItems && cached.lineItems.length > 0) {
+    return cached;
+  }
+
+  // 2. If line items are missing and Zoho is configured, fetch full record from Zoho Books
   if (isZohoConfigured() && !invoiceId.startsWith('mock-')) {
     try {
       const res = await zohoRequest<{ code: number; invoice: any }>(`/invoices/${invoiceId}`);
@@ -800,7 +623,8 @@ export async function getZohoInvoiceFullDetails(invoiceId: string): Promise<Zoho
         const amountPaid = Math.max(0, total - balance);
         let rawPhone =
           invoicePhoneCache.get(inv.invoice_id) ||
-          extractPhoneFromZohoRecord(inv);
+          extractPhoneFromZohoRecord(inv) ||
+          cached?.phone;
 
         if (!rawPhone && inv.customer_id) {
           rawPhone =
@@ -840,7 +664,7 @@ export async function getZohoInvoiceFullDetails(invoiceId: string): Promise<Zoho
           itemTotal: Number(li.item_total) || 0,
         }));
 
-        return {
+        const detailedRecord: ZohoOrderRecord = {
           id: inv.invoice_id,
           recordType: 'invoice',
           invoiceId: inv.invoice_id,
@@ -848,7 +672,9 @@ export async function getZohoInvoiceFullDetails(invoiceId: string): Promise<Zoho
           salesOrderId: inv.salesorder_id,
           salesOrderNumber: inv.salesorder_number,
           customerId: inv.customer_id,
-          customerName: inv.customer_name,
+          customerName: inv.customer_name || cached?.customerName || 'Valued Customer',
+          companyName: inv.contact?.company_name || cached?.companyName,
+          email: inv.email || inv.contact?.email || cached?.email,
           phone: phoneInfo.displayPhone,
           whatsappPhone: phoneInfo.whatsappPhone,
           hasUsablePhone: phoneInfo.hasUsablePhone,
@@ -867,20 +693,30 @@ export async function getZohoInvoiceFullDetails(invoiceId: string): Promise<Zoho
           notes: inv.notes,
           lineItems,
           billingAddress: inv.billing_address,
-          category: invoiceCategoryCache.get(inv.invoice_id) || extractCategoryFromZohoRecord(inv, inv.contact || inv.customer),
+          category:
+            invoiceCategoryCache.get(inv.invoice_id) ||
+            extractCategoryFromZohoRecord(inv, inv.contact || inv.customer) ||
+            cached?.category ||
+            'Retail',
         };
+
+        // Cache the newly resolved full detail into SQLite so subsequent views make 0 API calls
+        try {
+          upsertZohoOrders([detailedRecord]);
+        } catch (saveErr) {
+          console.warn('[Zoho Order Center] Failed to save full details to SQLite cache:', saveErr);
+        }
+
+        return detailedRecord;
       }
     } catch (err: any) {
-      console.warn('[Zoho Order Center] Full details fetch failed:', err.message || err);
+      console.warn('[Zoho Order Center] Full details fetch failed, falling back to cached order:', err.message || err);
+      if (cached) return cached;
     }
   }
 
-  // Fallback to cached live orders if available
-  if (lastLiveOrdersCache) {
-    const cached = lastLiveOrdersCache.orders.find((o) => o.id === invoiceId || o.invoiceNumber === invoiceId);
-    if (cached) return cached;
-  }
-  return null;
+  // Fallback to cached order if available
+  return cached || null;
 }
 
 /**
