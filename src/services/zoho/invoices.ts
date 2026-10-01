@@ -20,39 +20,74 @@ export function normalizePaymentStatus(rawStatus?: string, total = 0, balance = 
 export async function getCustomerInvoices(customerId: string): Promise<ZohoInvoice[]> {
   if (!customerId) return [];
 
-  const response = await zohoRequest<{ code: number; invoices: any[] }>('/invoices', {
-    params: { customer_id: customerId, sort_column: 'date', sort_order: 'D' },
-  });
+  // 1. Check local SQLite cache first (0 Zoho API calls!)
+  try {
+    const { getAllCachedZohoOrders } = await import('@/lib/storage/zohoOrderStore');
+    const allCached = getAllCachedZohoOrders();
+    const custCached = allCached.filter((o) => o.customerId === customerId);
+    if (custCached.length > 0) {
+      const mapped: ZohoInvoice[] = custCached.map((inv) => ({
+        invoice_id: inv.invoiceId || inv.id,
+        invoice_number: inv.invoiceNumber,
+        customer_id: inv.customerId,
+        customer_name: inv.customerName,
+        status: inv.status,
+        payment_status: normalizePaymentStatus(inv.status, inv.total, inv.balance),
+        date: inv.date,
+        due_date: inv.dueDate || inv.date,
+        total: inv.total,
+        balance: inv.balance,
+        amount_paid: inv.amountPaid,
+        currency_code: inv.currencyCode,
+        currency_symbol: inv.currencySymbol,
+        created_time: inv.createdTime || inv.date,
+        description: inv.referenceNumber || 'Commercial Laundry & Linen Care Services',
+        payment_date: inv.amountPaid > 0 ? inv.date : undefined,
+      }));
+      return mapped.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    }
+  } catch (err) {
+    console.warn('[Zoho Invoices] Cache lookup warning:', err);
+  }
 
-  const list = response.invoices || [];
+  // 2. Fetch from Zoho Books only if missing from local cache
+  try {
+    const response = await zohoRequest<{ code: number; invoices: any[] }>('/invoices', {
+      params: { customer_id: customerId, sort_column: 'date', sort_order: 'D' },
+    });
 
-  const mapped: ZohoInvoice[] = list.map((inv) => {
-    const total = Number(inv.total) || 0;
-    const balance = Number(inv.balance) ?? total;
-    const amount_paid = Math.max(0, total - balance);
+    const list = response.invoices || [];
 
-    return {
-      invoice_id: inv.invoice_id,
-      invoice_number: inv.invoice_number,
-      customer_id: inv.customer_id,
-      customer_name: inv.customer_name,
-      status: inv.status,
-      payment_status: normalizePaymentStatus(inv.status, total, balance),
-      date: inv.date,
-      due_date: inv.due_date,
-      total,
-      balance,
-      amount_paid,
-      currency_code: inv.currency_code || 'LKR',
-      currency_symbol: inv.currency_symbol || 'Rs.',
-      created_time: inv.created_time || inv.date,
-      description: inv.reference_number || 'Commercial Laundry & Linen Care Services',
-      payment_date: amount_paid > 0 ? (inv.last_payment_date || inv.date) : undefined,
-    };
-  });
+    const mapped: ZohoInvoice[] = list.map((inv) => {
+      const total = Number(inv.total) || 0;
+      const balance = Number(inv.balance) ?? total;
+      const amount_paid = Math.max(0, total - balance);
 
-  // Ensure strict ordering: newest first
-  return mapped.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+      return {
+        invoice_id: inv.invoice_id,
+        invoice_number: inv.invoice_number,
+        customer_id: inv.customer_id,
+        customer_name: inv.customer_name,
+        status: inv.status,
+        payment_status: normalizePaymentStatus(inv.status, total, balance),
+        date: inv.date,
+        due_date: inv.due_date,
+        total,
+        balance,
+        amount_paid,
+        currency_code: inv.currency_code || 'LKR',
+        currency_symbol: inv.currency_symbol || 'Rs.',
+        created_time: inv.created_time || inv.date,
+        description: inv.reference_number || 'Commercial Laundry & Linen Care Services',
+        payment_date: amount_paid > 0 ? (inv.last_payment_date || inv.date) : undefined,
+      };
+    });
+
+    return mapped.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  } catch (err: any) {
+    console.warn('[Zoho Invoices] getCustomerInvoices error:', err.message || err);
+    return [];
+  }
 }
 
 export async function getAuthorizedCustomerInvoice(
@@ -148,46 +183,105 @@ export async function findZohoInvoiceByNumber(invoiceNumber: string): Promise<Zo
     if (rawDigits) candidates.add(rawDigits);
   }
 
+  // 1. Check local SQLite cache first (0 Zoho API calls!)
+  try {
+    const { getCachedOrderById } = await import('@/lib/storage/zohoOrderStore');
+    for (const candidate of Array.from(candidates)) {
+      const cached = getCachedOrderById(candidate);
+      if (cached) {
+        return {
+          invoice_id: cached.invoiceId || cached.id,
+          invoice_number: cached.invoiceNumber,
+          customer_id: cached.customerId,
+          customer_name: cached.customerName,
+          status: cached.status,
+          payment_status: normalizePaymentStatus(cached.status, cached.total, cached.balance),
+          date: cached.date,
+          due_date: cached.dueDate || cached.date,
+          total: cached.total,
+          balance: cached.balance,
+          amount_paid: cached.amountPaid,
+          currency_code: cached.currencyCode,
+          currency_symbol: cached.currencySymbol,
+          created_time: cached.createdTime || cached.date,
+          description: cached.referenceNumber || 'Commercial Laundry & Linen Care Services',
+          line_items: cached.lineItems
+            ? cached.lineItems.map((li) => ({
+                item_id: li.itemId || '',
+                name: li.name,
+                description: li.description,
+                rate: Number(li.rate) || 0,
+                quantity: Number(li.quantity) || 1,
+                item_total: Number(li.itemTotal) || 0,
+              }))
+            : undefined,
+        };
+      }
+    }
+  } catch (err) {
+    console.warn('[Zoho Invoices] Cache lookup warning:', err);
+  }
+
   const { isZohoConfigured } = await import('./auth');
 
   if (isZohoConfigured()) {
     try {
-      // 1. Try exact invoice_number queries for all candidates
-      for (const candidate of Array.from(candidates)) {
-        const res = await zohoRequest<{ code: number; invoices: any[] }>('/invoices', {
-          params: { invoice_number: candidate },
-        }).catch(() => null);
+      // 2. Targeted search on Zoho Books (search_text handles prefix and number in 1 call)
+      const searchRes = await zohoRequest<{ code: number; invoices: any[] }>('/invoices', {
+        params: { search_text: cleanNum, per_page: 5 },
+      }).catch(() => null);
 
-        if (res?.invoices && res.invoices.length > 0) {
-          const full = await zohoRequest<{ code: number; invoice: any }>(
-            `/invoices/${res.invoices[0].invoice_id}`
-          ).catch(() => null);
-          if (full?.invoice) {
-            return mapZohoInvoiceDetail(full.invoice);
+      if (searchRes?.invoices && searchRes.invoices.length > 0) {
+        const exactMatch =
+          searchRes.invoices.find((i) =>
+            Array.from(candidates).some(
+              (c) => (i.invoice_number || '').trim().toUpperCase() === c
+            )
+          ) || searchRes.invoices[0];
+
+        const full = await zohoRequest<{ code: number; invoice: any }>(
+          `/invoices/${exactMatch.invoice_id}`
+        ).catch(() => null);
+
+        if (full?.invoice) {
+          const detail = mapZohoInvoiceDetail(full.invoice);
+
+          // Save discovered invoice into SQLite cache for future lookups
+          try {
+            const { upsertZohoOrders } = await import('@/lib/storage/zohoOrderStore');
+            upsertZohoOrders([
+              {
+                id: detail.invoice_id,
+                recordType: 'invoice',
+                invoiceId: detail.invoice_id,
+                invoiceNumber: detail.invoice_number,
+                customerId: detail.customer_id,
+                customerName: detail.customer_name,
+                date: detail.date,
+                dueDate: detail.due_date,
+                total: detail.total,
+                balance: detail.balance,
+                amountPaid: detail.amount_paid,
+                currencyCode: detail.currency_code,
+                currencySymbol: detail.currency_symbol,
+                status: detail.status,
+                financialStatus: detail.payment_status as any,
+                hasUsablePhone: false,
+                lineItems: detail.line_items?.map((li) => ({
+                  itemId: li.item_id,
+                  name: li.name,
+                  description: li.description,
+                  rate: Number(li.rate) || 0,
+                  quantity: Number(li.quantity) || 1,
+                  itemTotal: Number(li.item_total) || 0,
+                })),
+              },
+            ]);
+          } catch (cacheErr) {
+            console.warn('[Zoho Invoices] Error caching discovered invoice to SQLite:', cacheErr);
           }
-        }
-      }
 
-      // 2. Fallback to search_text queries
-      for (const candidate of Array.from(candidates)) {
-        const searchRes = await zohoRequest<{ code: number; invoices: any[] }>('/invoices', {
-          params: { search_text: candidate },
-        }).catch(() => null);
-
-        if (searchRes?.invoices && searchRes.invoices.length > 0) {
-          const exactMatch =
-            searchRes.invoices.find((i) =>
-              Array.from(candidates).some(
-                (c) => (i.invoice_number || '').trim().toUpperCase() === c
-              )
-            ) || searchRes.invoices[0];
-
-          const full = await zohoRequest<{ code: number; invoice: any }>(
-            `/invoices/${exactMatch.invoice_id}`
-          ).catch(() => null);
-          if (full?.invoice) {
-            return mapZohoInvoiceDetail(full.invoice);
-          }
+          return detail;
         }
       }
     } catch (err: any) {

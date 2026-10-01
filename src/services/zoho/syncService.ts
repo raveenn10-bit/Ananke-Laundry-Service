@@ -1,4 +1,4 @@
-import { zohoRequest } from './client';
+import { zohoRequest, isZohoRateLimited, getZohoRateLimitResetSeconds, ZohoRateLimitError } from './client';
 import { isZohoConfigured } from './auth';
 import {
   upsertZohoOrders,
@@ -59,6 +59,28 @@ export async function syncZohoOrders(options: { forceFull?: boolean } = {}): Pro
     console.log('[Zoho Sync] Starting controlled Zoho Books order synchronization...');
 
     const meta = getZohoSyncMetadata();
+
+    // 0. Pre-flight rate limit check (Do not fire requests if Zoho is already cooling down)
+    if (isZohoRateLimited()) {
+      const waitSec = getZohoRateLimitResetSeconds();
+      console.warn(`[Zoho Sync] Rate limit cooldown active (${waitSec}s remaining). Preserving cache.`);
+      setZohoSyncMetadata('is_syncing', 'false');
+      setZohoSyncMetadata('last_sync_status', 'rate_limited');
+      setZohoSyncMetadata(
+        'last_sync_message',
+        `Zoho Books API quota reached (10,000 calls/day). Paused for ${waitSec}s to protect quota.`
+      );
+      return {
+        success: false,
+        rateLimited: true,
+        message: `Zoho Books rate limit active. Next sync in ${waitSec}s. Existing cached orders preserved.`,
+        totalSynced: meta.totalSynced,
+        newRecords: 0,
+        updatedRecords: 0,
+        pagesProcessed: 0,
+      };
+    }
+
     const isIncremental = !options.forceFull && Boolean(meta.lastSuccessfulSync);
 
     let totalNew = 0;
@@ -200,6 +222,12 @@ export async function syncZohoOrders(options: { forceFull?: boolean } = {}): Pro
           `[Zoho Sync] Page ${page} complete: ${inserted} new, ${updated} updated in SQLite cache.`
         );
 
+        // If incremental sync and this page had 0 new and 0 updated records, all older records are up to date!
+        if (isIncremental && inserted === 0 && updated === 0) {
+          console.log('[Zoho Sync] Incremental sync: Page has 0 new/modified records. Ending sync early to preserve API quota.');
+          break;
+        }
+
         hasMore = Boolean(invRes?.page_context?.has_more_page);
         page++;
 
@@ -255,9 +283,14 @@ export async function syncZohoOrders(options: { forceFull?: boolean } = {}): Pro
     } catch (err: any) {
       console.error('[Zoho Sync] Unexpected error during sync:', err.message || err);
       setZohoSyncMetadata('is_syncing', 'false');
-      const is429 = err.message?.includes('429') || err.message?.includes('rate limit');
+      const is429 = err instanceof ZohoRateLimitError || isZohoRateLimited() || err.message?.includes('429') || err.message?.includes('rate limit');
       setZohoSyncMetadata('last_sync_status', is429 ? 'rate_limited' : 'error');
-      setZohoSyncMetadata('last_sync_message', err.message || 'Sync failed');
+      setZohoSyncMetadata(
+        'last_sync_message',
+        is429
+          ? 'Zoho Books daily API limit exceeded (10,000 calls/day). Existing cached orders preserved.'
+          : err.message || 'Sync failed'
+      );
 
       return {
         success: false,

@@ -6,10 +6,33 @@ export async function findZohoCustomer(email?: string, phone?: string): Promise<
   if (!email && !phone) return null;
 
   try {
+    // 1. Check local SQLite cache first (0 Zoho API calls!)
+    try {
+      const { getAllCachedZohoOrders } = await import('@/lib/storage/zohoOrderStore');
+      const searchQuery = email || phone;
+      if (searchQuery) {
+        const matches = getAllCachedZohoOrders({ search: searchQuery });
+        if (matches.length > 0) {
+          const match = matches[0];
+          return {
+            contact_id: match.customerId,
+            contact_name: match.customerName,
+            company_name: match.companyName,
+            email: match.email,
+            phone: match.phone,
+            mobile: match.whatsappPhone,
+          } as ZohoContact;
+        }
+      }
+    } catch (e) {
+      console.warn('[Zoho Contacts] Local cache check warning:', e);
+    }
+
+    // 2. Query Zoho Books (at most 1 single search_text request)
     if (email) {
       const emailRes = await zohoRequest<ZohoCustomerSearchResponse>('/contacts', {
         params: { email: email.trim().toLowerCase() },
-      });
+      }).catch(() => null);
 
       if (emailRes?.contacts && emailRes.contacts.length > 0) {
         return emailRes.contacts[0];
@@ -20,31 +43,12 @@ export async function findZohoCustomer(email?: string, phone?: string): Promise<
       const cleanPhone = phone.replace(/[^0-9+]/g, '');
       const digitsOnly = cleanPhone.replace(/[^0-9]/g, '').slice(-9);
 
-      // 1. Exact phone field match
-      const phoneRes = await zohoRequest<ZohoCustomerSearchResponse>('/contacts', {
-        params: { phone: cleanPhone },
-      }).catch(() => null);
-
-      if (phoneRes?.contacts && phoneRes.contacts.length > 0) {
-        return phoneRes.contacts[0];
-      }
-
-      // 2. Exact mobile field match
-      const mobileRes = await zohoRequest<ZohoCustomerSearchResponse>('/contacts', {
-        params: { mobile: cleanPhone },
-      }).catch(() => null);
-
-      if (mobileRes?.contacts && mobileRes.contacts.length > 0) {
-        return mobileRes.contacts[0];
-      }
-
-      // 3. Search text match (matches formatted numbers like '077 123 4567')
+      // Single efficient search_text match (Zoho searches phone, mobile, contact_name)
       const searchRes = await zohoRequest<ZohoCustomerSearchResponse>('/contacts', {
-        params: { search_text: digitsOnly || cleanPhone },
+        params: { search_text: digitsOnly || cleanPhone, per_page: 5 },
       }).catch(() => null);
 
       if (searchRes?.contacts && searchRes.contacts.length > 0) {
-        // Look for contact whose phone or mobile contains the 9 digits
         for (const c of searchRes.contacts) {
           const cPhone = (c.phone || '').replace(/[^0-9]/g, '');
           const cMobile = (c.mobile || '').replace(/[^0-9]/g, '');
@@ -83,7 +87,47 @@ export async function lookupZohoCustomerUnified(query: string): Promise<import('
   const clean = (query || '').trim();
   if (!clean) return [];
 
-  // 1. Live Zoho Books API Query if configured
+  // 1. Check local SQLite cache first (0 Zoho API calls!)
+  try {
+    const { getAllCachedZohoOrders } = await import('@/lib/storage/zohoOrderStore');
+    const matchedOrders = getAllCachedZohoOrders({ search: clean });
+    if (matchedOrders.length > 0) {
+      const customerMap = new Map<string, import('@/types/order').ZohoCustomerLookupResult>();
+      for (const ord of matchedOrders) {
+        const cId = ord.customerId || ord.id;
+        if (!customerMap.has(cId)) {
+          customerMap.set(cId, {
+            customerId: cId,
+            customerName: ord.customerName,
+            companyName: ord.companyName,
+            email: ord.email || '',
+            phone: ord.phone || '',
+            mobile: ord.whatsappPhone,
+            address: ord.billingAddress?.address,
+            invoices: [],
+          });
+        }
+        const custEntry = customerMap.get(cId)!;
+        if (custEntry.invoices.length < 5) {
+          custEntry.invoices.push({
+            invoiceId: ord.invoiceId || ord.id,
+            invoiceNumber: ord.invoiceNumber,
+            date: ord.date,
+            total: ord.total,
+            balance: ord.balance,
+            status: ord.status,
+          });
+        }
+      }
+      if (customerMap.size > 0) {
+        return Array.from(customerMap.values()).slice(0, 10);
+      }
+    }
+  } catch (err) {
+    console.warn('[Zoho Lookup] Local cache search warning:', err);
+  }
+
+  // 2. Live Zoho Books API Query if configured and not rate-limited
   if (require('./auth').isZohoConfigured()) {
     try {
       const results: import('@/types/order').ZohoCustomerLookupResult[] = [];
