@@ -1,0 +1,85 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { isAuthorizedAdmin } from '@/lib/auth/adminAuth';
+import {
+  getZohoOrderCenterData,
+  getZohoInvoiceFullDetails,
+} from '@/services/zoho/ordersService';
+
+export const dynamic = 'force-dynamic';
+
+export async function GET(req: NextRequest) {
+  // 1. Verify Admin Authentication
+  if (!isAuthorizedAdmin(req)) {
+    return NextResponse.json(
+      { success: false, message: 'Unauthorized. Admin credentials required.' },
+      {
+        status: 401,
+        headers: {
+          'Cache-Control': 'private, no-cache, no-store, must-revalidate',
+        },
+      }
+    );
+  }
+
+  const { searchParams } = new URL(req.url);
+  const detailsId = searchParams.get('detailsId');
+  const page = parseInt(searchParams.get('page') || '1', 10);
+  const perPage = parseInt(searchParams.get('perPage') || '100', 10);
+  const search = searchParams.get('search') || undefined;
+  const status = searchParams.get('status') || undefined;
+
+  try {
+    // If request is asking for full detail of a specific invoice
+    if (detailsId) {
+      const detail = await getZohoInvoiceFullDetails(detailsId);
+      if (!detail) {
+        return NextResponse.json(
+          { success: false, message: `Invoice #${detailsId} not found.` },
+          {
+            status: 404,
+            headers: {
+              'Cache-Control': 'private, no-cache, no-store, must-revalidate',
+            },
+          }
+        );
+      }
+      return NextResponse.json(
+        { success: true, order: detail },
+        {
+          headers: {
+            'Cache-Control': 'private, no-cache, no-store, must-revalidate',
+          },
+        }
+      );
+    }
+
+    // Fetch orders & invoices from Zoho Books
+    const data = await getZohoOrderCenterData({
+      page,
+      perPage,
+      search,
+      status,
+    });
+
+    return NextResponse.json(data, {
+      status: 200,
+      headers: {
+        'Cache-Control': 'private, no-cache, no-store, must-revalidate',
+      },
+    });
+  } catch (error: any) {
+    console.error('[API /api/admin/zoho/orders] Error:', error);
+    return NextResponse.json(
+      {
+        success: false,
+        message: error.message || 'Failed to fetch Zoho Books order center records.',
+      },
+      {
+        status: 500,
+        headers: {
+          'Cache-Control': 'private, no-cache, no-store, must-revalidate',
+        },
+      }
+    );
+  }
+}

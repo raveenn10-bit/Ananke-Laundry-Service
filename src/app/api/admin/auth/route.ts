@@ -18,10 +18,11 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   const ip = getClientIp(req);
 
-  // Strict brute-force protection: max 5 login attempts per 15 minutes
+  // Strict brute-force protection: max 5 login attempts in production, 100 in development
+  const maxAttempts = process.env.NODE_ENV === 'production' ? 5 : 100;
   const rateLimit = checkRateLimit(ip, {
     windowMs: 15 * 60 * 1000,
-    maxRequests: 5,
+    maxRequests: maxAttempts,
     prefix: 'admin_login_strict',
   });
 

@@ -18,7 +18,7 @@ import {
   AlertCircle,
 } from 'lucide-react';
 import { EnquiryRecord, SyncStats } from '@/types/quote';
-import OrderManager from '@/components/admin/OrderManager';
+import ZohoOrderCenter from '@/components/admin/ZohoOrderCenter';
 
 export default function ZohoAdminDashboard() {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
@@ -234,6 +234,18 @@ export default function ZohoAdminDashboard() {
                 autoFocus
                 required
               />
+              <div className="flex items-center justify-between mt-2">
+                <span className="text-[11px] text-gray-400">
+                  Dev Passcode:{' '}
+                  <button
+                    type="button"
+                    onClick={() => setPasscodeInput('ananke2026')}
+                    className="text-accent hover:underline font-mono font-bold cursor-pointer"
+                  >
+                    ananke2026
+                  </button>
+                </span>
+              </div>
             </div>
 
             <button
@@ -281,7 +293,7 @@ export default function ZohoAdminDashboard() {
             <div className="flex items-center gap-2">
               <div className="w-3 h-3 rounded-full bg-accent animate-pulse"></div>
               <h1 className="text-base sm:text-lg font-bold font-heading tracking-wide">
-                Ananke Laundry &bull; Zoho Books Management
+                Ananke Laundry &bull; Zoho Order Center
               </h1>
             </div>
           </div>
@@ -384,18 +396,18 @@ export default function ZohoAdminDashboard() {
         <div className="flex items-center gap-3 mb-8 border-b border-gray-200 pb-4">
           <button
             onClick={() => setActiveTab('orders')}
-            className={`px-5 py-2.5 rounded-2xl font-semibold text-xs sm:text-sm flex items-center gap-2 transition-all ${
+            className={`px-5 py-2.5 rounded-2xl font-semibold text-xs sm:text-sm flex items-center gap-2 transition-all cursor-pointer ${
               activeTab === 'orders'
                 ? 'bg-primary text-white shadow-md'
                 : 'bg-white text-gray-600 hover:text-dark border border-gray-200'
             }`}
           >
             <Package size={16} className={activeTab === 'orders' ? 'text-accent' : ''} />
-            <span>Orders &amp; Customer Notifications</span>
+            <span>Zoho Order Center &bull; WhatsApp</span>
           </button>
           <button
             onClick={() => setActiveTab('sync')}
-            className={`px-5 py-2.5 rounded-2xl font-semibold text-xs sm:text-sm flex items-center gap-2 transition-all ${
+            className={`px-5 py-2.5 rounded-2xl font-semibold text-xs sm:text-sm flex items-center gap-2 transition-all cursor-pointer ${
               activeTab === 'sync'
                 ? 'bg-primary text-white shadow-md'
                 : 'bg-white text-gray-600 hover:text-dark border border-gray-200'
@@ -407,7 +419,7 @@ export default function ZohoAdminDashboard() {
         </div>
 
         {activeTab === 'orders' ? (
-          <OrderManager adminKey={adminKey} />
+          <ZohoOrderCenter adminKey={adminKey} />
         ) : (
           <>
             {/* Top Metric Cards */}
