@@ -58,6 +58,13 @@ function generateCustomerWhatsAppMessage(customerName: string, invoiceNumber: st
   return `🧺 Ananke Laundry\n\nHi ${cleanName} 👋,\n\nYour laundry order has been received successfully.\n\n🧾 Invoice: ${cleanInv}\n\n🔗 View your bill & track your order:\n${SECURE_MY_BILL_URL}\n\nThank you for choosing Ananke Laundry 💚`;
 }
 
+function getInitials(name: string): string {
+  if (!name) return 'AL';
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
+
 interface ZohoOrderCenterProps {
   adminKey?: string;
   onLogout?: () => void;
@@ -99,6 +106,19 @@ export default function ZohoOrderCenter({ adminKey = '', onLogout }: ZohoOrderCe
   const [whatsAppModalOpen, setWhatsAppModalOpen] = useState(false);
   const [selectedOrderForWhatsApp, setSelectedOrderForWhatsApp] = useState<ZohoOrderRecord | null>(null);
   const [isCopied, setIsCopied] = useState(false);
+  const [copiedInvoiceId, setCopiedInvoiceId] = useState<string | null>(null);
+
+  // 1-Tap Copy Invoice Number
+  const handleCopyInvoice = useCallback((invoiceNum: string, orderId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (typeof navigator !== 'undefined' && navigator.clipboard) {
+      navigator.clipboard.writeText(invoiceNum);
+      setCopiedInvoiceId(orderId);
+      setTimeout(() => {
+        setCopiedInvoiceId(null);
+      }, 2000);
+    }
+  }, []);
 
   // Fetch Orders Function (Loads exclusively from local persistent cache - zero API requests)
   const fetchOrders = useCallback(
@@ -469,8 +489,8 @@ export default function ZohoOrderCenter({ adminKey = '', onLogout }: ZohoOrderCe
         </div>
 
         {/* Sync with Zoho & Logout Actions */}
-        <div className="flex flex-col sm:flex-row items-end sm:items-center gap-2.5 self-start md:self-center shrink-0">
-          <div className="flex flex-col items-end gap-1">
+        <div className="flex flex-wrap sm:flex-nowrap items-center justify-between sm:justify-end gap-2.5 w-full md:w-auto shrink-0 pt-2 md:pt-0 border-t md:border-t-0 border-gray-100">
+          <div className="flex flex-col items-start sm:items-end gap-1">
             <button
               onClick={handleSyncWithZoho}
               disabled={isSyncingWithZoho || isLoading}
@@ -494,7 +514,7 @@ export default function ZohoOrderCenter({ adminKey = '', onLogout }: ZohoOrderCe
           {onLogout && (
             <button
               onClick={onLogout}
-              className="px-4 py-2.5 rounded-2xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 font-semibold text-xs sm:text-sm transition-all flex items-center gap-1.5 cursor-pointer shadow-xs active:scale-95 self-stretch sm:self-auto justify-center"
+              className="px-4 py-2.5 rounded-2xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 font-semibold text-xs sm:text-sm transition-all flex items-center gap-1.5 cursor-pointer shadow-xs active:scale-95 justify-center self-start sm:self-auto"
               title="Log Out of Admin Portal"
             >
               <LogOut size={14} className="text-rose-600" />
@@ -964,122 +984,239 @@ export default function ZohoOrderCenter({ adminKey = '', onLogout }: ZohoOrderCe
           </div>
 
           {/* MOBILE CARD VIEW (Visible below md) */}
-          <div className="md:hidden space-y-4">
+          <div className="md:hidden space-y-3.5">
             {filteredOrders.map((order) => {
               const isNewOrder = order.isNew || newlyAddedIds.has(order.id);
               const wasWhatsAppOpened = Boolean(whatsAppOpenedMap[order.id]);
+              const isCopiedThis = copiedInvoiceId === order.id;
+              const pctPaid =
+                order.total > 0
+                  ? Math.min(100, Math.max(0, Math.round(((order.total - order.balance) / order.total) * 100)))
+                  : 100;
+              const isRetail = (order.category || '').toLowerCase().includes('retail');
+              const isOutside =
+                (order.category || '').toLowerCase().includes('outside') ||
+                (order.category || '').toLowerCase().includes('hotel');
+
+              // Accent bar gradient based on financial status
+              const accentGradient =
+                order.financialStatus === 'Paid'
+                  ? 'from-emerald-500 via-teal-400 to-emerald-500'
+                  : order.financialStatus === 'Partially Paid'
+                  ? 'from-amber-500 via-amber-400 to-orange-400'
+                  : order.financialStatus === 'Overdue'
+                  ? 'from-rose-500 via-red-500 to-rose-600'
+                  : 'from-slate-400 via-gray-300 to-slate-400';
 
               return (
                 <div
                   key={order.id}
-                  className="bg-white rounded-3xl p-5 border border-gray-200 shadow-sm space-y-4"
+                  className="relative overflow-hidden bg-white rounded-3xl border border-gray-200/90 shadow-xs hover:shadow-md transition-all duration-200"
                 >
-                  {/* Card Header: Invoice # & NEW Badge */}
-                  <div className="flex items-center justify-between pb-3 border-b border-gray-100">
-                    <div className="flex items-center gap-2">
-                      <span className="font-mono font-bold text-base text-dark">
-                        {order.invoiceNumber}
-                      </span>
-                      {order.salesOrderNumber && (
-                        <span className="text-[10px] text-gray-400 font-mono">
-                          ({order.salesOrderNumber})
-                        </span>
+                  {/* Top Status Gradient Strip */}
+                  <div className={`h-1.5 w-full bg-gradient-to-r ${accentGradient}`} />
+
+                  <div className="p-4 sm:p-5 space-y-3.5">
+                    {/* Header Row: Invoice Monospace Badge + Copy Action + Category / New Tag */}
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        {/* 1-Tap Copy Invoice Number */}
+                        <button
+                          onClick={(e) => handleCopyInvoice(order.invoiceNumber, order.id, e)}
+                          title="Tap to copy invoice number"
+                          className="group inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-gray-900 hover:bg-dark text-white font-mono font-bold text-xs shadow-xs active:scale-95 transition-all cursor-pointer"
+                        >
+                          <span>{order.invoiceNumber}</span>
+                          {isCopiedThis ? (
+                            <Check size={11} className="text-emerald-400" />
+                          ) : (
+                            <Copy size={11} className="text-gray-400 group-hover:text-white transition-colors" />
+                          )}
+                        </button>
+
+                        {order.salesOrderNumber && (
+                          <span className="font-mono text-[10px] text-gray-500 bg-gray-100 px-2 py-0.5 rounded-lg border border-gray-200">
+                            SO: {order.salesOrderNumber}
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Right Tag: Category or New Badge */}
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        {isNewOrder && (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-500 text-white shadow-xs animate-pulse">
+                            <Sparkles size={9} />
+                            NEW
+                          </span>
+                        )}
+
+                        {order.category && (
+                          <span
+                            className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold border shadow-xs ${
+                              isRetail
+                                ? 'bg-emerald-50 text-emerald-800 border-emerald-300'
+                                : isOutside
+                                ? 'bg-blue-50 text-blue-800 border-blue-300'
+                                : 'bg-gray-100 text-gray-700 border-gray-300'
+                            }`}
+                          >
+                            {isRetail ? (
+                              <User size={10} className="text-emerald-600" />
+                            ) : isOutside ? (
+                              <Building size={10} className="text-blue-600" />
+                            ) : (
+                              <Tag size={10} className="text-gray-500" />
+                            )}
+                            {order.category}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Customer Row with Initial Avatar & Phone */}
+                    <div className="flex items-start gap-3">
+                      {/* Avatar Circle */}
+                      <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-olive/15 via-olive/5 to-cream text-olive font-extrabold text-sm flex items-center justify-center shrink-0 border border-olive/20 shadow-xs">
+                        {getInitials(order.customerName)}
+                      </div>
+
+                      {/* Customer Details */}
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-heading font-bold text-dark text-[15px] leading-snug tracking-tight truncate">
+                          {order.customerName}
+                        </h3>
+                        {order.companyName && (
+                          <p className="text-xs text-gray-500 font-medium truncate flex items-center gap-1">
+                            <Building size={11} className="text-gray-400 shrink-0" />
+                            <span>{order.companyName}</span>
+                          </p>
+                        )}
+
+                        {/* Interactive Phone Pill */}
+                        <div className="mt-1 flex items-center gap-2">
+                          {order.hasUsablePhone ? (
+                            <a
+                              href={`tel:${order.phone}`}
+                              onClick={(e) => e.stopPropagation()}
+                              className="inline-flex items-center gap-1.5 text-xs font-mono text-gray-700 bg-gray-50 hover:bg-gray-100 border border-gray-200 px-2 py-0.5 rounded-lg transition-colors cursor-pointer"
+                              title="Click to dial phone"
+                            >
+                              <Phone size={10} className="text-olive shrink-0" />
+                              <span>{order.phone}</span>
+                              {order.whatsappPhone && (
+                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" title="WhatsApp available" />
+                              )}
+                            </a>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 text-[11px] text-gray-400 italic">
+                              <Phone size={10} className="text-gray-300" /> No phone attached
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Financial Progress & Split Metric Box */}
+                    <div className="bg-gradient-to-br from-cream/40 via-white to-cream/20 rounded-2xl p-3.5 border border-gray-200/80 shadow-xs space-y-2">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 block">
+                            Total Invoiced
+                          </span>
+                          <span className="font-heading font-extrabold text-dark text-base">
+                            {formatLKR(order.total)}
+                          </span>
+                        </div>
+
+                        <div className="text-right">
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 block">
+                            {order.balance > 0 ? 'Balance Due' : 'Settled'}
+                          </span>
+                          <span
+                            className={`font-heading font-extrabold text-base ${
+                              order.balance > 0 ? 'text-rose-600' : 'text-emerald-700'
+                            }`}
+                          >
+                            {formatLKR(order.balance)}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Mini Progress Track */}
+                      <div className="space-y-1 pt-1 border-t border-gray-200/60">
+                        <div className="flex items-center justify-between text-[10px]">
+                          <span className="text-gray-500 font-medium">
+                            {pctPaid === 100
+                              ? 'Paid in full'
+                              : pctPaid > 0
+                              ? `${pctPaid}% paid (${formatLKR(order.total - order.balance)})`
+                              : 'Payment pending'}
+                          </span>
+                          <span className="font-bold text-gray-600">{pctPaid}%</span>
+                        </div>
+                        <div className="w-full h-1.5 bg-gray-200/80 rounded-full overflow-hidden flex">
+                          <div
+                            className={`h-full transition-all duration-300 ${
+                              pctPaid === 100
+                                ? 'bg-emerald-500'
+                                : pctPaid > 0
+                                ? 'bg-amber-500'
+                                : 'bg-transparent'
+                            }`}
+                            style={{ width: `${pctPaid}%` }}
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Metadata: Status Pill + Date + WhatsApp Opened Tag */}
+                    <div className="flex items-center justify-between gap-2 pt-0.5">
+                      <div className="flex items-center gap-2">
+                        {renderStatusBadge(order.financialStatus)}
+                        {wasWhatsAppOpened && (
+                          <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
+                            <Check size={10} className="text-emerald-600" /> Sent
+                          </span>
+                        )}
+                      </div>
+
+                      <div className="flex items-center gap-1 text-xs text-gray-500 font-medium">
+                        <Calendar size={12} className="text-gray-400" />
+                        <span>{order.date}</span>
+                      </div>
+                    </div>
+
+                    {/* Action Buttons: 2-Column Grid (Details + Send WhatsApp) */}
+                    <div className="grid grid-cols-5 gap-2 pt-2 border-t border-gray-100">
+                      <button
+                        onClick={() => handleOpenDetails(order)}
+                        className="col-span-2 py-2.5 px-3 rounded-xl border border-gray-200 bg-white hover:bg-gray-50 active:scale-95 text-dark text-xs font-semibold transition-all shadow-xs flex items-center justify-center gap-1.5 cursor-pointer"
+                        title="View invoice line items and customer details"
+                      >
+                        <Eye size={13} className="text-gray-500" />
+                        <span>Details</span>
+                        <ChevronRight size={12} className="text-gray-400 -mr-1" />
+                      </button>
+
+                      {order.hasUsablePhone ? (
+                        <button
+                          onClick={() => handleOpenWhatsApp(order)}
+                          className="col-span-3 py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white text-xs font-bold transition-all shadow-sm shadow-emerald-600/20 flex items-center justify-center gap-1.5 cursor-pointer"
+                          title="Generate and send WhatsApp bill notification"
+                        >
+                          <MessageSquare size={13} />
+                          <span>Send WhatsApp</span>
+                        </button>
+                      ) : (
+                        <button
+                          disabled
+                          className="col-span-3 py-2.5 px-3 rounded-xl bg-gray-100 text-gray-400 text-xs font-medium cursor-not-allowed border border-gray-200 text-center flex items-center justify-center gap-1"
+                          title="Customer phone number is missing in Zoho"
+                        >
+                          <span>No phone number</span>
+                        </button>
                       )}
                     </div>
-                    {isNewOrder && (
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-500 text-white animate-pulse">
-                        NEW
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Customer & Phone */}
-                  <div>
-                    <h3 className="font-bold text-dark text-base">{order.customerName}</h3>
-                    {order.companyName && (
-                      <p className="text-xs text-gray-500">{order.companyName}</p>
-                    )}
-                    {order.category && (
-                      <div className="mt-1">
-                        <span
-                          className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold border ${
-                            order.category.toLowerCase().includes('retail')
-                              ? 'bg-emerald-50 text-emerald-800 border-emerald-300'
-                              : 'bg-blue-50 text-blue-800 border-blue-300'
-                          }`}
-                        >
-                          <span
-                            className={`w-1.5 h-1.5 rounded-full ${
-                              order.category.toLowerCase().includes('retail')
-                                ? 'bg-emerald-500'
-                                : 'bg-blue-500'
-                            }`}
-                          />
-                          {order.category}
-                        </span>
-                      </div>
-                    )}
-                    <p className="text-xs font-mono text-gray-600 mt-0.5">
-                      {order.hasUsablePhone ? order.phone : 'No phone number'}
-                    </p>
-                  </div>
-
-                  {/* Financial Details */}
-                  <div className="bg-cream/40 rounded-2xl p-3.5 space-y-1.5 text-xs">
-                    <div className="flex justify-between">
-                      <span className="text-gray-500 font-medium">Total:</span>
-                      <strong className="text-dark font-bold">{formatLKR(order.total)}</strong>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-500 font-medium">Balance:</span>
-                      <strong
-                        className={`font-bold ${
-                          order.balance > 0 ? 'text-rose-700' : 'text-emerald-700'
-                        }`}
-                      >
-                        {formatLKR(order.balance)}
-                      </strong>
-                    </div>
-                  </div>
-
-                  {/* Status & Date */}
-                  <div className="flex items-center justify-between pt-1">
-                    <div>{renderStatusBadge(order.financialStatus)}</div>
-                    <div className="text-xs text-gray-500 font-medium">{order.date}</div>
-                  </div>
-
-                  {wasWhatsAppOpened && (
-                    <div className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md">
-                      <Check size={11} /> WhatsApp Opened
-                    </div>
-                  )}
-
-                  {/* Action Buttons */}
-                  <div className="flex flex-col gap-2 pt-2 border-t border-gray-100">
-                    <button
-                      onClick={() => handleOpenDetails(order)}
-                      className="w-full py-2.5 rounded-xl border border-gray-200 bg-white hover:bg-gray-50 text-dark text-xs font-semibold transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
-                    >
-                      <Eye size={14} className="text-gray-500" />
-                      <span>View Details</span>
-                    </button>
-
-                    {order.hasUsablePhone ? (
-                      <button
-                        onClick={() => handleOpenWhatsApp(order)}
-                        className="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-98 text-white text-xs font-bold transition-all shadow-sm flex items-center justify-center gap-2 cursor-pointer"
-                      >
-                        <MessageSquare size={15} />
-                        <span>🟢 Send WhatsApp</span>
-                      </button>
-                    ) : (
-                      <button
-                        disabled
-                        className="w-full py-2.5 rounded-xl bg-gray-100 text-gray-400 text-xs font-medium cursor-not-allowed border border-gray-200 text-center"
-                      >
-                        No phone number
-                      </button>
-                    )}
                   </div>
                 </div>
               );
