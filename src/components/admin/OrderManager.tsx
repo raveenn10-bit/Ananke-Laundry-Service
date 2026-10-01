@@ -22,6 +22,9 @@ import {
   FileText,
   Truck,
   CheckCheck,
+  MessageSquare,
+  Copy,
+  Check,
 } from 'lucide-react';
 import { OrderRecord, OrderStatus, OrderPaymentStatus, ZohoCustomerLookupResult } from '@/types/order';
 
@@ -70,6 +73,15 @@ export default function OrderManager({ adminKey }: OrderManagerProps) {
 
   // Status updating indicator
   const [updatingOrderId, setUpdatingOrderId] = useState<string | null>(null);
+
+  // WhatsApp Sender & Preview Modal State
+  const [whatsAppModalOpen, setWhatsAppModalOpen] = useState(false);
+  const [whatsAppTarget, setWhatsAppTarget] = useState({
+    customerName: '',
+    phone: '',
+    invoiceNumber: '',
+  });
+  const [isCopied, setIsCopied] = useState(false);
 
   const fetchOrders = useCallback(async () => {
     setIsLoading(true);
@@ -220,56 +232,68 @@ export default function OrderManager({ adminKey }: OrderManagerProps) {
     }
   };
 
-  // Open WhatsApp Link
-  const handleSendWhatsApp = (order: OrderRecord) => {
-    let text = '';
-    const cleanCustomerName = order.customerName.replace(/<[^>]*>/g, '').trim();
-    const cleanInvoice = (order.zohoInvoiceNumber || '').replace(/<[^>]*>/g, '').trim();
-    const isMock = cleanCustomerName.toLowerCase().includes('mock') || cleanInvoice.toLowerCase().includes('mock');
+  // Generate exact required customer WhatsApp message
+  const generateWhatsAppMessage = (name: string, inv: string) => {
+    const cleanName = (name || '').replace(/<[^>]*>/g, '').trim() || 'Valued Customer';
+    const cleanInv = (inv || '').replace(/<[^>]*>/g, '').trim() || '002018';
+    const myBillLink = `https://anankelaundry.com/my-bill?invoice=${encodeURIComponent(cleanInv)}`;
 
-    if (cleanInvoice && !isMock) {
-      const myBillLink = `https://anankelaundry.com/my-bill?invoice=${encodeURIComponent(cleanInvoice)}`;
-      text = `🧺 Ananke Laundry
+    return `🧺 Ananke Laundry
 
-Hi ${cleanCustomerName} 👋,
+Hi ${cleanName} 👋,
 
 Your laundry order has been received successfully.
 
-🧾 Invoice: ${cleanInvoice}
+🧾 Invoice: ${cleanInv}
 
 🔗 View your bill & track your order:
 ${myBillLink}
 
 Thank you for choosing Ananke Laundry 💚`;
-    } else {
-      text = `🧺 *ANANKE LAUNDRY (PVT) LTD — ORDER UPDATE*
-----------------------------------------
-Hello *${cleanCustomerName}*,
+  };
 
-Good news! Your laundry order *#${order.orderId}* is now *${order.currentStatus.toUpperCase()}* ✨
+  // Open WhatsApp Sender Modal
+  const handleOpenWhatsAppModal = (order: OrderRecord) => {
+    setWhatsAppTarget({
+      customerName: order.customerName,
+      phone: order.customerPhone,
+      invoiceNumber: order.zohoInvoiceNumber || order.orderId,
+    });
+    setIsCopied(false);
+    setWhatsAppModalOpen(true);
+  };
 
-📋 *Service / Item:* ${order.itemName}
-🔢 *Quantity:* ${order.quantity} units
-📌 *Status:* ${order.currentStatus}
-💳 *Payment Status:* ${order.paymentStatus}
-${cleanInvoice ? `🧾 *Invoice Ref:* #${cleanInvoice}\n` : ''}
-📍 *Facility Pickup Address:*
-No. 195/2, Matara Road, Unawatuna, Galle
-📞 *Hotline:* 091 225 0777
-🌐 *Website:* anankelaundry.com
-
-Thank you for choosing Ananke Laundry!`;
-    }
-
-    const cleanPhone = order.customerPhone.replace(/\D/g, '');
+  // Launch WhatsApp Chat URL
+  const handleLaunchWhatsApp = (phone: string, text: string) => {
+    const cleanPhone = (phone || '').replace(/\D/g, '');
     const phoneDigits = cleanPhone.startsWith('94')
       ? cleanPhone
       : cleanPhone.startsWith('0')
       ? `94${cleanPhone.slice(1)}`
-      : `94${cleanPhone}`;
+      : cleanPhone.length === 9
+      ? `94${cleanPhone}`
+      : cleanPhone;
 
-    const url = `https://wa.me/${phoneDigits}?text=${encodeURIComponent(text)}`;
+    const url = phoneDigits
+      ? `https://wa.me/${phoneDigits}?text=${encodeURIComponent(text)}`
+      : `https://wa.me/?text=${encodeURIComponent(text)}`;
     window.open(url, '_blank');
+  };
+
+  // Copy Message to Clipboard
+  const handleCopyMessage = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setIsCopied(true);
+      setTimeout(() => setIsCopied(false), 2500);
+    } catch {
+      // Fallback
+    }
+  };
+
+  // Open WhatsApp Link directly or via Modal
+  const handleSendWhatsApp = (order: OrderRecord) => {
+    handleOpenWhatsAppModal(order);
   };
 
   // Filter Orders
@@ -328,8 +352,24 @@ Thank you for choosing Ananke Laundry!`;
             <RefreshCw size={15} className={isLoading ? 'animate-spin' : ''} />
           </button>
           <button
+            onClick={() => {
+              setWhatsAppTarget({
+                customerName: 'Araliya Beach Resort',
+                phone: '0771234567',
+                invoiceNumber: '002018',
+              });
+              setIsCopied(false);
+              setWhatsAppModalOpen(true);
+            }}
+            className="px-4 py-2.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs sm:text-sm flex items-center gap-2 shadow-sm transition-transform active:scale-95 cursor-pointer"
+            title="Send WhatsApp Order Confirmation Message"
+          >
+            <MessageSquare size={16} />
+            <span>Send WhatsApp Message</span>
+          </button>
+          <button
             onClick={() => setIsNewOrderModalOpen(true)}
-            className="px-5 py-2.5 rounded-2xl bg-olive hover:bg-olive/90 text-white font-semibold text-xs sm:text-sm flex items-center gap-2 shadow-sm transition-transform active:scale-95"
+            className="px-5 py-2.5 rounded-2xl bg-olive hover:bg-olive/90 text-white font-semibold text-xs sm:text-sm flex items-center gap-2 shadow-sm transition-transform active:scale-95 cursor-pointer"
           >
             <Plus size={16} />
             <span>New Order / Job</span>
@@ -715,6 +755,114 @@ Thank you for choosing Ananke Laundry!`;
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* WhatsApp Message Sender & Preview Modal */}
+      {whatsAppModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-dark/70 backdrop-blur-sm overflow-y-auto">
+          <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-lg w-full my-auto shadow-2xl border border-gray-100 space-y-5 animate-fade-in">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between pb-3 border-b border-gray-100">
+              <div className="flex items-center gap-2.5">
+                <div className="w-10 h-10 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+                  <MessageSquare size={20} />
+                </div>
+                <div>
+                  <h3 className="font-heading font-bold text-lg text-dark">Send WhatsApp Order Message</h3>
+                  <p className="text-[11px] text-gray-500">Official Ananke Laundry Order Received Notification</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setWhatsAppModalOpen(false)}
+                className="p-2 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-600 cursor-pointer"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Editable Fields */}
+            <div className="space-y-3 text-xs">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-gray-700 font-semibold mb-1">Customer Name</label>
+                  <input
+                    type="text"
+                    value={whatsAppTarget.customerName}
+                    onChange={(e) => setWhatsAppTarget({ ...whatsAppTarget, customerName: e.target.value })}
+                    placeholder="e.g. Araliya Beach Resort"
+                    className="w-full px-3.5 py-2 rounded-xl border border-gray-200 text-dark font-medium focus:outline-none focus:border-olive"
+                  />
+                </div>
+                <div>
+                  <label className="block text-gray-700 font-semibold mb-1">WhatsApp Phone Number</label>
+                  <input
+                    type="text"
+                    value={whatsAppTarget.phone}
+                    onChange={(e) => setWhatsAppTarget({ ...whatsAppTarget, phone: e.target.value })}
+                    placeholder="e.g. 0771234567"
+                    className="w-full px-3.5 py-2 rounded-xl border border-gray-200 text-dark font-medium focus:outline-none focus:border-olive"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-gray-700 font-semibold mb-1">Invoice Number (Zoho Books)</label>
+                <input
+                  type="text"
+                  value={whatsAppTarget.invoiceNumber}
+                  onChange={(e) => setWhatsAppTarget({ ...whatsAppTarget, invoiceNumber: e.target.value })}
+                  placeholder="e.g. 002018 or ANK-1042"
+                  className="w-full px-3.5 py-2 rounded-xl border border-gray-200 text-dark font-medium focus:outline-none focus:border-olive"
+                />
+              </div>
+            </div>
+
+            {/* Live Message Preview (styled like WhatsApp bubble) */}
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between text-[11px]">
+                <span className="font-semibold text-gray-500 uppercase tracking-wider">Live WhatsApp Message Preview:</span>
+                <span className="text-emerald-700 font-medium">Verified Clean Format</span>
+              </div>
+              <div className="bg-[#E7F8E8] border border-emerald-200/80 rounded-2xl p-4 text-xs font-mono text-dark whitespace-pre-wrap leading-relaxed shadow-xs select-all">
+                {generateWhatsAppMessage(whatsAppTarget.customerName, whatsAppTarget.invoiceNumber)}
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex flex-col sm:flex-row gap-2.5 pt-2">
+              <button
+                type="button"
+                onClick={() =>
+                  handleLaunchWhatsApp(
+                    whatsAppTarget.phone,
+                    generateWhatsAppMessage(whatsAppTarget.customerName, whatsAppTarget.invoiceNumber)
+                  )
+                }
+                className="flex-1 py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all active:scale-98 cursor-pointer"
+              >
+                <Send size={15} />
+                <span>Open in WhatsApp &amp; Send</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() =>
+                  handleCopyMessage(
+                    generateWhatsAppMessage(whatsAppTarget.customerName, whatsAppTarget.invoiceNumber)
+                  )
+                }
+                className={`py-3 px-4 rounded-xl border text-xs font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer ${
+                  isCopied
+                    ? 'bg-emerald-50 border-emerald-300 text-emerald-800'
+                    : 'bg-white border-gray-200 text-gray-700 hover:border-olive'
+                }`}
+              >
+                {isCopied ? <Check size={15} className="text-emerald-600" /> : <Copy size={15} />}
+                <span>{isCopied ? 'Copied! ✓' : 'Copy Message'}</span>
+              </button>
+            </div>
           </div>
         </div>
       )}

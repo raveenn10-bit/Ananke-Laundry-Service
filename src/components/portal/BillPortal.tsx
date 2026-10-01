@@ -305,6 +305,38 @@ export default function BillPortal() {
     return `https://wa.me/${OFFICIAL_WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
   };
 
+  // Generate exact required customer WhatsApp message
+  const getCustomerOrderWhatsAppUrl = (invoiceNumber: string) => {
+    const cleanName = customer?.name?.trim() || 'Valued Customer';
+    const cleanInv = invoiceNumber.trim();
+    const myBillLink = `https://anankelaundry.com/my-bill?invoice=${encodeURIComponent(cleanInv)}`;
+    const text = `🧺 Ananke Laundry
+
+Hi ${cleanName} 👋,
+
+Your laundry order has been received successfully.
+
+🧾 Invoice: ${cleanInv}
+
+🔗 View your bill & track your order:
+${myBillLink}
+
+Thank you for choosing Ananke Laundry 💚`;
+
+    const cleanPhone = (customer?.phone || '').replace(/\D/g, '');
+    const phoneDigits = cleanPhone.startsWith('94')
+      ? cleanPhone
+      : cleanPhone.startsWith('0')
+      ? `94${cleanPhone.slice(1)}`
+      : cleanPhone.length === 9
+      ? `94${cleanPhone}`
+      : '';
+
+    return phoneDigits
+      ? `https://wa.me/${phoneDigits}?text=${encodeURIComponent(text)}`
+      : `https://wa.me/?text=${encodeURIComponent(text)}`;
+  };
+
   return (
     <div className="w-full max-w-5xl mx-auto px-4 py-6 sm:py-8">
       {/* View 1: Direct Invoice Lookup */}
@@ -705,14 +737,26 @@ export default function BillPortal() {
                             </div>
                           )}
 
-                          {/* 4. WhatsApp Inquire */}
+                          {/* 4. Send Official Order Message via WhatsApp */}
+                          <a
+                            href={getCustomerOrderWhatsAppUrl(inv.invoice_number)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="w-full px-4 py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold transition-all flex items-center justify-center gap-2 shadow-sm"
+                            title="Send order received notification with bill link on WhatsApp"
+                          >
+                            <MessageSquare size={15} />
+                            <span>Send via WhatsApp</span>
+                          </a>
+
+                          {/* 5. WhatsApp Inquire */}
                           <a
                             href={getWhatsAppInquiryUrl(inv.invoice_number)}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="w-full px-4 py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold transition-all flex items-center justify-center gap-2 shadow-sm"
+                            className="w-full px-4 py-3 rounded-2xl border border-emerald-600/40 hover:bg-emerald-50 text-emerald-800 text-xs font-semibold transition-all flex items-center justify-center gap-2 bg-white"
                           >
-                            <MessageSquare size={15} />
+                            <MessageSquare size={15} className="text-emerald-600" />
                             <span>Inquire on WhatsApp</span>
                           </a>
                         </div>
