@@ -25,6 +25,7 @@ import {
   Tag,
   ShieldCheck,
   ChevronRight,
+  LogOut,
 } from 'lucide-react';
 import {
   ZohoOrderRecord,
@@ -59,11 +60,12 @@ function generateCustomerWhatsAppMessage(customerName: string, invoiceNumber: st
 
 interface ZohoOrderCenterProps {
   adminKey?: string;
+  onLogout?: () => void;
 }
 
 type FilterOption = 'All' | 'Today' | 'New' | 'Paid' | 'Unpaid' | 'Partially Paid' | 'Overdue';
 
-export default function ZohoOrderCenter({ adminKey = '' }: ZohoOrderCenterProps) {
+export default function ZohoOrderCenter({ adminKey = '', onLogout }: ZohoOrderCenterProps) {
   // Main Data States
   const [orders, setOrders] = useState<ZohoOrderRecord[]>([]);
   const [stats, setStats] = useState<ZohoOrderStats | null>(null);
@@ -387,8 +389,8 @@ export default function ZohoOrderCenter({ adminKey = '' }: ZohoOrderCenterProps)
           </p>
         </div>
 
-        {/* Refresh Action */}
-        <div className="flex items-center gap-3 self-start md:self-center shrink-0">
+        {/* Refresh & Logout Actions */}
+        <div className="flex items-center gap-2.5 self-start md:self-center shrink-0">
           <button
             onClick={() => fetchOrders(true)}
             disabled={isRefreshing || isLoading}
@@ -398,6 +400,17 @@ export default function ZohoOrderCenter({ adminKey = '' }: ZohoOrderCenterProps)
             <RefreshCw size={14} className={isRefreshing ? 'animate-spin' : ''} />
             <span>{isRefreshing ? 'Fetching Zoho...' : 'Refresh from Zoho'}</span>
           </button>
+
+          {onLogout && (
+            <button
+              onClick={onLogout}
+              className="px-4 py-2.5 rounded-2xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 font-semibold text-xs sm:text-sm transition-all flex items-center gap-1.5 cursor-pointer shadow-xs active:scale-95"
+              title="Log Out of Admin Portal"
+            >
+              <LogOut size={14} className="text-rose-600" />
+              <span>Log Out</span>
+            </button>
+          )}
         </div>
       </div>
 

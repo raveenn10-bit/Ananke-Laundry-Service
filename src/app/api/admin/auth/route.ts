@@ -12,7 +12,15 @@ export const dynamic = 'force-dynamic';
 
 export async function GET(req: NextRequest) {
   const authorized = isAuthorizedAdmin(req);
-  return NextResponse.json({ authenticated: authorized });
+  return NextResponse.json(
+    { authenticated: authorized },
+    {
+      headers: {
+        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+        Pragma: 'no-cache',
+      },
+    }
+  );
 }
 
 export async function POST(req: NextRequest) {
@@ -65,7 +73,7 @@ export async function POST(req: NextRequest) {
       value: sessionToken,
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
+      sameSite: 'lax',
       path: '/',
       maxAge: Math.floor(ADMIN_SESSION_TTL_MS / 1000),
     });
@@ -81,18 +89,28 @@ export async function POST(req: NextRequest) {
 }
 
 export async function DELETE() {
-  const response = NextResponse.json({
-    success: true,
-    message: 'Admin session terminated.',
-  });
+  const response = NextResponse.json(
+    {
+      success: true,
+      message: 'Admin session terminated.',
+    },
+    {
+      headers: {
+        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+        Pragma: 'no-cache',
+      },
+    }
+  );
 
+  response.cookies.delete(ADMIN_COOKIE_NAME);
   response.cookies.set({
     name: ADMIN_COOKIE_NAME,
     value: '',
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict',
+    sameSite: 'lax',
     path: '/',
+    expires: new Date(0),
     maxAge: 0,
   });
 

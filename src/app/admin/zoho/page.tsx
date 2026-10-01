@@ -74,7 +74,7 @@ export default function ZohoAdminDashboard() {
   useEffect(() => {
     async function checkExistingAuth() {
       try {
-        const res = await fetch('/api/admin/auth');
+        const res = await fetch('/api/admin/auth', { cache: 'no-store' });
         const data = await res.json();
         if (data.authenticated) {
           setIsAuthenticated(true);
@@ -117,10 +117,15 @@ export default function ZohoAdminDashboard() {
   };
 
   const handleLogout = async () => {
+    setIsLoading(true);
     try {
-      await fetch('/api/admin/auth', { method: 'DELETE' });
-    } catch {
-      // Best effort
+      await fetch('/api/admin/auth', {
+        method: 'DELETE',
+        headers: { 'Cache-Control': 'no-store' },
+        cache: 'no-store',
+      });
+    } catch (err) {
+      console.error('Logout error:', err);
     }
     setAdminKey('');
     setPasscodeInput('');
@@ -128,6 +133,7 @@ export default function ZohoAdminDashboard() {
     setStatusData(null);
     setEnquiries([]);
     setStats(null);
+    setIsLoading(false);
   };
 
   const handleManualSync = async (id: string) => {
@@ -315,11 +321,11 @@ export default function ZohoAdminDashboard() {
             </button>
             <button
               onClick={handleLogout}
-              className="bg-red-950/60 hover:bg-red-900/80 text-red-200 border border-red-800/40 text-xs px-3.5 py-1.5 rounded-lg font-medium transition-colors flex items-center gap-1.5 cursor-pointer"
-              title="Sign Out"
+              className="bg-rose-600 hover:bg-rose-700 active:scale-95 text-white text-xs px-3.5 py-1.5 rounded-lg font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-xs"
+              title="Log Out of Staff Portal"
             >
               <LogOut size={13} />
-              Sign Out
+              <span>Log Out</span>
             </button>
           </div>
         </div>
@@ -419,7 +425,7 @@ export default function ZohoAdminDashboard() {
         </div>
 
         {activeTab === 'orders' ? (
-          <ZohoOrderCenter adminKey={adminKey} />
+          <ZohoOrderCenter adminKey={adminKey} onLogout={handleLogout} />
         ) : (
           <>
             {/* Top Metric Cards */}
