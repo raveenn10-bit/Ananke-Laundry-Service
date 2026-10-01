@@ -666,12 +666,19 @@ export default function ZohoOrderCenter({ adminKey = '', onLogout }: ZohoOrderCe
       ) : filteredOrders.length === 0 ? (
         <div className="bg-white rounded-3xl p-12 text-center border border-gray-200 shadow-sm max-w-md mx-auto">
           <div className="w-12 h-12 bg-cream text-olive rounded-full flex items-center justify-center mx-auto mb-3">
-            <Search size={22} />
+            {errorMessage ? <AlertCircle size={22} className="text-amber-600" /> : <Search size={22} />}
           </div>
-          <h3 className="font-heading font-bold text-base text-dark">No Matching Orders</h3>
+          <h3 className="font-heading font-bold text-base text-dark">
+            {errorMessage ? 'Zoho Books Rate Limit Reached' : 'No Matching Orders'}
+          </h3>
           <p className="text-gray-500 text-xs mt-1">
-            No customer orders found matching your search or active filter.
+            {errorMessage || 'No customer orders found matching your search or active filter.'}
           </p>
+          {errorMessage && (
+            <p className="text-[11px] text-amber-700 bg-amber-50 rounded-xl p-2.5 mt-3 border border-amber-200">
+              The 10,000 daily API quota on Zoho Books has been reached. Zoho will reset this counter automatically. No mock/demo data is shown.
+            </p>
+          )}
           {(searchQuery || activeFilter !== 'All') && (
             <button
               onClick={() => {
