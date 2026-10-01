@@ -223,7 +223,7 @@ export default function ZohoOrderCenter({ adminKey = '', onLogout }: ZohoOrderCe
   };
 
   // Launch WhatsApp Chat URL
-  const handleLaunchWhatsApp = () => {
+  const handleLaunchWhatsApp = (e: React.MouseEvent<HTMLButtonElement>) => {
     if (!selectedOrderForWhatsApp || !selectedOrderForWhatsApp.whatsappPhone) return;
 
     const message = generateCustomerWhatsAppMessage(
@@ -234,13 +234,23 @@ export default function ZohoOrderCenter({ adminKey = '', onLogout }: ZohoOrderCe
     const targetPhone = selectedOrderForWhatsApp.whatsappPhone;
     const url = `https://wa.me/${targetPhone}?text=${encodeURIComponent(message)}`;
 
-    // Mark as opened in current session
+    // Mark as opened in current session (do this before navigation)
     setWhatsAppOpenedMap((prev) => ({
       ...prev,
       [selectedOrderForWhatsApp.id]: true,
     }));
 
-    window.open(url, '_blank', 'noopener,noreferrer');
+    // Use anchor click trick to stay within the user gesture event —
+    // window.open() can be blocked by popup blockers when called after
+    // any async or state-update path. Direct <a> navigation is not blocked.
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.target = '_blank';
+    anchor.rel = 'noopener noreferrer';
+    // Append to body briefly so Firefox respects it
+    document.body.appendChild(anchor);
+    anchor.click();
+    document.body.removeChild(anchor);
   };
 
   // Copy Message to Clipboard
@@ -1112,14 +1122,32 @@ export default function ZohoOrderCenter({ adminKey = '', onLogout }: ZohoOrderCe
 
             {/* Action Buttons */}
             <div className="flex flex-col sm:flex-row gap-2.5 pt-2">
-              <button
-                type="button"
-                onClick={handleLaunchWhatsApp}
-                className="flex-1 py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all active:scale-98 cursor-pointer"
-              >
-                <Send size={15} />
-                <span>Open in WhatsApp &amp; Send</span>
-              </button>
+              {selectedOrderForWhatsApp.whatsappPhone ? (
+                <a
+                  href={`https://wa.me/${selectedOrderForWhatsApp.whatsappPhone}?text=${encodeURIComponent(generateCustomerWhatsAppMessage(selectedOrderForWhatsApp.customerName, selectedOrderForWhatsApp.invoiceNumber))}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() => {
+                    setWhatsAppOpenedMap((prev) => ({
+                      ...prev,
+                      [selectedOrderForWhatsApp.id]: true,
+                    }));
+                  }}
+                  className="flex-1 py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all active:scale-98 cursor-pointer no-underline"
+                >
+                  <Send size={15} />
+                  <span>Open in WhatsApp &amp; Send</span>
+                </a>
+              ) : (
+                <button
+                  type="button"
+                  disabled
+                  className="flex-1 py-3 px-4 rounded-xl bg-gray-200 text-gray-400 font-bold text-xs sm:text-sm flex items-center justify-center gap-2 cursor-not-allowed"
+                >
+                  <Send size={15} />
+                  <span>No Phone Number</span>
+                </button>
+              )}
 
               <button
                 type="button"
