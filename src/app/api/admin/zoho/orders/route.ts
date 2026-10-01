@@ -27,6 +27,7 @@ export async function GET(req: NextRequest) {
   const perPage = parseInt(searchParams.get('perPage') || '100', 10);
   const search = searchParams.get('search') || undefined;
   const status = searchParams.get('status') || undefined;
+  const refresh = searchParams.get('refresh') === 'true';
 
   try {
     // If request is asking for full detail of a specific invoice
@@ -59,6 +60,7 @@ export async function GET(req: NextRequest) {
       perPage,
       search,
       status,
+      forceRefresh: refresh,
     });
 
     return NextResponse.json(data, {

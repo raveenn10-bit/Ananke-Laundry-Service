@@ -546,299 +546,244 @@ export function generateCustomerWhatsAppMessage(
   return `🧺 Ananke Laundry\n\nHi ${cleanName} 👋,\n\nYour laundry order has been received successfully.\n\n🧾 Invoice: ${cleanInv}\n\n🔗 View your bill & track your order:\n${SECURE_MY_BILL_URL}\n\nThank you for choosing Ananke Laundry 💚`;
 }
 
+interface LiveOrdersCache {
+  orders: ZohoOrderRecord[];
+  stats: ZohoOrderStats;
+  timestamp: number;
+}
+let lastLiveOrdersCache: LiveOrdersCache | null = null;
+const ORDERS_CACHE_TTL_MS = 60 * 1000; // 60 seconds memory cache to prevent exceeding Zoho API rate limits
+
 /**
  * Fetches all orders & invoices from Zoho Books with pagination support,
  * customer phone resolution, and sales-order linking.
+ * CONNECTED TO LIVE ZOHO BOOKS API ONLY - NEVER USES DEMO DATA.
  */
 export async function getZohoOrderCenterData(options: {
   page?: number;
   perPage?: number;
   search?: string;
   status?: string;
+  forceRefresh?: boolean;
 } = {}): Promise<ZohoOrdersResponse> {
   const page = options.page || 1;
   const perPage = options.perPage || 100;
 
-  if (isZohoConfigured()) {
-    try {
-      // 1. Fetch Invoices from Zoho Books
-      const invoicesPromise = zohoRequest<{
-        code: number;
-        invoices: any[];
-        page_context?: { has_more_page: boolean };
-      }>('/invoices', {
-        params: {
-          sort_column: 'date',
-          sort_order: 'D',
-          page,
-          per_page: perPage,
-        },
-      });
+  if (!isZohoConfigured()) {
+    return {
+      success: false,
+      orders: [],
+      stats: {
+        totalOrders: 0,
+        newOrders: 0,
+        paidOrders: 0,
+        unpaidOrders: 0,
+        partiallyPaidOrders: 0,
+        overdueOrders: 0,
+        retailOrders: 0,
+        outsideHotelOrders: 0,
+      },
+      isLiveZoho: false,
+      page: 1,
+      perPage: 100,
+      hasMorePage: false,
+      message: 'Zoho Books credentials not configured in environment variables.',
+    };
+  }
 
-      // 2. Fetch Sales Orders from Zoho Books (non-blocking fallback)
-      const salesOrdersPromise = zohoRequest<{
-        code: number;
-        salesorders: any[];
-      }>('/salesorders', {
-        params: {
-          sort_column: 'date',
-          sort_order: 'D',
-          page,
-          per_page: perPage,
-        },
-      }).catch((err) => {
-        console.warn('[Zoho Order Center] Sales Orders fetch warning:', err.message || err);
-        return { code: 0, salesorders: [] };
-      });
+  // Return server-side cache if recent and not forced to refresh (protects 10,000 call limit)
+  if (!options.forceRefresh && lastLiveOrdersCache && (Date.now() - lastLiveOrdersCache.timestamp < ORDERS_CACHE_TTL_MS)) {
+    return {
+      success: true,
+      orders: lastLiveOrdersCache.orders,
+      stats: lastLiveOrdersCache.stats,
+      isLiveZoho: true,
+      page,
+      perPage,
+      hasMorePage: false,
+    };
+  }
 
-      // 3. Fetch Contacts Batch to resolve phones efficiently in 1 call
-      const contactsPromise = zohoRequest<{
-        code: number;
-        contacts: any[];
-      }>('/contacts', {
-        params: {
-          per_page: 200,
-        },
-      }).catch((err) => {
-        console.warn('[Zoho Order Center] Contacts batch fetch warning:', err.message || err);
-        return { code: 0, contacts: [] };
-      });
+  try {
+    // 1. Fetch Invoices from Zoho Books (1 efficient single call)
+    const invoicesPromise = zohoRequest<{
+      code: number;
+      invoices: any[];
+      page_context?: { has_more_page: boolean };
+    }>('/invoices', {
+      params: {
+        sort_column: 'date',
+        sort_order: 'D',
+        page,
+        per_page: perPage,
+      },
+    });
 
-      const [invRes, soRes, contactsRes] = await Promise.all([
-        invoicesPromise,
-        salesOrdersPromise,
-        contactsPromise,
-      ]);
+    // 2. Fetch Contacts Batch to resolve phones and company names (1 efficient single call)
+    const contactsPromise = zohoRequest<{
+      code: number;
+      contacts: any[];
+    }>('/contacts', {
+      params: {
+        per_page: 200,
+      },
+    }).catch((err) => {
+      console.warn('[Zoho Order Center] Contacts batch fetch warning:', err.message || err);
+      return { code: 0, contacts: [] };
+    });
 
-      if (!Array.isArray(invRes?.invoices) || invRes.invoices.length === 0) {
-        console.warn('[Zoho Order Center] Invoices list is empty or unavailable, falling back to staging records');
-        throw new Error('No invoices returned from Zoho Books');
+    const [invRes, contactsRes] = await Promise.all([
+      invoicesPromise,
+      contactsPromise,
+    ]);
+
+    const invoicesList = Array.isArray(invRes?.invoices) ? invRes.invoices : [];
+
+    // Build customer contacts map (contact_id -> { phone, mobile, contact_name, company_name })
+    const contactMap = new Map<string, any>();
+    for (const c of contactsRes.contacts || []) {
+      if (c.contact_id) {
+        contactMap.set(c.contact_id, c);
       }
+    }
 
-      // Build customer contacts map (contact_id -> { phone, mobile, contact_name, company_name })
-      const contactMap = new Map<string, any>();
-      for (const c of contactsRes.contacts || []) {
-        if (c.contact_id) {
-          contactMap.set(c.contact_id, c);
-        }
-      }
+    const ordersList: ZohoOrderRecord[] = [];
+    const twoDaysAgo = Date.now() - 48 * 60 * 60 * 1000;
 
-      // Build sales orders lookup map (salesorder_id -> salesorder)
-      const salesOrderMap = new Map<string, any>();
-      const invoicedSalesOrderIds = new Set<string>();
-      for (const so of soRes.salesorders || []) {
-        if (so.salesorder_id) {
-          salesOrderMap.set(so.salesorder_id, so);
-          if (so.invoiced_status === 'invoiced' || (so.invoices && so.invoices.length > 0)) {
-            invoicedSalesOrderIds.add(so.salesorder_id);
-          }
-        }
-      }
+    // Map Invoices directly (no individual detail requests to protect rate limit)
+    for (const inv of invoicesList) {
+      const total = Number(inv.total) || 0;
+      const balance = Number(inv.balance) ?? total;
+      const amountPaid = Math.max(0, total - balance);
+      const contact = contactMap.get(inv.customer_id);
 
-      const ordersList: ZohoOrderRecord[] = [];
-      const twoDaysAgo = Date.now() - 48 * 60 * 60 * 1000;
+      const rawPhone =
+        invoicePhoneCache.get(inv.invoice_id) ||
+        extractPhoneFromZohoRecord(inv) ||
+        contactPhoneCache.get(inv.customer_id) ||
+        extractPhoneFromZohoRecord(contact);
 
-      // Only fetch full invoice detail for records that lack a phone number (max 5 records to prevent rate limiting and Vercel timeout)
-      const invoicesNeedingDetail = (invRes.invoices || []).filter((inv) => {
-        if (invoicePhoneCache.has(inv.invoice_id)) return false;
-        const p1 = extractPhoneFromZohoRecord(inv);
-        const contact = contactMap.get(inv.customer_id);
-        const p2 = extractPhoneFromZohoRecord(contact);
-        return !p1 && !p2;
-      });
+      const phoneInfo = normalizePhoneForOrder(rawPhone);
 
-      if (invoicesNeedingDetail.length > 0) {
-        await Promise.allSettled(
-          invoicesNeedingDetail.slice(0, 5).map(async (inv) => {
-            try {
-              const full = await zohoRequest<{ code: number; invoice: any }>(
-                `/invoices/${inv.invoice_id}`,
-                { timeoutMs: 3000 }
-              );
-              const phoneFound = full?.invoice ? extractPhoneFromZohoRecord(full.invoice) : undefined;
-              if (phoneFound) {
-                invoicePhoneCache.set(inv.invoice_id, phoneFound);
-              }
-            } catch {
-              // Ignore single invoice detail error
+      const createdMs = inv.created_time ? new Date(inv.created_time).getTime() : 0;
+      const isNew = createdMs > twoDaysAgo;
+
+      const financialStatus = calculateFinancialStatus(
+        inv.status,
+        total,
+        balance,
+        inv.due_date
+      );
+
+      ordersList.push({
+        id: inv.invoice_id,
+        recordType: 'invoice',
+        invoiceId: inv.invoice_id,
+        invoiceNumber: inv.invoice_number,
+        salesOrderId: inv.salesorder_id,
+        salesOrderNumber: inv.salesorder_number,
+        customerId: inv.customer_id,
+        customerName: inv.customer_name || contact?.contact_name || 'Valued Customer',
+        companyName: contact?.company_name,
+        email: inv.email || contact?.email,
+        phone: phoneInfo.displayPhone,
+        whatsappPhone: phoneInfo.whatsappPhone,
+        hasUsablePhone: phoneInfo.hasUsablePhone,
+        date: inv.date,
+        dueDate: inv.due_date,
+        total,
+        amountPaid,
+        balance,
+        currencyCode: inv.currency_code || 'LKR',
+        currencySymbol: inv.currency_symbol || 'Rs.',
+        status: inv.status || 'Sent',
+        financialStatus,
+        createdTime: inv.created_time,
+        updatedTime: inv.last_modified_time,
+        isNew,
+        referenceNumber: inv.reference_number,
+        billingAddress: contact?.billing_address
+          ? {
+              address: contact.billing_address.address,
+              city: contact.billing_address.city,
+              state: contact.billing_address.state,
+              country: contact.billing_address.country,
+              phone: contact.billing_address.phone,
             }
-          })
-        );
-      }
+          : undefined,
+        category: invoiceCategoryCache.get(inv.invoice_id) || extractCategoryFromZohoRecord(inv, contact),
+      });
+    }
 
-      // Map Invoices
-      for (const inv of invRes.invoices || []) {
-        const total = Number(inv.total) || 0;
-        const balance = Number(inv.balance) ?? total;
-        const amountPaid = Math.max(0, total - balance);
-        const contact = contactMap.get(inv.customer_id);
+    // Sort newest first
+    ordersList.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
-        const rawPhone =
-          invoicePhoneCache.get(inv.invoice_id) ||
-          extractPhoneFromZohoRecord(inv) ||
-          contactPhoneCache.get(inv.customer_id) ||
-          extractPhoneFromZohoRecord(contact);
+    // Compute statistics
+    const stats: ZohoOrderStats = {
+      totalOrders: ordersList.length,
+      newOrders: ordersList.filter((o) => o.isNew).length,
+      paidOrders: ordersList.filter((o) => o.financialStatus === 'Paid').length,
+      unpaidOrders: ordersList.filter((o) => o.financialStatus === 'Unpaid').length,
+      partiallyPaidOrders: ordersList.filter((o) => o.financialStatus === 'Partially Paid').length,
+      overdueOrders: ordersList.filter((o) => o.financialStatus === 'Overdue').length,
+      retailOrders: ordersList.filter((o) => o.category === 'Retail').length,
+      outsideHotelOrders: ordersList.filter((o) => o.category === 'Outside Hotel').length,
+    };
 
-        const phoneInfo = normalizePhoneForOrder(rawPhone);
+    // Update server live cache
+    lastLiveOrdersCache = {
+      orders: ordersList,
+      stats,
+      timestamp: Date.now(),
+    };
 
-        // Check for linked sales order
-        let linkedSalesOrderNumber: string | undefined = inv.salesorder_number;
-        if (inv.salesorder_id && salesOrderMap.has(inv.salesorder_id)) {
-          const so = salesOrderMap.get(inv.salesorder_id);
-          linkedSalesOrderNumber = so.salesorder_number;
-          invoicedSalesOrderIds.add(inv.salesorder_id);
-        }
+    return {
+      success: true,
+      orders: ordersList,
+      stats,
+      isLiveZoho: true,
+      page,
+      perPage,
+      hasMorePage: invRes?.page_context?.has_more_page || false,
+    };
+  } catch (err: any) {
+    console.error('[Zoho Order Center] Live Zoho fetch error:', err.message || err);
 
-        const createdMs = inv.created_time ? new Date(inv.created_time).getTime() : 0;
-        const isNew = createdMs > twoDaysAgo;
-
-        const financialStatus = calculateFinancialStatus(
-          inv.status,
-          total,
-          balance,
-          inv.due_date
-        );
-
-        ordersList.push({
-          id: inv.invoice_id,
-          recordType: linkedSalesOrderNumber ? 'linked' : 'invoice',
-          invoiceId: inv.invoice_id,
-          invoiceNumber: inv.invoice_number,
-          salesOrderId: inv.salesorder_id,
-          salesOrderNumber: linkedSalesOrderNumber,
-          customerId: inv.customer_id,
-          customerName: inv.customer_name || contact?.contact_name || 'Valued Customer',
-          companyName: contact?.company_name,
-          email: inv.email || contact?.email,
-          phone: phoneInfo.displayPhone,
-          whatsappPhone: phoneInfo.whatsappPhone,
-          hasUsablePhone: phoneInfo.hasUsablePhone,
-          date: inv.date,
-          dueDate: inv.due_date,
-          total,
-          amountPaid,
-          balance,
-          currencyCode: inv.currency_code || 'LKR',
-          currencySymbol: inv.currency_symbol || 'Rs.',
-          status: inv.status || 'Sent',
-          financialStatus,
-          createdTime: inv.created_time,
-          updatedTime: inv.last_modified_time,
-          isNew,
-          referenceNumber: inv.reference_number,
-          billingAddress: contact?.billing_address
-            ? {
-                address: contact.billing_address.address,
-                city: contact.billing_address.city,
-                state: contact.billing_address.state,
-                country: contact.billing_address.country,
-                phone: contact.billing_address.phone,
-              }
-            : undefined,
-          category: invoiceCategoryCache.get(inv.invoice_id) || extractCategoryFromZohoRecord(inv, contact),
-        });
-      }
-
-      // Map standalone Sales Orders that have not yet been converted to invoices
-      for (const so of soRes.salesorders || []) {
-        if (!invoicedSalesOrderIds.has(so.salesorder_id)) {
-          const total = Number(so.total) || 0;
-          const contact = contactMap.get(so.customer_id);
-
-          const rawPhone =
-            so.phone ||
-            so.mobile ||
-            contact?.mobile ||
-            contact?.phone ||
-            contact?.billing_address?.phone;
-
-          const phoneInfo = normalizePhoneForOrder(rawPhone);
-          const createdMs = so.created_time ? new Date(so.created_time).getTime() : 0;
-          const isNew = createdMs > twoDaysAgo;
-
-          ordersList.push({
-            id: so.salesorder_id,
-            recordType: 'salesorder',
-            invoiceNumber: so.salesorder_number, // Use sales order number for reference
-            salesOrderId: so.salesorder_id,
-            salesOrderNumber: so.salesorder_number,
-            customerId: so.customer_id,
-            customerName: so.customer_name || contact?.contact_name || 'Valued Customer',
-            companyName: contact?.company_name,
-            email: contact?.email,
-            phone: phoneInfo.displayPhone,
-            whatsappPhone: phoneInfo.whatsappPhone,
-            hasUsablePhone: phoneInfo.hasUsablePhone,
-            date: so.date,
-            total,
-            amountPaid: 0,
-            balance: total,
-            currencyCode: so.currency_code || 'LKR',
-            currencySymbol: so.currency_symbol || 'Rs.',
-            status: so.status || 'Confirmed',
-            financialStatus: 'Unpaid',
-            createdTime: so.created_time,
-            updatedTime: so.last_modified_time,
-            isNew,
-            referenceNumber: so.reference_number,
-            category: extractCategoryFromZohoRecord(so, contact),
-          });
-        }
-      }
-
-      // Sort newest first
-      ordersList.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-
-      // Compute statistics
-      const stats: ZohoOrderStats = {
-        totalOrders: ordersList.length,
-        newOrders: ordersList.filter((o) => o.isNew).length,
-        paidOrders: ordersList.filter((o) => o.financialStatus === 'Paid').length,
-        unpaidOrders: ordersList.filter((o) => o.financialStatus === 'Unpaid').length,
-        partiallyPaidOrders: ordersList.filter((o) => o.financialStatus === 'Partially Paid').length,
-        overdueOrders: ordersList.filter((o) => o.financialStatus === 'Overdue').length,
-        retailOrders: ordersList.filter((o) => o.category === 'Retail').length,
-        outsideHotelOrders: ordersList.filter((o) => o.category === 'Outside Hotel').length,
-      };
-
+    // If we have cached live orders from a previous successful call, return them!
+    if (lastLiveOrdersCache && lastLiveOrdersCache.orders.length > 0) {
       return {
         success: true,
-        orders: ordersList,
-        stats,
+        orders: lastLiveOrdersCache.orders,
+        stats: lastLiveOrdersCache.stats,
         isLiveZoho: true,
         page,
         perPage,
-        hasMorePage: invRes.page_context?.has_more_page || false,
+        hasMorePage: false,
+        message: `Notice: Zoho Books limit reached. Displaying latest live cached orders. (${err.message || '429 Rate Limit'})`,
       };
-    } catch (err: any) {
-      console.error('[Zoho Order Center] Live fetch failed, fallback to demo data:', err);
     }
+
+    // NEVER return demo data! Return actual status
+    return {
+      success: false,
+      orders: [],
+      stats: {
+        totalOrders: 0,
+        newOrders: 0,
+        paidOrders: 0,
+        unpaidOrders: 0,
+        partiallyPaidOrders: 0,
+        overdueOrders: 0,
+        retailOrders: 0,
+        outsideHotelOrders: 0,
+      },
+      isLiveZoho: true,
+      page,
+      perPage,
+      hasMorePage: false,
+      message: err.message || 'Failed to fetch live orders from Zoho Books.',
+    };
   }
-
-  // Fallback demo/sample records when Zoho is not configured or in staging
-  const demoOrders = getDemoZohoOrders();
-
-  const stats: ZohoOrderStats = {
-    totalOrders: demoOrders.length,
-    newOrders: demoOrders.filter((o) => o.isNew).length,
-    paidOrders: demoOrders.filter((o) => o.financialStatus === 'Paid').length,
-    unpaidOrders: demoOrders.filter((o) => o.financialStatus === 'Unpaid').length,
-    partiallyPaidOrders: demoOrders.filter((o) => o.financialStatus === 'Partially Paid').length,
-    overdueOrders: demoOrders.filter((o) => o.financialStatus === 'Overdue').length,
-    retailOrders: demoOrders.filter((o) => o.category === 'Retail').length,
-    outsideHotelOrders: demoOrders.filter((o) => o.category === 'Outside Hotel').length,
-  };
-
-  return {
-    success: true,
-    orders: demoOrders,
-    stats,
-    isLiveZoho: false,
-    page: 1,
-    perPage: 100,
-    hasMorePage: false,
-    message: 'Displaying staging/demo records. Connect live Zoho credentials to view live cloud data.',
-  };
 }
 
 /**
@@ -930,9 +875,12 @@ export async function getZohoInvoiceFullDetails(invoiceId: string): Promise<Zoho
     }
   }
 
-  // Fallback demo match
-  const demo = getDemoZohoOrders().find((o) => o.id === invoiceId || o.invoiceNumber === invoiceId);
-  return demo || null;
+  // Fallback to cached live orders if available
+  if (lastLiveOrdersCache) {
+    const cached = lastLiveOrdersCache.orders.find((o) => o.id === invoiceId || o.invoiceNumber === invoiceId);
+    if (cached) return cached;
+  }
+  return null;
 }
 
 /**

@@ -69,7 +69,7 @@ export default function ZohoOrderCenter({ adminKey = '', onLogout }: ZohoOrderCe
   // Main Data States
   const [orders, setOrders] = useState<ZohoOrderRecord[]>([]);
   const [stats, setStats] = useState<ZohoOrderStats | null>(null);
-  const [isLiveZoho, setIsLiveZoho] = useState(false);
+  const [isLiveZoho, setIsLiveZoho] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -91,9 +91,6 @@ export default function ZohoOrderCenter({ adminKey = '', onLogout }: ZohoOrderCe
   const [selectedOrderForWhatsApp, setSelectedOrderForWhatsApp] = useState<ZohoOrderRecord | null>(null);
   const [isCopied, setIsCopied] = useState(false);
 
-  // Auto-refresh interval ref
-  const autoRefreshTimerRef = useRef<NodeJS.Timeout | null>(null);
-
   // Fetch Orders Function
   const fetchOrders = useCallback(
     async (isManualRefresh = false) => {
@@ -108,7 +105,11 @@ export default function ZohoOrderCenter({ adminKey = '', onLogout }: ZohoOrderCe
           headers['x-admin-key'] = adminKey;
         }
 
-        const res = await fetch('/api/admin/zoho/orders', {
+        const url = isManualRefresh
+          ? '/api/admin/zoho/orders?refresh=true'
+          : '/api/admin/zoho/orders';
+
+        const res = await fetch(url, {
           headers,
           cache: 'no-store',
         });
@@ -144,7 +145,13 @@ export default function ZohoOrderCenter({ adminKey = '', onLogout }: ZohoOrderCe
           setOrders(data.orders);
           setStats(data.stats || null);
           setIsLiveZoho(Boolean(data.isLiveZoho));
+          if (data.message && data.message.includes('limit')) {
+            setErrorMessage(data.message);
+          }
         } else {
+          setOrders(data.orders || []);
+          setStats(data.stats || null);
+          setIsLiveZoho(Boolean(data.isLiveZoho));
           setErrorMessage(data.message || 'Unable to retrieve orders from Zoho Books.');
         }
       } catch (err: any) {
@@ -161,30 +168,6 @@ export default function ZohoOrderCenter({ adminKey = '', onLogout }: ZohoOrderCe
   // Initial load
   useEffect(() => {
     fetchOrders(false);
-  }, [fetchOrders]);
-
-  // Setup auto-refresh (every 45s) paused when page/tab is hidden
-  useEffect(() => {
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible') {
-        fetchOrders(false);
-      }
-    };
-
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-
-    autoRefreshTimerRef.current = setInterval(() => {
-      if (document.visibilityState === 'visible') {
-        fetchOrders(false);
-      }
-    }, 45000);
-
-    return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-      if (autoRefreshTimerRef.current) {
-        clearInterval(autoRefreshTimerRef.current);
-      }
-    };
   }, [fetchOrders]);
 
   // Load Full Order Details
@@ -398,7 +381,7 @@ export default function ZohoOrderCenter({ adminKey = '', onLogout }: ZohoOrderCe
             ) : (
               <span className="inline-flex items-center gap-1 text-[11px] font-medium text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full">
                 <span className="w-2 h-2 rounded-full bg-amber-500" />
-                Staging / Demo Mode
+                Connecting to Live Zoho API...
               </span>
             )}
           </div>
