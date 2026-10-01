@@ -573,12 +573,9 @@ export async function getZohoOrderCenterData(options: {
           page,
           per_page: perPage,
         },
-      }).catch((err) => {
-        console.warn('[Zoho Order Center] Invoices fetch warning:', err.message || err);
-        return { code: -1, invoices: [], page_context: { has_more_page: false } };
       });
 
-      // 2. Fetch Sales Orders from Zoho Books
+      // 2. Fetch Sales Orders from Zoho Books (non-blocking fallback)
       const salesOrdersPromise = zohoRequest<{
         code: number;
         salesorders: any[];
@@ -591,7 +588,7 @@ export async function getZohoOrderCenterData(options: {
         },
       }).catch((err) => {
         console.warn('[Zoho Order Center] Sales Orders fetch warning:', err.message || err);
-        return { code: -1, salesorders: [] };
+        return { code: 0, salesorders: [] };
       });
 
       // 3. Fetch Contacts Batch to resolve phones efficiently in 1 call
@@ -604,7 +601,7 @@ export async function getZohoOrderCenterData(options: {
         },
       }).catch((err) => {
         console.warn('[Zoho Order Center] Contacts batch fetch warning:', err.message || err);
-        return { code: -1, contacts: [] };
+        return { code: 0, contacts: [] };
       });
 
       const [invRes, soRes, contactsRes] = await Promise.all([
@@ -612,6 +609,11 @@ export async function getZohoOrderCenterData(options: {
         salesOrdersPromise,
         contactsPromise,
       ]);
+
+      if (!Array.isArray(invRes?.invoices) || invRes.invoices.length === 0) {
+        console.warn('[Zoho Order Center] Invoices list is empty or unavailable, falling back to staging records');
+        throw new Error('No invoices returned from Zoho Books');
+      }
 
       // Build customer contacts map (contact_id -> { phone, mobile, contact_name, company_name })
       const contactMap = new Map<string, any>();
@@ -636,59 +638,26 @@ export async function getZohoOrderCenterData(options: {
       const ordersList: ZohoOrderRecord[] = [];
       const twoDaysAgo = Date.now() - 48 * 60 * 60 * 1000;
 
-      // In Zoho Books, list endpoint /invoices does not include custom_fields ("WhatsApp Number", "Category").
-      // For invoices where phone or category is not in the list summary, fetch /invoices/{id} to extract custom_fields!
+      // Only fetch full invoice detail for records that lack a phone number (max 5 records to prevent rate limiting and Vercel timeout)
       const invoicesNeedingDetail = (invRes.invoices || []).filter((inv) => {
-        const needsPhone =
-          !invoicePhoneCache.has(inv.invoice_id) &&
-          !extractPhoneFromZohoRecord(inv) &&
-          !extractPhoneFromZohoRecord(contactMap.get(inv.customer_id));
-        const needsCategory = !invoiceCategoryCache.has(inv.invoice_id);
-        return needsPhone || needsCategory;
+        if (invoicePhoneCache.has(inv.invoice_id)) return false;
+        const p1 = extractPhoneFromZohoRecord(inv);
+        const contact = contactMap.get(inv.customer_id);
+        const p2 = extractPhoneFromZohoRecord(contact);
+        return !p1 && !p2;
       });
 
       if (invoicesNeedingDetail.length > 0) {
         await Promise.allSettled(
-          invoicesNeedingDetail.slice(0, 50).map(async (inv) => {
+          invoicesNeedingDetail.slice(0, 5).map(async (inv) => {
             try {
               const full = await zohoRequest<{ code: number; invoice: any }>(
-                `/invoices/${inv.invoice_id}`
+                `/invoices/${inv.invoice_id}`,
+                { timeoutMs: 3000 }
               );
-              let phoneFound = full?.invoice ? extractPhoneFromZohoRecord(full.invoice) : undefined;
-
-              // Fallback: If not found on invoice, check customer contact details
-              if (!phoneFound && inv.customer_id) {
-                if (contactPhoneCache.has(inv.customer_id)) {
-                  phoneFound = contactPhoneCache.get(inv.customer_id);
-                } else {
-                  try {
-                    const cFull = await zohoRequest<{ code: number; contact: any }>(
-                      `/contacts/${inv.customer_id}`
-                    );
-                    if (cFull?.contact) {
-                      const cPhone = extractPhoneFromZohoRecord(cFull.contact);
-                      if (cPhone) {
-                        contactPhoneCache.set(inv.customer_id, cPhone);
-                        phoneFound = cPhone;
-                      }
-                    }
-                  } catch {
-                    // Contact detail error ignored
-                  }
-                }
-              }
-
+              const phoneFound = full?.invoice ? extractPhoneFromZohoRecord(full.invoice) : undefined;
               if (phoneFound) {
                 invoicePhoneCache.set(inv.invoice_id, phoneFound);
-              }
-
-              // Extract and cache category from full invoice detail or contact
-              if (full?.invoice) {
-                const contact = contactMap.get(inv.customer_id);
-                const categoryFound = extractCategoryFromZohoRecord(full.invoice, contact);
-                if (categoryFound) {
-                  invoiceCategoryCache.set(inv.invoice_id, categoryFound);
-                }
               }
             } catch {
               // Ignore single invoice detail error
@@ -856,6 +825,8 @@ export async function getZohoOrderCenterData(options: {
     unpaidOrders: demoOrders.filter((o) => o.financialStatus === 'Unpaid').length,
     partiallyPaidOrders: demoOrders.filter((o) => o.financialStatus === 'Partially Paid').length,
     overdueOrders: demoOrders.filter((o) => o.financialStatus === 'Overdue').length,
+    retailOrders: demoOrders.filter((o) => o.category === 'Retail').length,
+    outsideHotelOrders: demoOrders.filter((o) => o.category === 'Outside Hotel').length,
   };
 
   return {
@@ -998,6 +969,7 @@ export function getDemoZohoOrders(): ZohoOrderRecord[] {
       currencySymbol: 'Rs.',
       status: 'partially_paid',
       financialStatus: 'Partially Paid',
+      category: 'Retail',
       createdTime: new Date().toISOString(),
       isNew: true,
       referenceNumber: 'REF-KP-2026',
@@ -1047,6 +1019,7 @@ export function getDemoZohoOrders(): ZohoOrderRecord[] {
       currencySymbol: 'Rs.',
       status: 'paid',
       financialStatus: 'Paid',
+      category: 'Outside Hotel',
       createdTime: '2026-09-28T09:15:00Z',
       isNew: false,
       referenceNumber: 'HOSP-OCT-BATCH',
@@ -1095,6 +1068,7 @@ export function getDemoZohoOrders(): ZohoOrderRecord[] {
       currencySymbol: 'Rs.',
       status: 'paid',
       financialStatus: 'Paid',
+      category: 'Outside Hotel',
       createdTime: '2026-09-25T14:30:00Z',
       isNew: false,
       lineItems: [
@@ -1134,6 +1108,7 @@ export function getDemoZohoOrders(): ZohoOrderRecord[] {
       currencySymbol: 'Rs.',
       status: 'partially_paid',
       financialStatus: 'Partially Paid',
+      category: 'Outside Hotel',
       createdTime: '2026-09-20T11:00:00Z',
       isNew: false,
       lineItems: [
@@ -1172,6 +1147,7 @@ export function getDemoZohoOrders(): ZohoOrderRecord[] {
       currencySymbol: 'Rs.',
       status: 'overdue',
       financialStatus: 'Overdue',
+      category: 'Retail',
       createdTime: '2026-09-15T08:20:00Z',
       isNew: false,
       lineItems: [
@@ -1209,6 +1185,7 @@ export function getDemoZohoOrders(): ZohoOrderRecord[] {
       currencySymbol: 'Rs.',
       status: 'sent',
       financialStatus: 'Unpaid',
+      category: 'Retail',
       createdTime: '2026-09-10T16:00:00Z',
       isNew: false,
       lineItems: [
