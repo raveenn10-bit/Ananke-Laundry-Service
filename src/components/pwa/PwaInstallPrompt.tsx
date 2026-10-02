@@ -1,11 +1,13 @@
 'use client';
 
 import { usePwa } from '@/context/PwaContext';
+import { useLanguage } from '@/context/LanguageContext';
 import { Download, X, Share, PlusSquare, Smartphone } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
 
 export default function PwaInstallPrompt() {
+  const { t } = useLanguage();
   const {
     isInstallable,
     isInstalled,
@@ -44,10 +46,10 @@ export default function PwaInstallPrompt() {
               </div>
               <div className="min-w-0">
                 <h4 className="text-xs sm:text-sm font-bold text-white truncate font-heading tracking-wide">
-                  Ananke Laundry App
+                  {t('pwa.installTitle', 'Ananke Washing Plant')}
                 </h4>
                 <p className="text-[11px] sm:text-xs text-white/80 line-clamp-1">
-                  1-Click WhatsApp orders &amp; instant bill receipts
+                  {t('pwa.installDesc', '1-Click WhatsApp orders & instant bill receipts')}
                 </p>
               </div>
             </div>
@@ -59,7 +61,7 @@ export default function PwaInstallPrompt() {
                 className="bg-accent hover:bg-olive text-dark hover:text-white font-bold text-xs sm:text-sm px-3.5 py-2 rounded-xl transition-all shadow-md active:scale-95 flex items-center gap-1.5 cursor-pointer"
               >
                 <Download size={14} />
-                <span>Install</span>
+                <span>{t('pwa.installAction', 'Install')}</span>
               </button>
               <button
                 type="button"
@@ -105,9 +107,9 @@ export default function PwaInstallPrompt() {
                 </div>
                 <div>
                   <h3 className="font-heading text-lg font-bold text-primary">
-                    Install Ananke Laundry
+                    {t('pwa.iosTitle', 'Install Ananke Washing Plant')}
                   </h3>
-                  <p className="text-xs text-dark/70">Add to your iPhone / iPad Home Screen</p>
+                  <p className="text-xs text-dark/70">{t('pwa.iosDesc', 'Add to your iPhone / iPad Home Screen')}</p>
                 </div>
               </div>
 
@@ -117,7 +119,7 @@ export default function PwaInstallPrompt() {
                     <Share size={18} />
                   </div>
                   <span className="text-dark/85">
-                    1. Tap the <strong>Share</strong> button in Safari toolbar below.
+                    {t('pwa.iosStep1', '1. Tap the Share button in Safari toolbar below.')}
                   </span>
                 </div>
 
@@ -126,7 +128,7 @@ export default function PwaInstallPrompt() {
                     <PlusSquare size={18} />
                   </div>
                   <span className="text-dark/85">
-                    2. Scroll down and tap <strong>&quot;Add to Home Screen&quot;</strong>.
+                    {t('pwa.iosStep2', '2. Scroll down and tap "Add to Home Screen".')}
                   </span>
                 </div>
 
@@ -135,7 +137,7 @@ export default function PwaInstallPrompt() {
                     <Smartphone size={18} />
                   </div>
                   <span className="text-dark/85">
-                    3. Launch Ananke anytime with 1-tap from your home screen.
+                    {t('pwa.iosStep3', '3. Launch Ananke Washing Plant anytime with 1-tap from your home screen.')}
                   </span>
                 </div>
               </div>
@@ -145,7 +147,7 @@ export default function PwaInstallPrompt() {
                 onClick={() => setShowIOSPrompt(false)}
                 className="w-full bg-primary hover:bg-primary/90 text-white font-bold py-3.5 rounded-2xl transition-all shadow-md"
               >
-                Got It
+                {t('pwa.gotIt', 'Got It')}
               </button>
             </motion.div>
           </div>

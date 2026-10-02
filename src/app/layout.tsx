@@ -37,7 +37,7 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
-    title: 'Ananke Laundry',
+    title: 'Ananke Washing Plant',
   },
   icons: {
     icon: '/icons/favicon-32x32.png',

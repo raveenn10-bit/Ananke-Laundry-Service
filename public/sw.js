@@ -1,5 +1,5 @@
 // Ananke Laundry Service Worker for PWA
-const CACHE_NAME = 'ananke-cache-v1';
+const CACHE_NAME = 'ananke-cache-v2';
 const STATIC_ASSETS = [
   '/',
   '/manifest.json',

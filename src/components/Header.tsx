@@ -241,7 +241,7 @@ export default function Header() {
                 </div>
                 <div>
                   <div className="text-xs font-heading tracking-widest uppercase text-accent font-semibold">
-                    ANANKE LAUNDRY
+                    ANANKE WASHING PLANT
                   </div>
                   <div className="flex items-center gap-1.5 text-[11px] text-white/70">
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />

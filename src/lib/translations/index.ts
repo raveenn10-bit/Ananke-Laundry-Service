@@ -41,15 +41,16 @@ export const translations: Record<Language, Record<string, string>> = {
     'fab.open': 'Open Quick Actions',
 
     // PWA
+    'pwa.appName': 'Ananke Washing Plant',
     'pwa.install': 'Install App',
-    'pwa.installTitle': 'Ananke Laundry App',
+    'pwa.installTitle': 'Ananke Washing Plant',
     'pwa.installDesc': '1-Click WhatsApp orders & instant bill receipts',
     'pwa.installAction': 'Install',
-    'pwa.iosTitle': 'Install Ananke Laundry',
+    'pwa.iosTitle': 'Install Ananke Washing Plant',
     'pwa.iosDesc': 'Add to your iPhone / iPad Home Screen',
     'pwa.iosStep1': '1. Tap the Share button in Safari toolbar below.',
     'pwa.iosStep2': '2. Scroll down and tap "Add to Home Screen".',
-    'pwa.iosStep3': '3. Launch Ananke anytime with 1-tap from your home screen.',
+    'pwa.iosStep3': '3. Launch Ananke Washing Plant anytime with 1-tap from your home screen.',
     'pwa.gotIt': 'Got It',
 
     // Hero
@@ -129,15 +130,16 @@ export const translations: Record<Language, Record<string, string>> = {
     'fab.open': 'Быстрые действия',
 
     // PWA
+    'pwa.appName': 'Ananke Washing Plant',
     'pwa.install': 'Установить приложение',
-    'pwa.installTitle': 'Приложение Ananke Laundry',
+    'pwa.installTitle': 'Ananke Washing Plant',
     'pwa.installDesc': 'Заказ в 1 клик через WhatsApp и отслеживание чеков',
     'pwa.installAction': 'Установить',
-    'pwa.iosTitle': 'Установить Ananke Laundry',
+    'pwa.iosTitle': 'Установить Ananke Washing Plant',
     'pwa.iosDesc': 'Добавить на главный экран iPhone / iPad',
     'pwa.iosStep1': '1. Нажмите кнопку «Поделиться» внизу в Safari.',
     'pwa.iosStep2': '2. Прокрутите вниз и выберите «На экран Домой».',
-    'pwa.iosStep3': '3. Открывайте Ananke в 1 клик с экрана смартфона.',
+    'pwa.iosStep3': '3. Открывайте Ananke Washing Plant в 1 клик с экрана смартфона.',
     'pwa.gotIt': 'Понятно',
 
     // Hero
@@ -217,15 +219,16 @@ export const translations: Record<Language, Record<string, string>> = {
     'fab.open': 'Schnellaktionen',
 
     // PWA
+    'pwa.appName': 'Ananke Washing Plant',
     'pwa.install': 'App installieren',
-    'pwa.installTitle': 'Ananke Laundry App',
+    'pwa.installTitle': 'Ananke Washing Plant',
     'pwa.installDesc': '1-Klick WhatsApp Bestellung & Rechnungsabruf',
     'pwa.installAction': 'Installieren',
-    'pwa.iosTitle': 'Ananke Laundry installieren',
+    'pwa.iosTitle': 'Ananke Washing Plant installieren',
     'pwa.iosDesc': 'Zum iPhone / iPad Startbildschirm hinzufügen',
     'pwa.iosStep1': '1. Unten in Safari auf das «Teilen»-Symbol tippen.',
     'pwa.iosStep2': '2. Nach unten scrollen und «Zum Home-Bildschirm» wählen.',
-    'pwa.iosStep3': '3. Ananke mit nur einem Fingertipp direkt starten.',
+    'pwa.iosStep3': '3. Ananke Washing Plant mit nur einem Fingertipp direkt starten.',
     'pwa.gotIt': 'Verstanden',
 
     // Hero
@@ -305,15 +308,16 @@ export const translations: Record<Language, Record<string, string>> = {
     'fab.open': 'Actions rapides',
 
     // PWA
+    'pwa.appName': 'Ananke Washing Plant',
     'pwa.install': 'Installer l’application',
-    'pwa.installTitle': 'Application Ananke Laundry',
+    'pwa.installTitle': 'Ananke Washing Plant',
     'pwa.installDesc': 'Commandes WhatsApp en 1 clic & suivi immédiat des reçus',
     'pwa.installAction': 'Installer',
-    'pwa.iosTitle': 'Installer Ananke Laundry',
+    'pwa.iosTitle': 'Installer Ananke Washing Plant',
     'pwa.iosDesc': 'Ajouter à l’écran d’accueil de votre iPhone / iPad',
     'pwa.iosStep1': '1. Appuyez sur le bouton Partager en bas de Safari.',
     'pwa.iosStep2': '2. Faites défiler et choisissez « Sur l’écran d’accueil ».',
-    'pwa.iosStep3': '3. Lancez Ananke en un instant depuis votre écran.',
+    'pwa.iosStep3': '3. Lancez Ananke Washing Plant en un instant depuis votre écran.',
     'pwa.gotIt': 'Compris',
 
     // Hero
@@ -393,15 +397,16 @@ export const translations: Record<Language, Record<string, string>> = {
     'fab.open': 'ක්ෂණික සේවා',
 
     // PWA
+    'pwa.appName': 'Ananke Washing Plant',
     'pwa.install': 'App එක Install කරන්න',
-    'pwa.installTitle': 'Ananke Laundry App',
+    'pwa.installTitle': 'Ananke Washing Plant',
     'pwa.installDesc': '1-Click WhatsApp ඇණවුම් සහ ක්ෂණික බිල්පත් පරීක්ෂාව',
     'pwa.installAction': 'Install',
-    'pwa.iosTitle': 'Ananke Laundry ස්ථාපනය කරන්න',
+    'pwa.iosTitle': 'Ananke Washing Plant ස්ථාපනය කරන්න',
     'pwa.iosDesc': 'ඔබගේ iPhone / iPad මුල් තිරයට එක් කරන්න',
     'pwa.iosStep1': '1. Safari හි පහළ ඇති Share බොත්තම ඔබන්න.',
     'pwa.iosStep2': '2. පහළට ගොස් "Add to Home Screen" තෝරන්න.',
-    'pwa.iosStep3': '3. ඕනෑම මොහොතක තනි ක්ලික් එකකින් Ananke වෙත පිවිසෙන්න.',
+    'pwa.iosStep3': '3. ඕනෑම මොහොතක තනි ක්ලික් එකකින් Ananke Washing Plant වෙත පිවිසෙන්න.',
     'pwa.gotIt': 'තේරුම් ගත්තා',
 
     // Hero
