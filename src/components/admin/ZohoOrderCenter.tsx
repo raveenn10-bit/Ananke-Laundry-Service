@@ -51,11 +51,46 @@ function cleanWhatsAppText(text: string): string {
     .trim();
 }
 
-function generateCustomerWhatsAppMessage(customerName: string, invoiceNumber: string): string {
-  const cleanName = cleanWhatsAppText(customerName) || 'Customer';
-  const cleanInv = cleanWhatsAppText(invoiceNumber);
+type WhatsAppOrderStatus = 'received' | 'processing' | 'ready' | 'delivered';
+type WhatsAppTimeSlot = '' | '8-12' | '12-5' | '5-8';
 
-  return `🧺 Ananke Laundry\n\nHi ${cleanName} 👋,\n\nYour laundry order has been received successfully.\n\n🧾 Invoice: ${cleanInv}\n\n🔗 View your bill & track your order:\n${SECURE_MY_BILL_URL}\n\nThank you for choosing Ananke Laundry 💚`;
+const TIME_SLOT_LABELS: Record<WhatsAppTimeSlot, string> = {
+  '': 'No Time Specified',
+  '8-12': '8:00 AM - 12:00 PM',
+  '12-5': '12:00 PM - 5:00 PM',
+  '5-8': '5:00 PM - 8:00 PM',
+};
+
+const STATUS_DESCRIPTIONS: Record<WhatsAppOrderStatus, string> = {
+  received: 'Your laundry order has been received successfully.',
+  processing: 'Your laundry order is currently being processed.',
+  ready: 'Your laundry order is ready for pickup / delivery.',
+  delivered: 'Your laundry order has been delivered successfully.',
+};
+
+function generateCustomerWhatsAppMessage(
+  customerName: string,
+  invoiceNumber: string,
+  status: WhatsAppOrderStatus = 'received',
+  timeSlot: WhatsAppTimeSlot = ''
+): string {
+  const cleanName = cleanWhatsAppText(customerName) || 'Valued Customer';
+  const cleanInv = cleanWhatsAppText(invoiceNumber);
+  const statusLine = STATUS_DESCRIPTIONS[status] || STATUS_DESCRIPTIONS.received;
+
+  let timeLine = '';
+  if (timeSlot && TIME_SLOT_LABELS[timeSlot]) {
+    timeLine = `\n\n⏰ Pickup / Delivery Time: ${TIME_SLOT_LABELS[timeSlot]}`;
+  }
+
+  return `🧺 Ananke Laundry\n\nHi ${cleanName} 👋,\n\n${statusLine}\n\n🧾 Invoice: ${cleanInv}${timeLine}\n\n🔗 View your bill & track your order:\n${SECURE_MY_BILL_URL}\n\nThank you for choosing Ananke Laundry 💚`;
+}
+
+function buildWhatsAppUrl(phone: string, text: string): string {
+  // Canonicalize Unicode to NFC form to guarantee emojis (🧺, 👋, 🧾, 🔗, 💚) are single clean code points
+  const normalized = text.normalize('NFC');
+  const encoded = encodeURIComponent(normalized);
+  return `https://wa.me/${phone}?text=${encoded}`;
 }
 
 function getInitials(name: string): string {
@@ -105,6 +140,9 @@ export default function ZohoOrderCenter({ adminKey = '', onLogout }: ZohoOrderCe
 
   const [whatsAppModalOpen, setWhatsAppModalOpen] = useState(false);
   const [selectedOrderForWhatsApp, setSelectedOrderForWhatsApp] = useState<ZohoOrderRecord | null>(null);
+  const [whatsAppStatus, setWhatsAppStatus] = useState<WhatsAppOrderStatus>('received');
+  const [whatsAppTimeSlot, setWhatsAppTimeSlot] = useState<WhatsAppTimeSlot>('');
+  const [customWhatsAppMessage, setCustomWhatsAppMessage] = useState<string>('');
   const [isCopied, setIsCopied] = useState(false);
   const [copiedInvoiceId, setCopiedInvoiceId] = useState<string | null>(null);
 
@@ -296,21 +334,56 @@ export default function ZohoOrderCenter({ adminKey = '', onLogout }: ZohoOrderCe
   // Open WhatsApp Confirmation Modal
   const handleOpenWhatsApp = (order: ZohoOrderRecord) => {
     setSelectedOrderForWhatsApp(order);
+    setWhatsAppStatus('received');
+    setWhatsAppTimeSlot('');
+    setCustomWhatsAppMessage(
+      generateCustomerWhatsAppMessage(order.customerName, order.invoiceNumber, 'received', '')
+    );
     setIsCopied(false);
     setWhatsAppModalOpen(true);
   };
 
+  const handleChangeStatus = (status: WhatsAppOrderStatus) => {
+    setWhatsAppStatus(status);
+    if (selectedOrderForWhatsApp) {
+      setCustomWhatsAppMessage(
+        generateCustomerWhatsAppMessage(
+          selectedOrderForWhatsApp.customerName,
+          selectedOrderForWhatsApp.invoiceNumber,
+          status,
+          whatsAppTimeSlot
+        )
+      );
+    }
+  };
+
+  const handleChangeTimeSlot = (slot: WhatsAppTimeSlot) => {
+    setWhatsAppTimeSlot(slot);
+    if (selectedOrderForWhatsApp) {
+      setCustomWhatsAppMessage(
+        generateCustomerWhatsAppMessage(
+          selectedOrderForWhatsApp.customerName,
+          selectedOrderForWhatsApp.invoiceNumber,
+          whatsAppStatus,
+          slot
+        )
+      );
+    }
+  };
+
   // Launch WhatsApp Chat URL
-  const handleLaunchWhatsApp = (e: React.MouseEvent<HTMLButtonElement>) => {
+  const handleLaunchWhatsApp = (e?: React.MouseEvent<HTMLButtonElement | HTMLAnchorElement>) => {
     if (!selectedOrderForWhatsApp || !selectedOrderForWhatsApp.whatsappPhone) return;
 
-    const message = generateCustomerWhatsAppMessage(
+    const message = customWhatsAppMessage || generateCustomerWhatsAppMessage(
       selectedOrderForWhatsApp.customerName,
-      selectedOrderForWhatsApp.invoiceNumber
+      selectedOrderForWhatsApp.invoiceNumber,
+      whatsAppStatus,
+      whatsAppTimeSlot
     );
 
     const targetPhone = selectedOrderForWhatsApp.whatsappPhone;
-    const url = `https://wa.me/${targetPhone}?text=${encodeURIComponent(message)}`;
+    const url = buildWhatsAppUrl(targetPhone, message);
 
     // Mark as opened in current session (do this before navigation)
     setWhatsAppOpenedMap((prev) => ({
@@ -318,14 +391,10 @@ export default function ZohoOrderCenter({ adminKey = '', onLogout }: ZohoOrderCe
       [selectedOrderForWhatsApp.id]: true,
     }));
 
-    // Use anchor click trick to stay within the user gesture event —
-    // window.open() can be blocked by popup blockers when called after
-    // any async or state-update path. Direct <a> navigation is not blocked.
     const anchor = document.createElement('a');
     anchor.href = url;
     anchor.target = '_blank';
     anchor.rel = 'noopener noreferrer';
-    // Append to body briefly so Firefox respects it
     document.body.appendChild(anchor);
     anchor.click();
     document.body.removeChild(anchor);
@@ -335,9 +404,11 @@ export default function ZohoOrderCenter({ adminKey = '', onLogout }: ZohoOrderCe
   const handleCopyMessage = async () => {
     if (!selectedOrderForWhatsApp) return;
 
-    const message = generateCustomerWhatsAppMessage(
+    const message = customWhatsAppMessage || generateCustomerWhatsAppMessage(
       selectedOrderForWhatsApp.customerName,
-      selectedOrderForWhatsApp.invoiceNumber
+      selectedOrderForWhatsApp.invoiceNumber,
+      whatsAppStatus,
+      whatsAppTimeSlot
     );
 
     try {
@@ -705,7 +776,7 @@ export default function ZohoOrderCenter({ adminKey = '', onLogout }: ZohoOrderCe
           </div>
 
           <div className="text-xs text-gray-400 font-medium">
-            Showing <strong className="text-dark">{filteredOrders.length}</strong> of {orders.length} orders
+            Showing latest <strong className="text-dark">{filteredOrders.length}</strong> of {orders.length} orders
           </div>
         </div>
 
@@ -1497,20 +1568,91 @@ export default function ZohoOrderCenter({ adminKey = '', onLogout }: ZohoOrderCe
               )}
             </div>
 
-            {/* Live WhatsApp Bubble Preview */}
+            {/* Status Selector */}
+            <div className="space-y-1.5">
+              <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider block">
+                Order Status:
+              </label>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
+                {(
+                  [
+                    { id: 'received', label: 'Received', icon: '🧺' },
+                    { id: 'processing', label: 'Processing', icon: '⚙️' },
+                    { id: 'ready', label: 'Ready', icon: '✨' },
+                    { id: 'delivered', label: 'Delivered', icon: '🚚' },
+                  ] as { id: WhatsAppOrderStatus; label: string; icon: string }[]
+                ).map((item) => {
+                  const isActive = whatsAppStatus === item.id;
+                  return (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={() => handleChangeStatus(item.id)}
+                      className={`px-3 py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer border ${
+                        isActive
+                          ? 'bg-emerald-600 text-white border-emerald-600 shadow-xs'
+                          : 'bg-cream/40 text-gray-700 border-cream-dark hover:bg-cream hover:border-gray-300'
+                      }`}
+                    >
+                      <span>{item.icon}</span>
+                      <span>{item.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Pickup / Delivery Time Window */}
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between text-[11px]">
+                <label className="font-bold text-gray-500 uppercase tracking-wider">
+                  Pickup / Delivery Time Window:
+                </label>
+                <span className="text-gray-400">Optional</span>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
+                {(
+                  [
+                    { id: '' as WhatsAppTimeSlot, label: 'No Time' },
+                    { id: '8-12' as WhatsAppTimeSlot, label: '8:00 AM - 12:00 PM' },
+                    { id: '12-5' as WhatsAppTimeSlot, label: '12:00 PM - 5:00 PM' },
+                    { id: '5-8' as WhatsAppTimeSlot, label: '5:00 PM - 8:00 PM' },
+                  ]
+                ).map((slot) => {
+                  const isActive = whatsAppTimeSlot === slot.id;
+                  return (
+                    <button
+                      key={slot.id}
+                      type="button"
+                      onClick={() => handleChangeTimeSlot(slot.id)}
+                      className={`px-2.5 py-1.5 rounded-xl text-[11px] font-semibold text-center transition-all cursor-pointer border ${
+                        isActive
+                          ? 'bg-dark text-white border-dark shadow-xs'
+                          : 'bg-white text-gray-600 border-gray-200 hover:border-olive hover:text-dark'
+                      }`}
+                    >
+                      {slot.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Live WhatsApp Bubble Preview / Textarea */}
             <div className="space-y-1.5">
               <div className="flex items-center justify-between text-[11px]">
                 <span className="font-bold text-gray-500 uppercase tracking-wider">
-                  Live WhatsApp Message Preview:
+                  Live WhatsApp Message (Editable):
                 </span>
                 <span className="text-emerald-700 font-semibold">Strict Plain Text</span>
               </div>
-              <div className="bg-[#E7F8E8] border border-emerald-200/90 rounded-2xl p-4 text-xs font-mono text-dark whitespace-pre-wrap leading-relaxed shadow-xs select-all">
-                {generateCustomerWhatsAppMessage(
-                  selectedOrderForWhatsApp.customerName,
-                  selectedOrderForWhatsApp.invoiceNumber
-                )}
-              </div>
+              <textarea
+                value={customWhatsAppMessage}
+                onChange={(e) => setCustomWhatsAppMessage(e.target.value)}
+                rows={9}
+                className="w-full bg-[#E7F8E8] border border-emerald-300 rounded-2xl p-3.5 text-xs font-mono text-dark whitespace-pre-wrap leading-relaxed shadow-inner focus:outline-none focus:ring-2 focus:ring-emerald-500 resize-y"
+                placeholder="Type your WhatsApp message..."
+              />
             </div>
 
             {/* Instruction Notice */}
@@ -1522,21 +1664,14 @@ export default function ZohoOrderCenter({ adminKey = '', onLogout }: ZohoOrderCe
             {/* Action Buttons */}
             <div className="flex flex-col sm:flex-row gap-2.5 pt-2">
               {selectedOrderForWhatsApp.whatsappPhone ? (
-                <a
-                  href={`https://wa.me/${selectedOrderForWhatsApp.whatsappPhone}?text=${encodeURIComponent(generateCustomerWhatsAppMessage(selectedOrderForWhatsApp.customerName, selectedOrderForWhatsApp.invoiceNumber))}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={() => {
-                    setWhatsAppOpenedMap((prev) => ({
-                      ...prev,
-                      [selectedOrderForWhatsApp.id]: true,
-                    }));
-                  }}
-                  className="flex-1 py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all active:scale-98 cursor-pointer no-underline"
+                <button
+                  type="button"
+                  onClick={handleLaunchWhatsApp}
+                  className="flex-1 py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all active:scale-98 cursor-pointer"
                 >
                   <Send size={15} />
                   <span>Open in WhatsApp &amp; Send</span>
-                </a>
+                </button>
               ) : (
                 <button
                   type="button"

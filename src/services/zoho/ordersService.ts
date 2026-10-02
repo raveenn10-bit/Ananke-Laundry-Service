@@ -4,6 +4,8 @@ import {
   ZohoOrdersResponse,
   ZohoOrderFinancialStatus,
   ZohoOrderLineItem,
+  WhatsAppOrderStatus,
+  WhatsAppTimeSlot,
 } from '@/types/zohoOrder';
 import { isZohoConfigured } from './auth';
 import { zohoRequest } from './client';
@@ -214,6 +216,34 @@ export function extractPhoneFromZohoRecord(record: any): string | undefined {
     const slSubMatch = text.replace(/[\s\-\.\(\)]/g, '').match(/(?:0|94)?(7[01245678]\d{7})/);
     if (slSubMatch && slSubMatch[1]) {
       return slSubMatch[1];
+    }
+  }
+
+  // 8. Check reference_number, reference, or attention for embedded phone numbers
+  const refText = `${record.reference_number || ''} ${record.referenceNumber || ''} ${record.reference || ''} ${record.attention || ''}`;
+  if (refText.trim()) {
+    const slSubMatch = refText.replace(/[\s\-\.\(\)]/g, '').match(/(?:0|94)?(7[01245678]\d{7})/);
+    if (slSubMatch && slSubMatch[1]) {
+      return slSubMatch[1];
+    }
+    const landlineMatch = refText.replace(/[\s\-\.\(\)]/g, '').match(/(?:0|94)?((?:11|21|23|24|25|26|27|31|32|33|34|35|36|37|38|41|45|47|51|52|54|55|57|63|65|66|67|81|91)\d{7})/);
+    if (landlineMatch && landlineMatch[1]) {
+      return `0${landlineMatch[1]}`;
+    }
+  }
+
+  // 9. Check any string value in custom_fields even if label didn't match keyword
+  if (cfList.length > 0) {
+    for (const cf of cfList) {
+      if (!cf || typeof cf !== 'object') continue;
+      const v = cf.value ?? cf.value_formatted ?? cf.unformatted_value ?? cf.field_value;
+      if (v) {
+        const s = String(v).trim();
+        const digits = s.replace(/\D/g, '');
+        if (digits.length >= 9 && digits.length <= 12) {
+          return s;
+        }
+      }
     }
   }
 
@@ -527,36 +557,47 @@ export function calculateFinancialStatus(
   return 'Unpaid';
 }
 
+export const TIME_SLOT_LABELS: Record<WhatsAppTimeSlot, string> = {
+  '': 'No Time Specified',
+  '8-12': '8:00 AM - 12:00 PM',
+  '12-5': '12:00 PM - 5:00 PM',
+  '5-8': '5:00 PM - 8:00 PM',
+};
+
+export const STATUS_DESCRIPTIONS: Record<WhatsAppOrderStatus, string> = {
+  received: 'Your laundry order has been received successfully.',
+  processing: 'Your laundry order is currently being processed.',
+  ready: 'Your laundry order is ready for pickup / delivery.',
+  delivered: 'Your laundry order has been delivered successfully.',
+};
+
 /**
  * Formats the exact, strictly validated customer WhatsApp order message:
- *
- * 🧺 Ananke Laundry
- *
- * Hi {{Customer Name}} 👋,
- *
- * Your laundry order has been received successfully.
- *
- * 🧾 Invoice: {{Invoice Number}}
- *
- * 🔗 View your bill & track your order:
- * https://ananke-laundry-service.vercel.app/my-bill
- *
- * Thank you for choosing Ananke Laundry 💚
+ * Supports dynamic status (received, processing, ready, delivered) and optional pickup/delivery time windows.
  */
 export function generateCustomerWhatsAppMessage(
   customerName: string,
-  invoiceNumber: string
+  invoiceNumber: string,
+  status: WhatsAppOrderStatus = 'received',
+  timeSlot: WhatsAppTimeSlot = ''
 ): string {
-  const cleanName = cleanWhatsAppText(customerName) || 'Customer';
+  const cleanName = cleanWhatsAppText(customerName) || 'Valued Customer';
   const cleanInv = cleanWhatsAppText(invoiceNumber);
+  const statusLine = STATUS_DESCRIPTIONS[status] || STATUS_DESCRIPTIONS.received;
 
-  return `🧺 Ananke Laundry\n\nHi ${cleanName} 👋,\n\nYour laundry order has been received successfully.\n\n🧾 Invoice: ${cleanInv}\n\n🔗 View your bill & track your order:\n${SECURE_MY_BILL_URL}\n\nThank you for choosing Ananke Laundry 💚`;
+  let timeLine = '';
+  if (timeSlot && TIME_SLOT_LABELS[timeSlot]) {
+    timeLine = `\n\n⏰ Pickup / Delivery Time: ${TIME_SLOT_LABELS[timeSlot]}`;
+  }
+
+  return `🧺 Ananke Laundry\n\nHi ${cleanName} 👋,\n\n${statusLine}\n\n🧾 Invoice: ${cleanInv}${timeLine}\n\n🔗 View your bill & track your order:\n${SECURE_MY_BILL_URL}\n\nThank you for choosing Ananke Laundry 💚`;
 }
 
 /**
  * Fetches all orders & invoices exclusively from the local persistent SQLite cache.
  * Normal page loads, browser refreshes, and filter switches make ZERO Zoho API calls.
  * CONNECTED TO LIVE ZOHO BOOKS DATA IN LOCAL PERSISTENT STORAGE - NEVER USES DEMO DATA.
+ * Default loads the latest 100 orders.
  */
 export async function getZohoOrderCenterData(options: {
   page?: number;
@@ -565,17 +606,22 @@ export async function getZohoOrderCenterData(options: {
   status?: string;
   category?: string;
   forceRefresh?: boolean;
+  limit?: number;
 } = {}): Promise<ZohoOrdersResponse> {
   const isConfigured = isZohoConfigured();
+
+  // Always default to latest 100 orders
+  const limit = options.limit !== undefined ? options.limit : (options.perPage || 100);
 
   // Load orders directly from local persistent SQLite database
   const orders = getAllCachedZohoOrders({
     category: options.category,
     status: options.status,
     search: options.search,
+    limit,
   });
 
-  const stats = getCachedOrderStats();
+  const stats = getCachedOrderStats({ limit });
   const syncMeta = getZohoSyncMetadata();
 
   let message: string | undefined = undefined;

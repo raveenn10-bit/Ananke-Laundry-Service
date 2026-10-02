@@ -2,11 +2,15 @@ import { zohoRequest, isZohoRateLimited, getZohoRateLimitResetSeconds, ZohoRateL
 import { isZohoConfigured } from './auth';
 import {
   upsertZohoOrders,
+  upsertZohoContacts,
+  getCachedContactById,
+  getCachedContactByName,
   getZohoSyncMetadata,
   setZohoSyncMetadata,
 } from '@/lib/storage/zohoOrderStore';
 import {
   extractCategoryFromZohoRecord,
+  extractPhoneFromZohoRecord,
   normalizePhoneForOrder,
   calculateFinancialStatus,
 } from './ordersService';
@@ -90,33 +94,59 @@ export async function syncZohoOrders(options: { forceFull?: boolean } = {}): Pro
     let rateLimited = false;
 
     try {
-      // 1. Batch fetch contacts to resolve phones & company names in ONE single call (Contact Deduplication)
-      console.log('[Zoho Sync] Fetching batch contacts (1 request)...');
+      // 1. Batch fetch contacts to resolve phones & company names with pagination (up to 1,000 contacts)
+      console.log('[Zoho Sync] Fetching batch contacts with pagination...');
       let contactsList: any[] = [];
-      try {
-        const contactsRes = await zohoRequest<{ code: number; contacts: any[] }>('/contacts', {
-          params: { per_page: 200 },
-        });
-        contactsList = contactsRes.contacts || [];
-      } catch (err: any) {
-        console.warn('[Zoho Sync] Contacts batch warning (non-fatal):', err.message || err);
-      }
-
-      const contactMap = new Map<string, any>();
-      for (const c of contactsList) {
-        if (c.contact_id) {
-          contactMap.set(c.contact_id, c);
+      let cPage = 1;
+      while (cPage <= 5) {
+        try {
+          const contactsRes = await zohoRequest<{
+            code: number;
+            contacts: any[];
+            page_context?: { has_more_page: boolean };
+          }>('/contacts', {
+            params: { page: cPage, per_page: 200 },
+          });
+          const batch = contactsRes?.contacts || [];
+          contactsList.push(...batch);
+          if (batch.length < 200 || contactsRes?.page_context?.has_more_page === false) {
+            break;
+          }
+          cPage++;
+        } catch (err: any) {
+          console.warn(`[Zoho Sync] Contacts batch page ${cPage} warning (non-fatal):`, err.message || err);
+          break;
         }
       }
 
-      // 2. Sequential pagination loop (Controlled Concurrency - 1 page at a time)
+      if (contactsList.length > 0) {
+        upsertZohoContacts(contactsList);
+      }
+
+      const contactMapById = new Map<string, any>();
+      const contactMapByName = new Map<string, any>();
+      const contactMapByCompany = new Map<string, any>();
+
+      for (const c of contactsList) {
+        if (c.contact_id) {
+          contactMapById.set(c.contact_id, c);
+        }
+        if (c.contact_name) {
+          contactMapByName.set(c.contact_name.toLowerCase().trim(), c);
+        }
+        if (c.company_name) {
+          contactMapByCompany.set(c.company_name.toLowerCase().trim(), c);
+        }
+      }
+
+      // 2. Sequential pagination loop - strictly fetch latest 100 invoices (1 page of 100 records)
       let page = 1;
       let hasMore = true;
       const twoDaysAgo = Date.now() - 48 * 60 * 60 * 1000;
-      const MAX_PAGES = isIncremental ? 2 : 10; // Incremental checks newest 2 pages; full sync up to 10 pages
+      const MAX_PAGES = 1; // Strict latest 100 orders
 
       while (hasMore && page <= MAX_PAGES) {
-        console.log(`[Zoho Sync] Processing page ${page}...`);
+        console.log(`[Zoho Sync] Processing latest 100 invoices (page ${page})...`);
 
         const queryParams: Record<string, any> = {
           sort_column: 'date',
@@ -145,21 +175,60 @@ export async function syncZohoOrders(options: { forceFull?: boolean } = {}): Pro
         }
 
         pagesProcessed++;
+
+        // Deduplicate missing customer IDs among the latest 100 orders and resolve full contact details
+        const missingCustomerIds = Array.from(
+          new Set(
+            rawInvoices
+              .filter((inv) => {
+                const c = contactMapById.get(inv.customer_id);
+                const hasP = extractPhoneFromZohoRecord(inv) || (c && extractPhoneFromZohoRecord(c)) || c?.mobile || c?.phone;
+                return !hasP && inv.customer_id;
+              })
+              .map((inv) => inv.customer_id)
+          )
+        ).slice(0, 8); // Cap at 8 to prevent quota exhaustion
+
+        for (const custId of missingCustomerIds) {
+          if (isZohoRateLimited()) break;
+          try {
+            const cDetail = await zohoRequest<{ code: number; contact: any }>(`/contacts/${custId}`);
+            if (cDetail?.contact) {
+              contactMapById.set(custId, cDetail.contact);
+              if (cDetail.contact.contact_name) {
+                contactMapByName.set(cDetail.contact.contact_name.toLowerCase().trim(), cDetail.contact);
+              }
+              upsertZohoContacts([cDetail.contact]);
+            }
+          } catch (err: any) {
+            console.warn(`[Zoho Sync] Contact detail query error for ${custId}:`, err.message || err);
+          }
+        }
+
         const mappedOrders: ZohoOrderRecord[] = [];
 
         for (const inv of rawInvoices) {
           const total = Number(inv.total) || 0;
           const balance = Number(inv.balance) ?? total;
           const amountPaid = Math.max(0, total - balance);
-          const contact = contactMap.get(inv.customer_id);
+          const contact =
+            contactMapById.get(inv.customer_id) ||
+            (inv.customer_name ? contactMapByName.get(inv.customer_name.toLowerCase().trim()) : undefined) ||
+            (inv.company_name ? contactMapByCompany.get(inv.company_name.toLowerCase().trim()) : undefined) ||
+            getCachedContactById(inv.customer_id) ||
+            (inv.customer_name ? getCachedContactByName(inv.customer_name) : null);
 
-          // Resolve phone strictly from existing fields or cached contacts (Zero N+1 calls)
+          // Resolve phone checking custom fields, contact persons, notes, reference, and contacts
           const rawPhone =
-            inv.phone ||
-            inv.mobile ||
+            extractPhoneFromZohoRecord(inv) ||
+            (contact ? extractPhoneFromZohoRecord(contact) : undefined) ||
             contact?.mobile ||
             contact?.phone ||
-            contact?.billing_address?.phone;
+            contact?.whatsapp_number ||
+            contact?.billing_address?.phone ||
+            contact?.shipping_address?.phone ||
+            inv.phone ||
+            inv.mobile;
 
           const phoneInfo = normalizePhoneForOrder(rawPhone);
           const createdMs = inv.created_time ? new Date(inv.created_time).getTime() : 0;

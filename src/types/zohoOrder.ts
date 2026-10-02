@@ -88,3 +88,6 @@ export interface ZohoOrdersResponse {
     isSyncing: boolean;
   };
 }
+
+export type WhatsAppOrderStatus = 'received' | 'processing' | 'ready' | 'delivered';
+export type WhatsAppTimeSlot = '' | '8-12' | '12-5' | '5-8';
