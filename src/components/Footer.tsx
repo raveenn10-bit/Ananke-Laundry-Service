@@ -253,19 +253,19 @@ export default function Footer() {
               </p>
             </div>
             <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-[11px] sm:text-xs text-[#163824]/70 font-medium">
-              <Link href="/services" className="hover:text-[#163824] hover:underline">
-                Terms of Service
+              <Link href="/terms" className="hover:text-[#163824] hover:underline">
+                Terms &amp; Conditions
               </Link>
               <span>|</span>
-              <Link href="/contact" className="hover:text-[#163824] hover:underline">
+              <Link href="/privacy" className="hover:text-[#163824] hover:underline">
                 Privacy Policy
               </Link>
               <span>|</span>
-              <Link href="/pricing" className="hover:text-[#163824] hover:underline">
+              <Link href="/refund-policy" className="hover:text-[#163824] hover:underline">
                 Refund Policy
               </Link>
               <span>|</span>
-              <Link href="/about" className="hover:text-[#163824] hover:underline">
+              <Link href="/accessibility" className="hover:text-[#163824] hover:underline">
                 Accessibility Policy
               </Link>
             </div>
