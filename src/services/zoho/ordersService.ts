@@ -587,10 +587,10 @@ export function generateCustomerWhatsAppMessage(
 
   let timeLine = '';
   if (timeSlot && TIME_SLOT_LABELS[timeSlot]) {
-    timeLine = `\n\n⏰ Pickup / Delivery Time: ${TIME_SLOT_LABELS[timeSlot]}`;
+    timeLine = `\n\n\u{23F0} Pickup / Delivery Time: ${TIME_SLOT_LABELS[timeSlot]}`;
   }
 
-  return `🧺 Ananke Laundry\n\nHi ${cleanName} 👋,\n\n${statusLine}\n\n🧾 Invoice: ${cleanInv}${timeLine}\n\n🔗 View your bill & track your order:\n${SECURE_MY_BILL_URL}\n\nThank you for choosing Ananke Laundry 💚`;
+  return `\u{1F9FA} Ananke Laundry\n\nHi ${cleanName} \u{1F44B},\n\n${statusLine}\n\n\u{1F9FE} Invoice: ${cleanInv}${timeLine}\n\n\u{1F517} View your bill & track your order:\n${SECURE_MY_BILL_URL}\n\nThank you for choosing Ananke Laundry \u{1F49A}`;
 }
 
 /**

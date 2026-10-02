@@ -80,17 +80,43 @@ function generateCustomerWhatsAppMessage(
 
   let timeLine = '';
   if (timeSlot && TIME_SLOT_LABELS[timeSlot]) {
-    timeLine = `\n\n⏰ Pickup / Delivery Time: ${TIME_SLOT_LABELS[timeSlot]}`;
+    timeLine = `\n\n\u{23F0} Pickup / Delivery Time: ${TIME_SLOT_LABELS[timeSlot]}`;
   }
 
-  return `🧺 Ananke Laundry\n\nHi ${cleanName} 👋,\n\n${statusLine}\n\n🧾 Invoice: ${cleanInv}${timeLine}\n\n🔗 View your bill & track your order:\n${SECURE_MY_BILL_URL}\n\nThank you for choosing Ananke Laundry 💚`;
+  return `\u{1F9FA} Ananke Laundry\n\nHi ${cleanName} \u{1F44B},\n\n${statusLine}\n\n\u{1F9FE} Invoice: ${cleanInv}${timeLine}\n\n\u{1F517} View your bill & track your order:\n${SECURE_MY_BILL_URL}\n\nThank you for choosing Ananke Laundry \u{1F49A}`;
 }
 
-function buildWhatsAppUrl(phone: string, text: string): string {
-  // Canonicalize Unicode to NFC form to guarantee emojis (🧺, 👋, 🧾, 🔗, 💚) are single clean code points
+function buildWhatsAppUrl(
+  phone: string,
+  text: string,
+  destination: 'auto' | 'web' | 'app' = 'auto'
+): string {
+  // Canonicalize Unicode to NFC form to guarantee emojis (🧺, 👋, 🧾, ⏰, 🔗, 💚) are single clean code points
   const normalized = text.normalize('NFC');
   const encoded = encodeURIComponent(normalized);
-  return `https://wa.me/${phone}?text=${encoded}`;
+
+  if (destination === 'app') {
+    return `whatsapp://send?phone=${phone}&text=${encoded}`;
+  }
+
+  if (destination === 'web') {
+    // web.whatsapp.com loads directly in the browser with 100% perfect emojis (zero 302 redirects)
+    return `https://web.whatsapp.com/send?phone=${phone}&text=${encoded}`;
+  }
+
+  // Auto mode:
+  // NEVER use wa.me because wa.me's 302 redirect replaces 4-byte UTF-8 emojis with %EF%BF%BD ()!
+  // On mobile devices, api.whatsapp.com launches the WhatsApp native app with proper emojis.
+  // On desktop / PC, web.whatsapp.com loads WhatsApp Web directly and preserves all emojis perfectly.
+  const isMobile =
+    typeof navigator !== 'undefined' &&
+    /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+  if (isMobile) {
+    return `https://api.whatsapp.com/send?phone=${phone}&text=${encoded}`;
+  }
+
+  return `https://web.whatsapp.com/send?phone=${phone}&text=${encoded}`;
 }
 
 function getInitials(name: string): string {
@@ -372,7 +398,7 @@ export default function ZohoOrderCenter({ adminKey = '', onLogout }: ZohoOrderCe
   };
 
   // Launch WhatsApp Chat URL
-  const handleLaunchWhatsApp = (e?: React.MouseEvent<HTMLButtonElement | HTMLAnchorElement>) => {
+  const handleLaunchWhatsApp = (destination: 'auto' | 'web' | 'app' = 'auto') => {
     if (!selectedOrderForWhatsApp || !selectedOrderForWhatsApp.whatsappPhone) return;
 
     const message = customWhatsAppMessage || generateCustomerWhatsAppMessage(
@@ -383,7 +409,7 @@ export default function ZohoOrderCenter({ adminKey = '', onLogout }: ZohoOrderCe
     );
 
     const targetPhone = selectedOrderForWhatsApp.whatsappPhone;
-    const url = buildWhatsAppUrl(targetPhone, message);
+    const url = buildWhatsAppUrl(targetPhone, message, destination);
 
     // Mark as opened in current session (do this before navigation)
     setWhatsAppOpenedMap((prev) => ({
@@ -1664,14 +1690,27 @@ export default function ZohoOrderCenter({ adminKey = '', onLogout }: ZohoOrderCe
             {/* Action Buttons */}
             <div className="flex flex-col sm:flex-row gap-2.5 pt-2">
               {selectedOrderForWhatsApp.whatsappPhone ? (
-                <button
-                  type="button"
-                  onClick={handleLaunchWhatsApp}
-                  className="flex-1 py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all active:scale-98 cursor-pointer"
-                >
-                  <Send size={15} />
-                  <span>Open in WhatsApp &amp; Send</span>
-                </button>
+                <>
+                  <button
+                    type="button"
+                    onClick={() => handleLaunchWhatsApp('web')}
+                    className="flex-1 py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all active:scale-98 cursor-pointer"
+                    title="Open directly in WhatsApp Web with guaranteed emoji rendering"
+                  >
+                    <Send size={15} />
+                    <span>Open in WhatsApp Web</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handleLaunchWhatsApp('app')}
+                    className="py-3 px-3.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 font-semibold text-xs flex items-center justify-center gap-1.5 transition-all active:scale-98 cursor-pointer"
+                    title="Open in WhatsApp Desktop App"
+                  >
+                    <ExternalLink size={14} />
+                    <span className="hidden sm:inline">Desktop App</span>
+                  </button>
+                </>
               ) : (
                 <button
                   type="button"
@@ -1691,9 +1730,10 @@ export default function ZohoOrderCenter({ adminKey = '', onLogout }: ZohoOrderCe
                     ? 'bg-emerald-50 border-emerald-300 text-emerald-800'
                     : 'bg-white border-gray-200 text-gray-700 hover:border-olive'
                 }`}
+                title="Copy formatted message with all emojis to clipboard"
               >
                 {isCopied ? <Check size={15} className="text-emerald-600" /> : <Copy size={15} />}
-                <span>{isCopied ? 'Copied! ✓' : 'Copy Message'}</span>
+                <span>{isCopied ? 'Copied with Emojis! ✓' : 'Copy Message'}</span>
               </button>
             </div>
           </div>
