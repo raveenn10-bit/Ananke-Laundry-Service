@@ -3,6 +3,7 @@
 import { useRef, useState } from 'react';
 import { motion, useInView } from 'framer-motion';
 import { Star, MapPin, Quote, ChevronLeft, ChevronRight, CheckCircle2 } from 'lucide-react';
+import { useMobileAutoScroll } from '@/hooks/useMobileAutoScroll';
 
 interface Review {
   id: number;
@@ -121,6 +122,7 @@ const REVIEWS: Review[] = [
 export default function Reviews() {
   const ref = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const autoScrollRef = useMobileAutoScroll<HTMLDivElement>({ interval: 3800, stepOffset: 340 });
   const isInView = useInView(ref, { once: true, margin: '-80px' });
 
   const scroll = (direction: 'left' | 'right') => {
@@ -184,9 +186,17 @@ export default function Reviews() {
           </div>
         </div>
 
+        {/* Mobile Swipe / Auto-scroll Hint */}
+        <div className="flex sm:hidden items-center justify-center gap-2 text-xs font-semibold text-accent/80 mb-3 animate-pulse">
+          <span>&larr; Auto-scrolling reviews &bull; Swipe to browse &rarr;</span>
+        </div>
+
         {/* Scrollable Reviews Cards */}
         <div
-          ref={scrollContainerRef}
+          ref={(el) => {
+            scrollContainerRef.current = el;
+            autoScrollRef.current = el;
+          }}
           className="flex gap-6 overflow-x-auto pb-6 snap-x snap-mandatory scrollbar-none no-scrollbar -mx-4 px-4 md:mx-0 md:px-0"
           style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
         >

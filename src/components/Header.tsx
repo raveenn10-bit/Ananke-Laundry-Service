@@ -4,7 +4,23 @@ import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Menu, X, Phone, MapPin, Receipt, Sparkles, Download } from 'lucide-react';
+import {
+  Menu,
+  X,
+  Phone,
+  MapPin,
+  Receipt,
+  Sparkles,
+  Download,
+  Home,
+  WashingMachine,
+  Building,
+  DollarSign,
+  Image as ImageIcon,
+  Info,
+  ChevronRight,
+  ArrowRight,
+} from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useOrderModal } from '@/context/OrderModalContext';
 import { useLanguage } from '@/context/LanguageContext';
@@ -28,6 +44,51 @@ export default function Header() {
     { name: t('nav.facility', 'Facility'), href: '/gallery' },
     { name: t('nav.contact', 'Contact'), href: '/contact' },
     { name: t('nav.myBill', 'View My Bill'), href: '/my-bill' },
+  ];
+
+  const appNavItems = [
+    {
+      name: t('nav.home', 'Home'),
+      subtitle: 'Premium Garment Care & Facilities',
+      href: '/',
+      icon: Home,
+    },
+    {
+      name: t('nav.services', 'Services'),
+      subtitle: 'Wash, Dry, Fold, Press & Stain Removal',
+      href: '/services',
+      icon: WashingMachine,
+    },
+    {
+      name: t('nav.commercial', 'Commercial'),
+      subtitle: 'Bespoke Linen Care for Hospitality',
+      href: '/commercial',
+      icon: Building,
+    },
+    {
+      name: t('nav.pricing', 'Pricing'),
+      subtitle: 'Transparent Per-Kg & Item Rates',
+      href: '/pricing',
+      icon: DollarSign,
+    },
+    {
+      name: t('nav.facility', 'Facility'),
+      subtitle: 'State-of-the-Art Cleanline Tech',
+      href: '/gallery',
+      icon: ImageIcon,
+    },
+    {
+      name: t('nav.about', 'About Us'),
+      subtitle: 'Our Story, Values & Hygiene Standards',
+      href: '/about',
+      icon: Info,
+    },
+    {
+      name: t('nav.contact', 'Contact'),
+      subtitle: 'Location Map, Phone & Inquiry Form',
+      href: '/contact',
+      icon: Phone,
+    },
   ];
 
   useEffect(() => {
@@ -131,23 +192,37 @@ export default function Header() {
             </Link>
           </div>
 
-          {/* Mobile Right Controls: Language Switcher + Menu Hamburger */}
+          {/* Mobile Right Controls: Language Switcher + Modern Animated Hamburger */}
           <div className="lg:hidden flex items-center gap-2">
             <LanguageSwitcher variant="header" />
             <button
-              className="relative z-50 p-2 text-white min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl bg-white/10 backdrop-blur-md active:scale-95 transition-transform"
+              className="relative z-50 w-11 h-11 flex flex-col items-center justify-center gap-1.5 rounded-2xl bg-white/10 hover:bg-white/15 active:scale-90 transition-all duration-300 border border-white/20 backdrop-blur-md shadow-sm cursor-pointer"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              aria-label={isMenuOpen ? 'Close Menu' : 'Open Menu'}
+              aria-label={isMenuOpen ? 'Close Navigation Menu' : 'Open Navigation Menu'}
               aria-expanded={isMenuOpen}
               aria-controls="mobile-nav"
             >
-              {isMenuOpen ? <X size={26} /> : <Menu size={26} />}
+              <span
+                className={`w-5 h-0.5 bg-accent rounded-full transition-all duration-300 transform origin-center ${
+                  isMenuOpen ? 'rotate-45 translate-y-2' : ''
+                }`}
+              />
+              <span
+                className={`w-3.5 h-0.5 bg-white rounded-full transition-all duration-300 self-end mr-3 ${
+                  isMenuOpen ? 'opacity-0 translate-x-2' : ''
+                }`}
+              />
+              <span
+                className={`w-5 h-0.5 bg-accent rounded-full transition-all duration-300 transform origin-center ${
+                  isMenuOpen ? '-rotate-45 -translate-y-2' : ''
+                }`}
+              />
             </button>
           </div>
         </div>
       </div>
 
-      {/* Mobile Menu Overlay */}
+      {/* High-End Mobile App Drawer */}
       <AnimatePresence>
         {isMenuOpen && (
           <motion.div
@@ -155,35 +230,140 @@ export default function Header() {
             initial={{ opacity: 0, x: '100%' }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: '100%' }}
-            transition={{ type: 'tween', duration: 0.3 }}
-            className="fixed inset-0 bg-primary z-40 flex flex-col justify-between px-5 pt-22 pb-8 lg:hidden overflow-y-auto min-h-[100dvh] max-h-[100dvh]"
+            transition={{ type: 'spring', damping: 28, stiffness: 280 }}
+            className="fixed inset-0 bg-[#0c2014] text-white z-40 flex flex-col justify-between lg:hidden overflow-hidden min-h-[100dvh] max-h-[100dvh]"
           >
-            {/* Language Selection Grid in Mobile Drawer */}
-            <div className="w-full max-w-sm mx-auto mb-2 shrink-0">
-              <LanguageSwitcher variant="mobile-drawer" />
+            {/* Drawer App Bar */}
+            <div className="pt-20 px-5 pb-3 border-b border-white/10 flex items-center justify-between shrink-0 bg-gradient-to-b from-[#07150d] to-transparent">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-accent/20 border border-accent/30 flex items-center justify-center">
+                  <Sparkles size={16} className="text-accent" />
+                </div>
+                <div>
+                  <div className="text-xs font-heading tracking-widest uppercase text-accent font-semibold">
+                    ANANKE LAUNDRY
+                  </div>
+                  <div className="flex items-center gap-1.5 text-[11px] text-white/70">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                    <span>Unawatuna • Open 8AM – 8PM</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Close Icon button */}
+              <button
+                type="button"
+                onClick={closeMenu}
+                aria-label="Close menu"
+                className="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 active:scale-95 border border-white/15 flex items-center justify-center text-white/80 hover:text-white transition-colors cursor-pointer"
+              >
+                <X size={18} />
+              </button>
             </div>
 
-            <nav className="flex flex-col gap-2.5 items-center my-auto py-2">
-              {navLinks.map((link) => {
-                const isActive = pathname === link.href;
-                const isBill = link.href === '/my-bill';
-                return (
-                  <Link
-                    key={link.href}
-                    href={link.href}
-                    className={`text-lg sm:text-xl font-heading font-medium transition-colors flex items-center gap-2 py-1 ${
-                      isActive ? 'text-accent font-bold underline underline-offset-8 decoration-2' : 'text-white hover:text-accent'
-                    } ${isBill ? 'text-accent font-semibold' : ''}`}
-                    onClick={closeMenu}
-                  >
-                    {isBill && <Receipt size={17} className="text-accent" />}
-                    <span>{link.name}</span>
-                  </Link>
-                );
-              })}
-            </nav>
+            {/* Scrollable App Body */}
+            <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4">
+              {/* Language Switcher Component */}
+              <div className="w-full">
+                <LanguageSwitcher variant="mobile-drawer" />
+              </div>
 
-            <div className="flex flex-col gap-2.5 mt-4 w-full max-w-sm mx-auto shrink-0 pb-safe">
+              {/* VIP Hero Card: My Bill & Live Tracking */}
+              <Link
+                href="/my-bill"
+                onClick={closeMenu}
+                className="group block relative overflow-hidden rounded-2xl p-4 bg-gradient-to-br from-emerald-600/30 via-emerald-800/40 to-primary border border-emerald-400/30 shadow-lg hover:border-emerald-400/60 active:scale-[0.98] transition-all"
+              >
+                <div className="absolute -right-6 -bottom-6 w-24 h-24 bg-accent/10 rounded-full blur-xl pointer-events-none" />
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-emerald-500 to-accent text-dark flex items-center justify-center shadow-md">
+                      <Receipt size={22} className="text-dark font-bold" />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-bold text-white tracking-wide">
+                          {t('nav.myBill', 'View My Bill & Track Order')}
+                        </span>
+                        <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-emerald-400/20 text-emerald-300 border border-emerald-400/30">
+                          LIVE
+                        </span>
+                      </div>
+                      <p className="text-xs text-white/70 mt-0.5">
+                        Real-time status, bills, collection times
+                      </p>
+                    </div>
+                  </div>
+                  <ChevronRight size={18} className="text-accent group-hover:translate-x-1 transition-transform shrink-0" />
+                </div>
+              </Link>
+
+              {/* App Menu Navigation Tiles */}
+              <div className="space-y-1.5 pt-1">
+                <div className="text-[10px] uppercase tracking-wider font-semibold text-white/40 px-2 pb-1">
+                  Main Navigation
+                </div>
+                {appNavItems.map((item) => {
+                  const isActive =
+                    pathname === item.href ||
+                    (item.href !== '/' && pathname.startsWith(item.href));
+                  const Icon = item.icon;
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      onClick={closeMenu}
+                      className={`group flex items-center justify-between p-3 rounded-2xl transition-all active:scale-[0.99] border ${
+                        isActive
+                          ? 'bg-white/15 border-accent/50 text-white shadow-sm'
+                          : 'bg-white/5 hover:bg-white/10 border-white/5 text-white/90'
+                      }`}
+                    >
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div
+                          className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
+                            isActive
+                              ? 'bg-accent text-dark font-bold'
+                              : 'bg-white/10 text-accent group-hover:bg-accent group-hover:text-dark'
+                          }`}
+                        >
+                          <Icon size={18} />
+                        </div>
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2">
+                            <span
+                              className={`text-sm font-medium ${
+                                isActive ? 'text-accent font-bold' : 'text-white'
+                              }`}
+                            >
+                              {item.name}
+                            </span>
+                            {isActive && (
+                              <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
+                            )}
+                          </div>
+                          <p className="text-[11px] text-white/60 truncate">
+                            {item.subtitle}
+                          </p>
+                        </div>
+                      </div>
+                      <ChevronRight
+                        size={16}
+                        className={`shrink-0 transition-transform ${
+                          isActive
+                            ? 'text-accent'
+                            : 'text-white/40 group-hover:text-white group-hover:translate-x-0.5'
+                        }`}
+                      />
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Bottom Dock / Quick Actions */}
+            <div className="p-4 border-t border-white/10 bg-[#07150d] space-y-2.5 shrink-0 pb-safe">
+              {/* PWA Install Button if available */}
               {isInstallable && !isInstalled && (
                 <button
                   type="button"
@@ -191,59 +371,64 @@ export default function Header() {
                     closeMenu();
                     installApp();
                   }}
-                  className="bg-emerald-900/90 hover:bg-emerald-800 text-white font-bold text-sm px-5 py-3 rounded-full w-full flex items-center justify-center gap-2 border border-emerald-400/40 shadow-lg min-h-[44px] cursor-pointer active:scale-95"
+                  className="bg-emerald-950/80 hover:bg-emerald-900 text-emerald-200 font-bold text-xs px-4 py-2.5 rounded-2xl w-full flex items-center justify-center gap-2 border border-emerald-500/30 active:scale-[0.98] transition-transform cursor-pointer"
                 >
-                  <Download size={16} className="text-accent" />
+                  <Download size={14} className="text-accent" />
                   <span>{t('pwa.install', 'Install Mobile App (PWA)')}</span>
                 </button>
               )}
 
+              {/* Primary Order Action Button */}
               <button
                 type="button"
                 onClick={() => {
                   closeMenu();
                   openOrderModal();
                 }}
-                className="bg-gradient-to-r from-emerald-600 via-emerald-500 to-green-600 text-white font-bold text-sm sm:text-base px-5 py-3.5 rounded-full w-full shadow-[0_4px_20px_rgba(16,185,129,0.4)] min-h-[44px] flex items-center justify-center gap-2 cursor-pointer active:scale-95"
+                className="w-full bg-gradient-to-r from-emerald-500 via-emerald-600 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white font-bold text-sm py-3.5 px-4 rounded-2xl shadow-[0_4px_20px_rgba(16,185,129,0.35)] flex items-center justify-center gap-2 active:scale-[0.98] transition-all cursor-pointer"
               >
-                <Sparkles size={17} className="text-accent" />
+                <Sparkles size={16} className="text-accent" />
                 <span>{t('hero.ctaOrder', 'Place an Order (WhatsApp)')}</span>
+                <ArrowRight size={14} className="ml-1 opacity-80" />
               </button>
 
-              <Link
-                href="/my-bill"
-                className="bg-white/10 hover:bg-white/20 text-white font-semibold text-sm px-5 py-3.5 rounded-full w-full flex items-center justify-center gap-2 border border-white/20 shadow-md min-h-[44px]"
-                onClick={closeMenu}
-              >
-                <Receipt size={16} className="text-accent" />
-                <span>{t('nav.myBill', 'View My Bill & Receipts')}</span>
-              </Link>
-
-              <Link
-                href="/contact"
-                className="bg-accent text-dark text-center font-bold text-sm sm:text-base px-5 py-3.5 rounded-full w-full shadow-lg min-h-[44px] flex items-center justify-center"
-                onClick={closeMenu}
-              >
-                {t('nav.requestQuote', 'Request a Quote')}
-              </Link>
-
-              <div className="flex flex-col sm:flex-row gap-2.5">
+              {/* Dual Contact & Directions Hotline */}
+              <div className="grid grid-cols-2 gap-2">
                 <a
                   href="tel:+94912250777"
-                  className="flex-1 bg-white/10 hover:bg-white/20 flex items-center justify-center gap-2 text-white py-3 px-3 rounded-full border border-white/20 text-xs sm:text-sm font-medium transition-colors min-h-[44px]"
+                  className="flex items-center justify-center gap-2 bg-white/10 hover:bg-white/15 text-white/90 text-xs font-semibold py-2.5 px-3 rounded-xl border border-white/10 transition-colors active:scale-95"
                 >
-                  <Phone size={15} className="text-accent shrink-0" />
+                  <Phone size={13} className="text-accent shrink-0" />
                   <span>091 225 0777</span>
                 </a>
                 <a
                   href="https://maps.app.goo.gl/HLJGzPCVZwySjSTK6?g_st=ic"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex-1 bg-olive/30 hover:bg-olive/40 flex items-center justify-center gap-2 text-white py-3 px-3 rounded-full border border-olive/50 text-xs sm:text-sm font-medium transition-colors min-h-[44px]"
+                  className="flex items-center justify-center gap-2 bg-white/10 hover:bg-white/15 text-white/90 text-xs font-semibold py-2.5 px-3 rounded-xl border border-white/10 transition-colors active:scale-95"
                 >
-                  <MapPin size={15} className="text-accent shrink-0" />
+                  <MapPin size={13} className="text-accent shrink-0" />
                   <span>{t('fab.directions', 'Directions')}</span>
                 </a>
+              </div>
+
+              {/* Legal & Policy Micro-Links */}
+              <div className="pt-2 flex items-center justify-center gap-3 text-[10px] text-white/50">
+                <Link href="/terms" onClick={closeMenu} className="hover:text-accent transition-colors">
+                  Terms
+                </Link>
+                <span>&bull;</span>
+                <Link href="/privacy" onClick={closeMenu} className="hover:text-accent transition-colors">
+                  Privacy
+                </Link>
+                <span>&bull;</span>
+                <Link href="/refund-policy" onClick={closeMenu} className="hover:text-accent transition-colors">
+                  Refunds
+                </Link>
+                <span>&bull;</span>
+                <Link href="/accessibility" onClick={closeMenu} className="hover:text-accent transition-colors">
+                  Accessibility
+                </Link>
               </div>
             </div>
           </motion.div>
