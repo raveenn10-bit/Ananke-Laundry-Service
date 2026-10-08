@@ -78,6 +78,9 @@ export const metadata: Metadata = {
     locale: 'en_LK',
     type: 'website',
   },
+  verification: {
+    google: 'fwf55F3-5MX4DnsyloGTqmbJiFT9fEkrzZsnbjvqhvQ',
+  },
   twitter: {
     card: 'summary_large_image',
     title: 'Ananke Laundry | Professional Laundry Services in Unawatuna, Galle',
@@ -140,6 +143,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${playfair.variable} ${inter.variable} scroll-smooth`}>
       <head>
+        <meta name="google-site-verification" content="fwf55F3-5MX4DnsyloGTqmbJiFT9fEkrzZsnbjvqhvQ" />
         <link rel="manifest" href="/manifest.json" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
