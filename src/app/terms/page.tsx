@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   description:
     'Review the official terms and conditions for Ananke Laundry professional garment-care and commercial linen services in Unawatuna, Galle.',
   alternates: {
-    canonical: 'https://anankelaundry.com/terms',
+    canonical: 'https://www.anankelaundry.lk/terms',
   },
 };
 

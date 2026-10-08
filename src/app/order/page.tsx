@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   description:
     'Place a laundry order with Ananke Laundry in Unawatuna, Galle. Select washing, pressing, dry cleaning, or linen management services with direct WhatsApp order confirmation.',
   alternates: {
-    canonical: 'https://anankelaundry.com/order',
+    canonical: 'https://www.anankelaundry.lk/order',
   },
 };
 

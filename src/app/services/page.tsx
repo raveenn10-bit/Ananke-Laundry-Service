@@ -7,11 +7,30 @@ import HowItWorks from '@/components/sections/HowItWorks';
 import FAQ from '@/components/sections/FAQ';
 
 export const metadata: Metadata = {
-  title: 'Professional Laundry Services | Ananke Laundry Unawatuna, Galle',
+  title: 'Laundry Services in Unawatuna & Galle | Washing, Dry Cleaning, Ironing',
   description:
-    'Comprehensive laundry services in Unawatuna, Galle: professional washing, pressing, dry cleaning, stain removal, and hospitality linen care by Ananke Laundry.',
+    'Full-service laundry in Unawatuna, Galle: professional washing, dry cleaning, ironing, stain removal, and hotel linen care. Fast turnaround. Call 091 225 0777.',
+  keywords: [
+    'laundry service Unawatuna',
+    'laundry service Galle',
+    'dry cleaning Galle',
+    'dry cleaning Unawatuna',
+    'ironing service Galle',
+    'washing service Unawatuna',
+    'stain removal Galle',
+    'hotel linen care Galle',
+    'villa laundry Unawatuna',
+    'garment care Sri Lanka',
+  ],
   alternates: {
-    canonical: 'https://anankelaundry.com/services',
+    canonical: 'https://www.anankelaundry.lk/services',
+  },
+  openGraph: {
+    title: 'Laundry Services in Unawatuna & Galle | Ananke Laundry',
+    description:
+      'Professional washing, dry cleaning, ironing & stain removal in Unawatuna & Galle, Sri Lanka. Individual & hotel linen care by Ananke Laundry.',
+    url: 'https://www.anankelaundry.lk/services',
+    images: [{ url: '/images/cover.png', width: 1200, height: 630, alt: 'Ananke Laundry Services – Unawatuna, Galle' }],
   },
 };
 

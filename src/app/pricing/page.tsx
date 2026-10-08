@@ -10,7 +10,7 @@ export const metadata: Metadata = {
   description:
     'Transparent laundry pricing and tailored quotations for hotels, villas, and personal garment care in Unawatuna, Galle by Ananke Laundry.',
   alternates: {
-    canonical: 'https://anankelaundry.com/pricing',
+    canonical: 'https://www.anankelaundry.lk/pricing',
   },
 };
 

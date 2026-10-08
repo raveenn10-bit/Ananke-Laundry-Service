@@ -309,7 +309,7 @@ export default function BillPortal() {
   const getCustomerOrderWhatsAppUrl = (invoiceNumber: string) => {
     const cleanName = customer?.name?.trim() || 'Valued Customer';
     const cleanInv = invoiceNumber.trim();
-    const myBillLink = `https://anankelaundry.com/my-bill?invoice=${encodeURIComponent(cleanInv)}`;
+    const myBillLink = `https://www.anankelaundry.lk/my-bill?invoice=${encodeURIComponent(cleanInv)}`;
     const text = `🧺 Ananke Laundry
 
 Hi ${cleanName} 👋,

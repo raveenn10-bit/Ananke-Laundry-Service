@@ -236,7 +236,7 @@ export default function OrderManager({ adminKey }: OrderManagerProps) {
   const generateWhatsAppMessage = (name: string, inv: string) => {
     const cleanName = (name || '').replace(/<[^>]*>/g, '').trim() || 'Valued Customer';
     const cleanInv = (inv || '').replace(/<[^>]*>/g, '').trim() || '002018';
-    const myBillLink = `https://anankelaundry.com/my-bill?invoice=${encodeURIComponent(cleanInv)}`;
+    const myBillLink = `https://www.anankelaundry.lk/my-bill?invoice=${encodeURIComponent(cleanInv)}`;
 
     return `🧺 Ananke Laundry
 

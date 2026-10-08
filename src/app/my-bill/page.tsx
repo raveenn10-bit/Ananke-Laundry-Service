@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   description:
     'Securely view and download your commercial laundry invoices and payment receipts from Ananke Laundry in Unawatuna, Galle using your invoice number and verified phone number.',
   alternates: {
-    canonical: 'https://anankelaundry.com/my-bill',
+    canonical: 'https://www.anankelaundry.lk/my-bill',
   },
 };
 

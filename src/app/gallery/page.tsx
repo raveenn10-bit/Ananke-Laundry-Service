@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   description:
     'Explore our Unawatuna laundry facility and equipment gallery. Authentic photos of commercial washers, steam presses, folding operations, and dedicated team.',
   alternates: {
-    canonical: 'https://anankelaundry.com/gallery',
+    canonical: 'https://www.anankelaundry.lk/gallery',
   },
 };
 

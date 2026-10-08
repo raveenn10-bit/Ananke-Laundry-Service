@@ -50,7 +50,7 @@ export function getMyBillUrl(invoiceNumber: string, baseUrl?: string): string {
     process.env.NEXT_PUBLIC_APP_URL ||
     (process.env.VERCEL_PROJECT_PRODUCTION_URL
       ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
-      : 'https://anankelaundry.com');
+      : 'https://www.anankelaundry.lk');
   const cleanDomain = domain.replace(/\/+$/, '');
   const cleanInvoice = encodeURIComponent(cleanWhatsAppPlainText(invoiceNumber));
   return `${cleanDomain}/my-bill?invoice=${cleanInvoice}`;
@@ -308,7 +308,7 @@ ${order.zohoInvoiceNumber ? `🧾 *Invoice Ref:* #${order.zohoInvoiceNumber}\n` 
 📍 *Facility Pickup Address:*
 No. 195/2, Matara Road, Unawatuna, Galle
 📞 *Hotline:* 091 225 0777
-🌐 *Website:* anankelaundry.com
+🌐 *Website:* www.anankelaundry.lk
 
 Thank you for choosing Ananke Laundry!`;
 

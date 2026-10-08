@@ -49,7 +49,7 @@ export async function sendOrderStatusEmail(
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          from: process.env.EMAIL_FROM || 'Ananke Laundry <orders@anankelaundry.com>',
+          from: process.env.EMAIL_FROM || 'Ananke Laundry <orders@www.anankelaundry.lk>',
           to: [recipient],
           subject: emailData.subject,
           html: emailData.html,
@@ -77,7 +77,7 @@ export async function sendOrderStatusEmail(
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          sender: { name: 'Ananke Laundry', email: process.env.EMAIL_FROM || 'orders@anankelaundry.com' },
+          sender: { name: 'Ananke Laundry', email: process.env.EMAIL_FROM || 'orders@www.anankelaundry.lk' },
           to: [{ email: recipient, name: order.customerName }],
           subject: emailData.subject,
           htmlContent: emailData.html,

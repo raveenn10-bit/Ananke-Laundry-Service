@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   description:
     'Contact Ananke Laundry in Unawatuna, Galle. Call 091 225 0777 or submit a quotation request for hotel linen management and garment care.',
   alternates: {
-    canonical: 'https://anankelaundry.com/contact',
+    canonical: 'https://www.anankelaundry.lk/contact',
   },
 };
 

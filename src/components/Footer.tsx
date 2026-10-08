@@ -245,7 +245,7 @@ export default function Footer() {
           <div className="pt-6 border-t border-[#163824]/15 flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
             <div className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2">
               <p className="text-[11px] sm:text-xs text-[#163824]/70 font-body">
-                &copy; {new Date().getFullYear()} anankelaundry.com &bull; Ananke Laundry (Pvt) Ltd.
+                &copy; {new Date().getFullYear()} www.anankelaundry.lk &bull; Ananke Laundry (Pvt) Ltd.
               </p>
               <span className="hidden sm:inline text-[#163824]/40">&bull;</span>
               <p className="text-[11px] sm:text-xs text-[#163824]/80 font-medium">

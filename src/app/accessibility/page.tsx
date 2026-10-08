@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   description:
     'Read the accessibility policy and inclusive digital standards of Ananke Laundry in Unawatuna, Galle.',
   alternates: {
-    canonical: 'https://anankelaundry.com/accessibility',
+    canonical: 'https://www.anankelaundry.lk/accessibility',
   },
 };
 

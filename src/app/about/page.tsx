@@ -11,7 +11,7 @@ export const metadata: Metadata = {
   description:
     'Discover Ananke Laundry in Unawatuna, Galle. Professional laundry and commercial linen care connected with Cleanline Linen Management in Southern Sri Lanka.',
   alternates: {
-    canonical: 'https://anankelaundry.com/about',
+    canonical: 'https://www.anankelaundry.lk/about',
   },
 };
 

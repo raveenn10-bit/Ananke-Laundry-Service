@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   description:
     'Read the official privacy policy of Ananke Laundry in Unawatuna, Galle. Learn how we collect, use, and safeguard customer personal information.',
   alternates: {
-    canonical: 'https://anankelaundry.com/privacy',
+    canonical: 'https://www.anankelaundry.lk/privacy',
   },
 };
 

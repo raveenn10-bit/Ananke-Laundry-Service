@@ -12,7 +12,7 @@ export const metadata: Metadata = {
   description:
     'Dedicated commercial laundry and linen management for hotels, villas, guest houses, and restaurants in Galle & Unawatuna. Cleanline network standards.',
   alternates: {
-    canonical: 'https://anankelaundry.com/commercial',
+    canonical: 'https://www.anankelaundry.lk/commercial',
   },
 };
 

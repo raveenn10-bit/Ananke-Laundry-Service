@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   description:
     'Review the official refund, re-cleaning, and payment review policy of Ananke Laundry in Unawatuna, Galle.',
   alternates: {
-    canonical: 'https://anankelaundry.com/refund-policy',
+    canonical: 'https://www.anankelaundry.lk/refund-policy',
   },
 };
 
