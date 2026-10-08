@@ -39,6 +39,7 @@ export default function Hero() {
   const isInView = useInView(ref, { once: true, margin: '-100px' });
   const [current, setCurrent] = useState(0);
   const [direction, setDirection] = useState(1); // 1 = forward, -1 = backward
+  const [isVideoLoaded, setIsVideoLoaded] = useState(false);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const goTo = (index: number, dir: number) => {
@@ -59,7 +60,27 @@ export default function Hero() {
 
   useEffect(() => {
     startInterval();
-    return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
+
+    // Lazy-load the heavy background video only after initial render and when browser is idle
+    let timerId: ReturnType<typeof setTimeout> | null = null;
+    let idleId: number | null = null;
+
+    if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
+      idleId = (window as Window & { requestIdleCallback: (cb: () => void, opts?: { timeout: number }) => number }).requestIdleCallback(
+        () => setIsVideoLoaded(true),
+        { timeout: 2500 }
+      );
+    } else {
+      timerId = setTimeout(() => setIsVideoLoaded(true), 1500);
+    }
+
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+      if (timerId) clearTimeout(timerId);
+      if (idleId !== null && typeof window !== 'undefined' && 'cancelIdleCallback' in window) {
+        (window as Window & { cancelIdleCallback: (id: number) => void }).cancelIdleCallback(idleId);
+      }
+    };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -84,31 +105,53 @@ export default function Hero() {
   return (
     <section id="home" className="relative min-h-[85vh] md:min-h-screen flex items-center pt-24 pb-24 sm:pb-20 md:pb-16 overflow-hidden bg-primary">
 
-      {/* === Background Video === */}
-      <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
-        {/* Mobile Background Video (< 768px) */}
-        <video
-          autoPlay
-          loop
-          muted
-          playsInline
-          poster="/images/hero.jpg"
-          className="absolute inset-0 w-full h-full object-cover scale-[1.03] block md:hidden"
-        >
-          <source src="/videos/hero-building-exterior-mobile.mp4" type="video/mp4" />
-        </video>
+      {/* === Background Media === */}
+      <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none" aria-hidden="true">
+        {/* Next.js LCP Priority Image */}
+        <Image
+          src="/images/hero.jpg"
+          priority
+          fetchPriority="high"
+          fill
+          sizes="100vw"
+          alt="Ananke Laundry Unawatuna Facility"
+          className="object-cover scale-[1.03]"
+        />
 
-        {/* Desktop Background Video (>= 768px) */}
-        <video
-          autoPlay
-          loop
-          muted
-          playsInline
-          poster="/images/hero.jpg"
-          className="absolute inset-0 w-full h-full object-cover scale-[1.03] hidden md:block"
-        >
-          <source src="/videos/hero-building-exterior.mp4" type="video/mp4" />
-        </video>
+        {/* Lazy-loaded Background Videos - Only rendered after idle to prevent blocking initial LCP */}
+        {isVideoLoaded && (
+          <>
+            {/* Mobile Background Video (< 768px) */}
+            <video
+              autoPlay
+              loop
+              muted
+              playsInline
+              preload="none"
+              aria-hidden="true"
+              tabIndex={-1}
+              poster="/images/hero.jpg"
+              className="absolute inset-0 w-full h-full object-cover scale-[1.03] block md:hidden transition-opacity duration-1000"
+            >
+              <source src="/videos/hero-building-exterior-mobile.mp4" type="video/mp4" />
+            </video>
+
+            {/* Desktop Background Video (>= 768px) */}
+            <video
+              autoPlay
+              loop
+              muted
+              playsInline
+              preload="none"
+              aria-hidden="true"
+              tabIndex={-1}
+              poster="/images/hero.jpg"
+              className="absolute inset-0 w-full h-full object-cover scale-[1.03] hidden md:block transition-opacity duration-1000"
+            >
+              <source src="/videos/hero-building-exterior.mp4" type="video/mp4" />
+            </video>
+          </>
+        )}
 
         {/* Dark gradient overlay */}
         <div className="absolute inset-0 bg-gradient-to-r from-dark/95 via-dark/80 to-primary/65 z-10" />
@@ -118,17 +161,18 @@ export default function Hero() {
 
         {/* Current facility badge */}
         <div className="absolute top-6 right-6 z-20 hidden sm:flex items-center gap-2 bg-black/45 backdrop-blur-md border border-white/15 text-white/90 text-[10px] uppercase tracking-[0.2em] font-semibold px-3.5 py-1.5 rounded-full">
-          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" aria-hidden="true" />
           <span>Unawatuna Facility &bull; Live View</span>
         </div>
       </div>
 
       {/* === Ambient Floating Particles === */}
-      <div className="absolute inset-0 z-5 pointer-events-none overflow-hidden hidden md:block">
+      <div className="absolute inset-0 z-5 pointer-events-none overflow-hidden hidden md:block" aria-hidden="true">
         {[...Array(5)].map((_, i) => (
           <div
             key={i}
             className="absolute rounded-full bg-accent/10 animate-float"
+            aria-hidden="true"
             style={{
               width: `${(i + 1) * 8 + 12}px`,
               height: `${(i + 1) * 8 + 12}px`,
@@ -152,7 +196,7 @@ export default function Hero() {
         >
           <motion.div variants={itemVariants}>
             <span className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md border border-white/15 text-accent text-xs uppercase tracking-[0.25em] font-semibold px-4 py-1.5 rounded-full mb-6">
-              <Sparkles size={13} className="text-accent" />
+              <Sparkles size={13} className="text-accent" aria-hidden="true" />
               {t('hero.badge', 'Unawatuna • Galle • Southern Sri Lanka')}
             </span>
           </motion.div>
@@ -173,33 +217,37 @@ export default function Hero() {
             <button
               type="button"
               onClick={openOrderModal}
+              aria-label={t('hero.ctaOrder', 'Place an Order')}
               className="bg-gradient-to-r from-emerald-600 via-emerald-500 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white font-bold px-6 sm:px-7 py-3.5 sm:py-4 rounded-full transition-all duration-300 flex items-center justify-center gap-2 text-sm sm:text-base shadow-[0_8px_25px_rgba(16,185,129,0.45)] hover:scale-[1.02] active:scale-95 min-h-[44px] cursor-pointer"
             >
-              <Sparkles className="w-5 h-5 text-accent" />
+              <Sparkles className="w-5 h-5 text-accent" aria-hidden="true" />
               <span>{t('hero.ctaOrder', 'Place an Order')}</span>
             </button>
             <a
               href="/contact"
+              aria-label={t('nav.requestQuote', 'Request a Quote')}
               className="bg-accent hover:bg-olive text-dark hover:text-white font-bold px-5 sm:px-6 py-3.5 sm:py-4 rounded-full transition-all duration-300 flex items-center justify-center gap-2 text-sm sm:text-base shadow-lg hover:shadow-accent/25 hover:scale-[1.02] active:scale-95 min-h-[44px]"
             >
-              <FileText className="w-4 h-4" />
-              {t('nav.requestQuote', 'Request a Quote')}
+              <FileText className="w-4 h-4" aria-hidden="true" />
+              <span>{t('nav.requestQuote', 'Request a Quote')}</span>
             </a>
             <a
               href="tel:+94912250777"
+              aria-label="Call Ananke Laundry at 091 225 0777"
               className="border-2 border-white/40 hover:border-accent text-white hover:text-accent rounded-full px-4 sm:px-5 py-3 sm:py-3.5 transition-all duration-300 flex items-center justify-center gap-2 text-xs sm:text-base font-medium hover:bg-white/5 active:scale-95 min-h-[44px]"
             >
-              <Phone className="w-4 h-4 text-accent" />
-              091 225 0777
+              <Phone className="w-4 h-4 text-accent" aria-hidden="true" />
+              <span>091 225 0777</span>
             </a>
             <a
               href="https://maps.app.goo.gl/HLJGzPCVZwySjSTK6?g_st=ic"
               target="_blank"
               rel="noopener noreferrer"
+              aria-label={t('fab.directions', 'Get Directions')}
               className="text-white/80 hover:text-accent rounded-full px-3.5 sm:px-4 py-3 sm:py-3.5 transition-all duration-300 flex items-center justify-center gap-2 text-xs sm:text-base font-medium hover:bg-white/5 min-h-[44px]"
             >
-              <MapPin className="w-4 h-4 text-accent" />
-              {t('fab.directions', 'Get Directions')}
+              <MapPin className="w-4 h-4 text-accent" aria-hidden="true" />
+              <span>{t('fab.directions', 'Get Directions')}</span>
             </a>
           </motion.div>
 
@@ -210,7 +258,7 @@ export default function Hero() {
               { icon: MapPin, text: t('hero.fastTurnaround', 'Same-Day Express Available') },
             ].map((badge, idx) => (
               <div key={idx} className="flex items-center gap-2 bg-white/10 backdrop-blur-md border border-white/15 rounded-full px-3 sm:px-4 py-1.5 sm:py-2">
-                <badge.icon className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-accent shrink-0" />
+                <badge.icon className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-accent shrink-0" aria-hidden="true" />
                 <span className="text-white text-[11px] sm:text-sm font-medium">{badge.text}</span>
               </div>
             ))}
@@ -219,22 +267,23 @@ export default function Hero() {
       </div>
 
       {/* === Slide Controls (Prev / Next arrows) === */}
-      <div className="absolute bottom-5 right-4 sm:bottom-10 sm:right-8 z-20 flex items-center gap-2.5 sm:gap-3">
+      <div className="absolute bottom-5 right-4 sm:bottom-10 sm:right-8 z-20 flex items-center gap-2.5 sm:gap-3" aria-label="Slide controls">
         <button
           onClick={() => { prev(); startInterval(); }}
           aria-label="Previous slide"
           className="w-9 h-9 rounded-full bg-white/10 hover:bg-accent/80 border border-white/20 text-white hover:text-dark flex items-center justify-center transition-all active:scale-90 backdrop-blur-md"
         >
-          <ChevronLeft size={18} />
+          <ChevronLeft size={18} aria-hidden="true" />
         </button>
 
         {/* Dot indicators */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2" role="group" aria-label="Slide indicators">
           {HERO_SLIDES.map((_, idx) => (
             <button
               key={idx}
               onClick={() => { goTo(idx, idx > current ? 1 : -1); startInterval(); }}
-              aria-label={`Go to slide ${idx + 1}`}
+              aria-label={`Slide ${idx + 1}`}
+              aria-current={idx === current ? 'true' : undefined}
               className={`rounded-full transition-all duration-400 ${
                 idx === current
                   ? 'bg-accent w-6 h-2'
@@ -249,12 +298,12 @@ export default function Hero() {
           aria-label="Next slide"
           className="w-9 h-9 rounded-full bg-white/10 hover:bg-accent/80 border border-white/20 text-white hover:text-dark flex items-center justify-center transition-all active:scale-90 backdrop-blur-md"
         >
-          <ChevronRight size={18} />
+          <ChevronRight size={18} aria-hidden="true" />
         </button>
       </div>
 
       {/* === Progress Bar === */}
-      <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-white/10 z-20">
+      <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-white/10 z-20" aria-hidden="true">
         <motion.div
           key={current}
           className="h-full bg-accent"

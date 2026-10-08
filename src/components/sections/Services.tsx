@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef } from 'react';
+import { useState, useRef } from 'react';
 import Image from 'next/image';
 import { motion, useInView } from 'framer-motion';
 import Link from 'next/link';
@@ -82,6 +82,78 @@ const services = [
   },
 ];
 
+function ServiceCard({ service, idx }: { service: (typeof services)[number]; idx: number }) {
+  const [isPlaying, setIsPlaying] = useState(false);
+
+  return (
+    <motion.div
+      key={service.num}
+      initial={{ opacity: 0, y: 35 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: false, amount: 0.15, margin: '-40px' }}
+      transition={{ delay: 0.05 * (idx % 4), duration: 0.5 }}
+      onMouseEnter={() => setIsPlaying(true)}
+      onMouseLeave={() => setIsPlaying(false)}
+      className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 group flex flex-col w-[82vw] min-w-[250px] max-w-[320px] sm:w-auto sm:min-w-0 snap-start flex-shrink-0 sm:flex-shrink border border-gray-100"
+    >
+      <div
+        className="relative h-[190px] sm:h-[210px] overflow-hidden bg-gray-200 cursor-pointer"
+        onClick={() => setIsPlaying((prev) => !prev)}
+      >
+        {/* Next.js Image as the primary card visual */}
+        <Image
+          src={service.image}
+          alt={service.title}
+          fill
+          className="object-cover group-hover:scale-105 transition-transform duration-700"
+          sizes="(max-width: 768px) 85vw, 33vw"
+        />
+
+        {/* Video only loaded and played on hover or click, avoiding blocking initial load bandwidth */}
+        {service.video && isPlaying && (
+          <video
+            src={service.video}
+            poster={service.image}
+            autoPlay
+            loop
+            muted
+            playsInline
+            preload="none"
+            aria-hidden="true"
+            className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 z-[1]"
+          />
+        )}
+
+        <div className="absolute top-3 right-3 bg-dark/80 backdrop-blur-md text-accent text-xs font-mono font-bold px-2.5 py-1 rounded-full border border-white/15 z-10">
+          {service.num}
+        </div>
+        <div className="absolute -bottom-4 left-6 w-12 h-12 bg-primary rounded-2xl flex items-center justify-center text-white border-4 border-white z-10 shadow-md group-hover:bg-olive transition-colors">
+          <service.icon className="w-5 h-5 text-accent group-hover:text-white transition-colors" />
+        </div>
+      </div>
+      <div className="p-6 pt-7 flex-grow flex flex-col justify-between">
+        <div>
+          <h3 className="font-heading font-semibold text-xl text-dark mb-2 group-hover:text-olive transition-colors">
+            {service.title}
+          </h3>
+          <p className="text-gray-600 text-xs sm:text-sm leading-relaxed mb-5">
+            {service.desc}
+          </p>
+        </div>
+        <div className="pt-3 border-t border-gray-100">
+          <a
+            href="#contact"
+            className="text-olive hover:text-accent font-semibold text-xs sm:text-sm inline-flex items-center gap-1.5 transition-colors"
+          >
+            <span>Inquire Now</span>
+            <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
+          </a>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
 export default function Services() {
   const scrollRef = useMobileAutoScroll<HTMLDivElement>({ interval: 3400 });
 
@@ -117,62 +189,7 @@ export default function Services() {
           style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
         >
           {services.map((service, idx) => (
-            <motion.div
-              key={service.num}
-              initial={{ opacity: 0, y: 35 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: false, amount: 0.15, margin: '-40px' }}
-              transition={{ delay: 0.05 * (idx % 4), duration: 0.5 }}
-              className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 group flex flex-col w-[82vw] min-w-[250px] max-w-[320px] sm:w-auto sm:min-w-0 snap-start flex-shrink-0 sm:flex-shrink border border-gray-100"
-            >
-              <div className="relative h-[190px] sm:h-[210px] overflow-hidden bg-gray-200">
-                {service.video ? (
-                  <video
-                    src={service.video}
-                    poster={service.image}
-                    autoPlay
-                    loop
-                    muted
-                    playsInline
-                    preload="metadata"
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-                  />
-                ) : (
-                  <Image
-                    src={service.image}
-                    alt={service.title}
-                    fill
-                    className="object-cover group-hover:scale-105 transition-transform duration-700"
-                    sizes="(max-width: 768px) 85vw, 33vw"
-                  />
-                )}
-                <div className="absolute top-3 right-3 bg-dark/80 backdrop-blur-md text-accent text-xs font-mono font-bold px-2.5 py-1 rounded-full border border-white/15 z-10">
-                  {service.num}
-                </div>
-                <div className="absolute -bottom-4 left-6 w-12 h-12 bg-primary rounded-2xl flex items-center justify-center text-white border-4 border-white z-10 shadow-md group-hover:bg-olive transition-colors">
-                  <service.icon className="w-5 h-5 text-accent group-hover:text-white transition-colors" />
-                </div>
-              </div>
-              <div className="p-6 pt-7 flex-grow flex flex-col justify-between">
-                <div>
-                  <h3 className="font-heading font-semibold text-xl text-dark mb-2 group-hover:text-olive transition-colors">
-                    {service.title}
-                  </h3>
-                  <p className="text-gray-600 text-xs sm:text-sm leading-relaxed mb-5">
-                    {service.desc}
-                  </p>
-                </div>
-                <div className="pt-3 border-t border-gray-100">
-                  <a
-                    href="#contact"
-                    className="text-olive hover:text-accent font-semibold text-xs sm:text-sm inline-flex items-center gap-1.5 transition-colors"
-                  >
-                    <span>Inquire Now</span>
-                    <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
-                  </a>
-                </div>
-              </div>
-            </motion.div>
+            <ServiceCard key={service.num} service={service} idx={idx} />
           ))}
         </div>
 

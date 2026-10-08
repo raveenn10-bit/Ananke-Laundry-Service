@@ -149,7 +149,7 @@ export default function Contact() {
               <div className="space-y-5 text-sm sm:text-base">
                 <div className="flex items-start gap-3.5">
                   <div className="bg-white p-2.5 rounded-xl text-olive shadow-sm shrink-0 mt-0.5">
-                    <MapPin className="w-5 h-5" />
+                    <MapPin className="w-5 h-5" aria-hidden="true" />
                   </div>
                   <div>
                     <h4 className="font-semibold text-dark text-sm mb-0.5">Address</h4>
@@ -164,7 +164,7 @@ export default function Contact() {
 
                 <div className="flex items-start gap-3.5">
                   <div className="bg-white p-2.5 rounded-xl text-olive shadow-sm shrink-0 mt-0.5">
-                    <Phone className="w-5 h-5" />
+                    <Phone className="w-5 h-5" aria-hidden="true" />
                   </div>
                   <div>
                     <h4 className="font-semibold text-dark text-sm mb-0.5">Telephone</h4>
@@ -180,7 +180,7 @@ export default function Contact() {
 
                 <div className="flex items-start gap-3.5">
                   <div className="bg-[#25D366]/15 p-2.5 rounded-xl text-[#25D366] shadow-sm shrink-0 mt-0.5">
-                    <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
+                    <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24" aria-hidden="true">
                       <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L0 24l6.335-1.662c1.746.952 3.71 1.453 5.711 1.454h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z" />
                     </svg>
                   </div>
@@ -200,7 +200,7 @@ export default function Contact() {
 
                 <div className="flex items-start gap-3.5">
                   <div className="bg-blue-50 p-2.5 rounded-xl text-blue-600 shadow-sm shrink-0 mt-0.5">
-                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
                     </svg>
                   </div>
@@ -218,7 +218,7 @@ export default function Contact() {
 
                 <div className="flex items-start gap-3.5">
                   <div className="bg-white p-2.5 rounded-xl text-olive shadow-sm shrink-0 mt-0.5">
-                    <Clock className="w-5 h-5" />
+                    <Clock className="w-5 h-5" aria-hidden="true" />
                   </div>
                   <div className="w-full">
                     <h4 className="font-semibold text-dark text-sm mb-2">Opening Hours</h4>
@@ -242,17 +242,19 @@ export default function Contact() {
               <div className="pt-6 border-t border-gray-200/80 mt-6 grid grid-cols-1 sm:grid-cols-3 gap-2.5">
                 <a
                   href="tel:+94912250777"
+                  aria-label="Call Ananke Laundry at 091 225 0777"
                   className="bg-primary hover:bg-olive text-white px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold flex items-center justify-center gap-1.5 transition-colors shadow-sm text-center"
                 >
-                  <Phone size={14} className="text-accent" /> Call Now
+                  <Phone size={14} className="text-accent" aria-hidden="true" /> Call Now
                 </a>
                 <a
                   href="https://wa.me/94742697909?text=Hello%20Ananke%20Laundry%2C%20I%20would%20like%20to%20inquire%20about%20your%20services."
                   target="_blank"
                   rel="noopener noreferrer"
+                  aria-label="Contact Ananke Laundry on WhatsApp"
                   className="bg-[#25D366] hover:bg-[#20ba5a] text-white px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold flex items-center justify-center gap-1.5 transition-colors shadow-sm text-center"
                 >
-                  <svg className="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">
+                  <svg className="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24" aria-hidden="true">
                     <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L0 24l6.335-1.662c1.746.952 3.71 1.453 5.711 1.454h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z" />
                   </svg> WhatsApp
                 </a>
@@ -260,9 +262,10 @@ export default function Contact() {
                   href="https://maps.app.goo.gl/HLJGzPCVZwySjSTK6?g_st=ic"
                   target="_blank"
                   rel="noreferrer"
+                  aria-label="Get Directions to Ananke Laundry on Google Maps"
                   className="bg-white hover:bg-gray-50 border border-gray-300 text-dark px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold flex items-center justify-center gap-1.5 transition-colors shadow-sm text-center"
                 >
-                  <Navigation size={14} className="text-olive" /> Directions
+                  <Navigation size={14} className="text-olive" aria-hidden="true" /> Directions
                 </a>
               </div>
             </div>
@@ -339,33 +342,37 @@ export default function Contact() {
                     className="hidden"
                     tabIndex={-1}
                     autoComplete="off"
+                    aria-hidden="true"
                   />
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-xs font-semibold text-gray-700 mb-1.5">
+                      <label htmlFor="contact-name" className="block text-xs font-semibold text-gray-700 mb-1.5">
                         {formMode === 'commercial' ? 'Contact Person *' : 'Your Name *'}
                       </label>
                       <input
+                        id="contact-name"
                         type="text"
                         {...register('name')}
                         placeholder="e.g. John Perera"
+                        aria-required="true"
                         className={`w-full rounded-xl border px-4 py-3 text-base focus:ring-2 focus:ring-olive/30 focus:border-olive outline-none transition-all ${
                           errors.name ? 'border-red-400 bg-red-50/30' : 'border-gray-200'
                         }`}
                       />
                       {errors.name && (
                         <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
-                          <AlertCircle size={12} /> {errors.name.message}
+                          <AlertCircle size={12} aria-hidden="true" /> {errors.name.message}
                         </p>
                       )}
                     </div>
 
                     <div>
-                      <label className="block text-xs font-semibold text-gray-700 mb-1.5">
+                      <label htmlFor="contact-business-name" className="block text-xs font-semibold text-gray-700 mb-1.5">
                         {formMode === 'commercial' ? 'Business / Hotel Name *' : 'Business Name (Optional)'}
                       </label>
                       <input
+                        id="contact-business-name"
                         type="text"
                         {...register('businessName')}
                         placeholder={formMode === 'commercial' ? 'e.g. Unawatuna Bay Resort' : 'e.g. Villa or Residence'}
@@ -376,41 +383,45 @@ export default function Contact() {
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-xs font-semibold text-gray-700 mb-1.5">
+                      <label htmlFor="contact-phone" className="block text-xs font-semibold text-gray-700 mb-1.5">
                         Phone Number *
                       </label>
                       <input
+                        id="contact-phone"
                         type="tel"
                         inputMode="tel"
                         {...register('phone')}
                         placeholder="07X XXX XXXX / 091 XXX XXXX"
+                        aria-required="true"
                         className={`w-full rounded-xl border px-4 py-3 text-base focus:ring-2 focus:ring-olive/30 focus:border-olive outline-none transition-all ${
                           errors.phone ? 'border-red-400 bg-red-50/30' : 'border-gray-200'
                         }`}
                       />
                       {errors.phone && (
                         <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
-                          <AlertCircle size={12} /> {errors.phone.message}
+                          <AlertCircle size={12} aria-hidden="true" /> {errors.phone.message}
                         </p>
                       )}
                     </div>
 
                     <div>
-                      <label className="block text-xs font-semibold text-gray-700 mb-1.5">
+                      <label htmlFor="contact-email" className="block text-xs font-semibold text-gray-700 mb-1.5">
                         Email Address *
                       </label>
                       <input
+                        id="contact-email"
                         type="email"
                         inputMode="email"
                         {...register('email')}
                         placeholder="contact@hotel.com"
+                        aria-required="true"
                         className={`w-full rounded-xl border px-4 py-3 text-base focus:ring-2 focus:ring-olive/30 focus:border-olive outline-none transition-all ${
                           errors.email ? 'border-red-400 bg-red-50/30' : 'border-gray-200'
                         }`}
                       />
                       {errors.email && (
                         <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
-                          <AlertCircle size={12} /> {errors.email.message}
+                          <AlertCircle size={12} aria-hidden="true" /> {errors.email.message}
                         </p>
                       )}
                     </div>
@@ -420,10 +431,11 @@ export default function Contact() {
                   {formMode === 'commercial' && (
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-xs font-semibold text-gray-700 mb-1.5">
+                        <label htmlFor="contact-property-type" className="block text-xs font-semibold text-gray-700 mb-1.5">
                           Property Type
                         </label>
                         <select
+                          id="contact-property-type"
                           {...register('propertyType')}
                           className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm focus:ring-2 focus:ring-olive/30 focus:border-olive outline-none transition-all bg-white text-gray-700"
                         >
@@ -439,10 +451,11 @@ export default function Contact() {
                       </div>
 
                       <div>
-                        <label className="block text-xs font-semibold text-gray-700 mb-1.5">
+                        <label htmlFor="contact-frequency" className="block text-xs font-semibold text-gray-700 mb-1.5">
                           Service Frequency
                         </label>
                         <select
+                          id="contact-frequency"
                           {...register('frequency')}
                           className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm focus:ring-2 focus:ring-olive/30 focus:border-olive outline-none transition-all bg-white text-gray-700"
                         >
@@ -460,11 +473,13 @@ export default function Contact() {
                   {/* Service Selection & Volume */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-xs font-semibold text-gray-700 mb-1.5">
+                      <label htmlFor="contact-service-required" className="block text-xs font-semibold text-gray-700 mb-1.5">
                         Service Required *
                       </label>
                       <select
+                        id="contact-service-required"
                         {...register('serviceRequired')}
+                        aria-required="true"
                         className={`w-full rounded-xl border px-4 py-3 text-sm focus:ring-2 focus:ring-olive/30 focus:border-olive outline-none transition-all bg-white ${
                           errors.serviceRequired ? 'border-red-400 bg-red-50/30' : 'border-gray-200 text-gray-700'
                         }`}
@@ -480,17 +495,18 @@ export default function Contact() {
                       </select>
                       {errors.serviceRequired && (
                         <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
-                          <AlertCircle size={12} /> {errors.serviceRequired.message}
+                          <AlertCircle size={12} aria-hidden="true" /> {errors.serviceRequired.message}
                         </p>
                       )}
                     </div>
 
                     <div>
-                      <label className="block text-xs font-semibold text-gray-700 mb-1.5">
+                      <label htmlFor={formMode === 'commercial' ? 'contact-laundry-type' : 'contact-laundry-volume'} className="block text-xs font-semibold text-gray-700 mb-1.5">
                         {formMode === 'commercial' ? 'Linen / Laundry Types' : 'Estimated Volume'}
                       </label>
                       {formMode === 'commercial' ? (
                         <select
+                          id="contact-laundry-type"
                           {...register('laundryType')}
                           className="w-full rounded-xl border border-gray-200 px-4 py-3 text-base focus:ring-2 focus:ring-olive/30 focus:border-olive outline-none transition-all bg-white text-gray-700"
                         >
@@ -503,6 +519,7 @@ export default function Contact() {
                         </select>
                       ) : (
                         <select
+                          id="contact-laundry-volume"
                           {...register('laundryVolume')}
                           className="w-full rounded-xl border border-gray-200 px-4 py-3 text-base focus:ring-2 focus:ring-olive/30 focus:border-olive outline-none transition-all bg-white text-gray-700"
                         >
@@ -518,10 +535,11 @@ export default function Contact() {
                   {formMode === 'commercial' && (
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-xs font-semibold text-gray-700 mb-1.5">
+                        <label htmlFor="contact-commercial-volume" className="block text-xs font-semibold text-gray-700 mb-1.5">
                           Estimated Volume / Batch
                         </label>
                         <select
+                          id="contact-commercial-volume"
                           {...register('laundryVolume')}
                           className="w-full rounded-xl border border-gray-200 px-4 py-3 text-base focus:ring-2 focus:ring-olive/30 focus:border-olive outline-none transition-all bg-white text-gray-700"
                         >
@@ -533,10 +551,11 @@ export default function Contact() {
                       </div>
 
                       <div>
-                        <label className="block text-xs font-semibold text-gray-700 mb-1.5">
+                        <label htmlFor="contact-address" className="block text-xs font-semibold text-gray-700 mb-1.5">
                           Property Address / Location
                         </label>
                         <input
+                          id="contact-address"
                           type="text"
                           {...register('address')}
                           placeholder="e.g. Yaddehimulla Road, Unawatuna"
@@ -547,12 +566,14 @@ export default function Contact() {
                   )}
 
                   <div>
-                    <label className="block text-xs font-semibold text-gray-700 mb-1.5">
+                    <label htmlFor="contact-message" className="block text-xs font-semibold text-gray-700 mb-1.5">
                       Message / Specific Requirements *
                     </label>
                     <textarea
+                      id="contact-message"
                       rows={formMode === 'commercial' ? 3 : 4}
                       {...register('message')}
+                      aria-required="true"
                       placeholder={
                         formMode === 'commercial'
                           ? 'Please describe your room count, linen rotation requirements, or specific pickup preferences...'
@@ -564,7 +585,7 @@ export default function Contact() {
                     />
                     {errors.message && (
                       <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
-                        <AlertCircle size={12} /> {errors.message.message}
+                        <AlertCircle size={12} aria-hidden="true" /> {errors.message.message}
                       </p>
                     )}
                   </div>

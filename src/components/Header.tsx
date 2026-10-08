@@ -130,7 +130,7 @@ export default function Header() {
     >
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between">
-          <Link href="/" className="flex-shrink-0 relative z-50" onClick={closeMenu}>
+          <Link href="/" aria-label="Ananke Laundry Home" className="flex-shrink-0 relative z-50" onClick={closeMenu}>
             <div className="relative h-[44px] w-[140px] md:h-[56px] md:w-[180px]">
               <Image
                 src="/logo.png"
@@ -155,7 +155,7 @@ export default function Header() {
                     isActive ? 'text-accent font-semibold' : 'text-white/90 hover:text-accent'
                   } ${isBill ? 'text-accent/95 hover:text-white' : ''}`}
                 >
-                  {isBill && <Receipt size={13} className="text-accent" />}
+                  {isBill && <Receipt size={13} className="text-accent" aria-hidden="true" />}
                   <span>{link.name}</span>
                   <span
                     className={`absolute -bottom-1 left-0 w-full h-0.5 bg-accent transition-transform origin-left ${
@@ -173,7 +173,7 @@ export default function Header() {
               href="tel:+94912250777"
               className="flex items-center gap-1.5 text-white/90 hover:text-accent text-sm font-medium px-2 py-2 transition-colors"
             >
-              <Phone size={14} className="text-accent" />
+              <Phone size={14} className="text-accent" aria-hidden="true" />
               <span>091 225 0777</span>
             </a>
             <button
@@ -181,7 +181,7 @@ export default function Header() {
               onClick={openOrderModal}
               className="bg-gradient-to-r from-emerald-600 via-emerald-500 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white font-bold px-4 py-2.5 rounded-full transition-all duration-300 text-sm shadow-[0_4px_15px_rgba(16,185,129,0.35)] hover:shadow-[0_6px_20px_rgba(16,185,129,0.5)] flex items-center gap-1.5 cursor-pointer active:scale-95"
             >
-              <Sparkles size={14} className="text-accent" />
+              <Sparkles size={14} className="text-accent" aria-hidden="true" />
               <span>{t('nav.placeOrder', 'Place an Order')}</span>
             </button>
             <Link
@@ -203,16 +203,19 @@ export default function Header() {
               aria-controls="mobile-nav"
             >
               <span
+                aria-hidden="true"
                 className={`w-5 h-0.5 bg-accent rounded-full transition-all duration-300 transform origin-center ${
                   isMenuOpen ? 'rotate-45 translate-y-2' : ''
                 }`}
               />
               <span
+                aria-hidden="true"
                 className={`w-3.5 h-0.5 bg-white rounded-full transition-all duration-300 self-end mr-3 ${
                   isMenuOpen ? 'opacity-0 translate-x-2' : ''
                 }`}
               />
               <span
+                aria-hidden="true"
                 className={`w-5 h-0.5 bg-accent rounded-full transition-all duration-300 transform origin-center ${
                   isMenuOpen ? '-rotate-45 -translate-y-2' : ''
                 }`}
@@ -237,14 +240,14 @@ export default function Header() {
             <div className="pt-20 px-5 pb-3 border-b border-white/10 flex items-center justify-between shrink-0 bg-gradient-to-b from-[#07150d] to-transparent">
               <div className="flex items-center gap-2.5">
                 <div className="w-8 h-8 rounded-xl bg-accent/20 border border-accent/30 flex items-center justify-center">
-                  <Sparkles size={16} className="text-accent" />
+                  <Sparkles size={16} className="text-accent" aria-hidden="true" />
                 </div>
                 <div>
                   <div className="text-xs font-heading tracking-widest uppercase text-accent font-semibold">
                     ANANKE WASHING PLANT
                   </div>
                   <div className="flex items-center gap-1.5 text-[11px] text-white/70">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" aria-hidden="true" />
                     <span>Unawatuna • Open 8AM – 8PM</span>
                   </div>
                 </div>
@@ -257,7 +260,7 @@ export default function Header() {
                 aria-label="Close menu"
                 className="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 active:scale-95 border border-white/15 flex items-center justify-center text-white/80 hover:text-white transition-colors cursor-pointer"
               >
-                <X size={18} />
+                <X size={18} aria-hidden="true" />
               </button>
             </div>
 
@@ -274,11 +277,11 @@ export default function Header() {
                 onClick={closeMenu}
                 className="group block relative overflow-hidden rounded-2xl p-4 bg-gradient-to-br from-emerald-600/30 via-emerald-800/40 to-primary border border-emerald-400/30 shadow-lg hover:border-emerald-400/60 active:scale-[0.98] transition-all"
               >
-                <div className="absolute -right-6 -bottom-6 w-24 h-24 bg-accent/10 rounded-full blur-xl pointer-events-none" />
+                <div className="absolute -right-6 -bottom-6 w-24 h-24 bg-accent/10 rounded-full blur-xl pointer-events-none" aria-hidden="true" />
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-emerald-500 to-accent text-dark flex items-center justify-center shadow-md">
-                      <Receipt size={22} className="text-dark font-bold" />
+                      <Receipt size={22} className="text-dark font-bold" aria-hidden="true" />
                     </div>
                     <div>
                       <div className="flex items-center gap-2">
@@ -294,7 +297,7 @@ export default function Header() {
                       </p>
                     </div>
                   </div>
-                  <ChevronRight size={18} className="text-accent group-hover:translate-x-1 transition-transform shrink-0" />
+                  <ChevronRight size={18} className="text-accent group-hover:translate-x-1 transition-transform shrink-0" aria-hidden="true" />
                 </div>
               </Link>
 
@@ -327,7 +330,7 @@ export default function Header() {
                               : 'bg-white/10 text-accent group-hover:bg-accent group-hover:text-dark'
                           }`}
                         >
-                          <Icon size={18} />
+                          <Icon size={18} aria-hidden="true" />
                         </div>
                         <div className="min-w-0">
                           <div className="flex items-center gap-2">
@@ -339,7 +342,7 @@ export default function Header() {
                               {item.name}
                             </span>
                             {isActive && (
-                              <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
+                              <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" aria-hidden="true" />
                             )}
                           </div>
                           <p className="text-[11px] text-white/60 truncate">
@@ -349,6 +352,7 @@ export default function Header() {
                       </div>
                       <ChevronRight
                         size={16}
+                        aria-hidden="true"
                         className={`shrink-0 transition-transform ${
                           isActive
                             ? 'text-accent'
@@ -373,7 +377,7 @@ export default function Header() {
                   }}
                   className="bg-emerald-950/80 hover:bg-emerald-900 text-emerald-200 font-bold text-xs px-4 py-2.5 rounded-2xl w-full flex items-center justify-center gap-2 border border-emerald-500/30 active:scale-[0.98] transition-transform cursor-pointer"
                 >
-                  <Download size={14} className="text-accent" />
+                  <Download size={14} className="text-accent" aria-hidden="true" />
                   <span>{t('pwa.install', 'Install Mobile App (PWA)')}</span>
                 </button>
               )}
@@ -387,9 +391,9 @@ export default function Header() {
                 }}
                 className="w-full bg-gradient-to-r from-emerald-500 via-emerald-600 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white font-bold text-sm py-3.5 px-4 rounded-2xl shadow-[0_4px_20px_rgba(16,185,129,0.35)] flex items-center justify-center gap-2 active:scale-[0.98] transition-all cursor-pointer"
               >
-                <Sparkles size={16} className="text-accent" />
+                <Sparkles size={16} className="text-accent" aria-hidden="true" />
                 <span>{t('hero.ctaOrder', 'Place an Order (WhatsApp)')}</span>
-                <ArrowRight size={14} className="ml-1 opacity-80" />
+                <ArrowRight size={14} className="ml-1 opacity-80" aria-hidden="true" />
               </button>
 
               {/* Dual Contact & Directions Hotline */}
@@ -398,7 +402,7 @@ export default function Header() {
                   href="tel:+94912250777"
                   className="flex items-center justify-center gap-2 bg-white/10 hover:bg-white/15 text-white/90 text-xs font-semibold py-2.5 px-3 rounded-xl border border-white/10 transition-colors active:scale-95"
                 >
-                  <Phone size={13} className="text-accent shrink-0" />
+                  <Phone size={13} className="text-accent shrink-0" aria-hidden="true" />
                   <span>091 225 0777</span>
                 </a>
                 <a
@@ -407,7 +411,7 @@ export default function Header() {
                   rel="noopener noreferrer"
                   className="flex items-center justify-center gap-2 bg-white/10 hover:bg-white/15 text-white/90 text-xs font-semibold py-2.5 px-3 rounded-xl border border-white/10 transition-colors active:scale-95"
                 >
-                  <MapPin size={13} className="text-accent shrink-0" />
+                  <MapPin size={13} className="text-accent shrink-0" aria-hidden="true" />
                   <span>{t('fab.directions', 'Directions')}</span>
                 </a>
               </div>

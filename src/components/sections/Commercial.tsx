@@ -55,7 +55,7 @@ export default function Commercial() {
       <div className="container mx-auto px-4 md:px-6 relative z-10">
         <div className="max-w-3xl mb-16 text-center md:text-left">
           <span className="inline-flex items-center gap-2 bg-white/10 text-accent font-semibold tracking-wider text-xs uppercase px-3.5 py-1.5 rounded-full mb-3 border border-white/15">
-            <Layers size={13} />
+            <Layers size={13} aria-hidden="true" />
             HOSPITALITY &amp; B2B SOLUTIONS
           </span>
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold font-heading mb-5 leading-tight">
@@ -84,8 +84,8 @@ export default function Commercial() {
           </div>
 
           {/* Edge Gradient Fades for Luxury Vignette Effect */}
-          <div className="absolute left-0 top-10 bottom-0 w-12 sm:w-24 bg-gradient-to-r from-primary via-primary/80 to-transparent z-10 pointer-events-none" />
-          <div className="absolute right-0 top-10 bottom-0 w-12 sm:w-24 bg-gradient-to-l from-primary via-primary/80 to-transparent z-10 pointer-events-none" />
+          <div className="absolute left-0 top-10 bottom-0 w-12 sm:w-24 bg-gradient-to-r from-primary via-primary/80 to-transparent z-10 pointer-events-none" aria-hidden="true" />
+          <div className="absolute right-0 top-10 bottom-0 w-12 sm:w-24 bg-gradient-to-l from-primary via-primary/80 to-transparent z-10 pointer-events-none" aria-hidden="true" />
 
           {/* Continuous Auto-Scrolling Track */}
           <div className="overflow-hidden py-3">
@@ -104,7 +104,7 @@ export default function Commercial() {
                 >
                   <div>
                     <div className="w-11 h-11 rounded-xl bg-accent/15 text-accent flex items-center justify-center mb-3.5 border border-accent/30 group-hover:bg-accent group-hover:text-primary transition-all shadow-inner">
-                      <client.icon className="w-5 h-5 transition-colors" />
+                      <client.icon className="w-5 h-5 transition-colors" aria-hidden="true" />
                     </div>
                     <h4 className="font-heading font-semibold text-base sm:text-lg text-white mb-1.5 group-hover:text-accent transition-colors">
                       {client.name}
@@ -152,13 +152,13 @@ export default function Commercial() {
             </p>
             <div className="flex flex-wrap items-center justify-center lg:justify-start gap-4 text-xs sm:text-sm text-white/90">
               <span className="flex items-center gap-2">
-                <CheckCircle2 size={16} className="text-accent" /> Consistent Hospitality Hygiene
+                <CheckCircle2 size={16} className="text-accent" aria-hidden="true" /> Consistent Hospitality Hygiene
               </span>
               <span className="flex items-center gap-2">
-                <CheckCircle2 size={16} className="text-accent" /> Cleanline Linen Management Network
+                <CheckCircle2 size={16} className="text-accent" aria-hidden="true" /> Cleanline Linen Management Network
               </span>
               <span className="flex items-center gap-2">
-                <CheckCircle2 size={16} className="text-accent" /> Convenient Unawatuna Location
+                <CheckCircle2 size={16} className="text-accent" aria-hidden="true" /> Convenient Unawatuna Location
               </span>
             </div>
           </div>
@@ -166,16 +166,18 @@ export default function Commercial() {
           <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto shrink-0">
             <a
               href="#contact"
+              aria-label="Request a Commercial Laundry Quote"
               className="bg-accent hover:bg-olive text-dark hover:text-white font-bold px-7 py-4 rounded-full transition-all duration-300 flex items-center justify-center gap-2 text-sm sm:text-base shadow-lg hover:shadow-accent/25 hover:scale-[1.02] text-center"
             >
-              <FileText className="w-5 h-5" />
+              <FileText className="w-5 h-5" aria-hidden="true" />
               Request a Commercial Laundry Quote
             </a>
             <a
               href="tel:+94912250777"
+              aria-label="Call Ananke Laundry at 091 225 0777"
               className="bg-white/10 hover:bg-white/20 border border-white/25 text-white font-semibold px-6 py-4 rounded-full transition-colors flex items-center justify-center gap-2 text-sm sm:text-base text-center"
             >
-              <Phone className="w-4 h-4 text-accent" />
+              <Phone className="w-4 h-4 text-accent" aria-hidden="true" />
               091 225 0777
             </a>
           </div>

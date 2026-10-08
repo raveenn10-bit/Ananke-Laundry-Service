@@ -53,18 +53,23 @@ export default function FAQ() {
           {faqs.map((faq, idx) => (
             <div key={idx} className="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-200/70">
               <button
+                id={`faq-btn-${idx}`}
                 onClick={() => setOpenIndex(openIndex === idx ? null : idx)}
                 className="w-full px-6 py-5 text-left flex justify-between items-center focus:outline-none group cursor-pointer"
                 aria-expanded={openIndex === idx}
+                aria-controls={`faq-answer-${idx}`}
               >
                 <span className="font-semibold text-dark text-sm sm:text-base pr-4 group-hover:text-olive transition-colors">
                   {faq.q}
                 </span>
-                <ChevronDown className={`w-5 h-5 text-olive transition-transform duration-300 shrink-0 ${openIndex === idx ? 'rotate-180' : ''}`} />
+                <ChevronDown aria-hidden="true" className={`w-5 h-5 text-olive transition-transform duration-300 shrink-0 ${openIndex === idx ? 'rotate-180' : ''}`} />
               </button>
               <AnimatePresence>
                 {openIndex === idx && (
                   <motion.div
+                    id={`faq-answer-${idx}`}
+                    role="region"
+                    aria-labelledby={`faq-btn-${idx}`}
                     initial={{ height: 0, opacity: 0 }}
                     animate={{ height: 'auto', opacity: 1 }}
                     exit={{ height: 0, opacity: 0 }}

@@ -39,7 +39,7 @@ export default function LanguageSwitcher({
       <div className={`w-full ${className}`}>
         <div className="flex items-center justify-between mb-2 px-1">
           <span className="text-xs uppercase tracking-wider text-white/60 font-semibold flex items-center gap-1.5">
-            <Globe size={13} className="text-accent" />
+            <Globe size={13} className="text-accent" aria-hidden="true" />
             Language / භාෂාව
           </span>
           <span className="text-xs text-accent font-medium">{activeLang.nativeName}</span>
@@ -58,8 +58,10 @@ export default function LanguageSwitcher({
                     : 'text-white/80 hover:text-white hover:bg-white/10'
                 }`}
                 title={item.label}
+                aria-label={item.label}
+                aria-pressed={isSelected}
               >
-                <span className="text-base sm:text-lg leading-none mb-1">{item.flag}</span>
+                <span className="text-base sm:text-lg leading-none mb-1" aria-hidden="true">{item.flag}</span>
                 <span className="text-[11px] uppercase tracking-wide leading-none">
                   {item.code}
                 </span>
@@ -79,12 +81,14 @@ export default function LanguageSwitcher({
         onClick={() => setIsOpen(!isOpen)}
         aria-label="Change Language"
         aria-expanded={isOpen}
+        aria-haspopup="true"
         className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white border border-white/20 text-xs font-semibold backdrop-blur-md transition-all duration-200 cursor-pointer active:scale-95"
       >
-        <span className="text-sm leading-none">{activeLang.flag}</span>
+        <span className="text-sm leading-none" aria-hidden="true">{activeLang.flag}</span>
         <span className="uppercase text-[11px] tracking-wider">{activeLang.code}</span>
         <ChevronDown
           size={12}
+          aria-hidden="true"
           className={`transition-transform duration-200 text-white/70 ${isOpen ? 'rotate-180' : ''}`}
         />
       </button>
@@ -96,10 +100,12 @@ export default function LanguageSwitcher({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 6, scale: 0.95 }}
             transition={{ duration: 0.15 }}
+            role="menu"
+            aria-label="Language selection"
             className="absolute right-0 mt-2 w-48 bg-[#163824]/98 backdrop-blur-2xl border border-white/20 rounded-2xl shadow-2xl p-1.5 z-50 overflow-hidden"
           >
             <div className="px-2.5 py-1.5 text-[10px] uppercase tracking-wider text-accent font-bold border-b border-white/10 mb-1 flex items-center gap-1.5">
-              <Globe size={11} />
+              <Globe size={11} aria-hidden="true" />
               Select Language
             </div>
             <div className="flex flex-col gap-0.5">
@@ -109,6 +115,8 @@ export default function LanguageSwitcher({
                   <button
                     key={item.code}
                     type="button"
+                    role="menuitem"
+                    aria-label={`Select ${item.label} (${item.nativeName})`}
                     onClick={() => {
                       setLanguage(item.code);
                       setIsOpen(false);
@@ -120,7 +128,7 @@ export default function LanguageSwitcher({
                     }`}
                   >
                     <div className="flex items-center gap-2">
-                      <span className="text-base">{item.flag}</span>
+                      <span className="text-base" aria-hidden="true">{item.flag}</span>
                       <div className="text-left">
                         <div className="leading-tight">{item.nativeName}</div>
                         <div
@@ -132,7 +140,7 @@ export default function LanguageSwitcher({
                         </div>
                       </div>
                     </div>
-                    {isSelected && <Check size={14} className="stroke-[3]" />}
+                    {isSelected && <Check size={14} className="stroke-[3]" aria-hidden="true" />}
                   </button>
                 );
               })}
